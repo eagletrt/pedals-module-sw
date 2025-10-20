@@ -1,0 +1,20 @@
+digraph "pedals_fsm" {
+	init
+	idle
+	flash
+	pause
+	error
+
+	init -> idle [label="init_completed"]
+	idle -> idle
+	idle -> flash [label="initiate_flash"]
+	flash -> flash
+	flash -> idle
+	idle -> pause [label="save_parameters"]
+	pause -> idle
+	init -> error
+	idle -> error
+	flash -> error
+	pause -> error
+	error -> error
+}
