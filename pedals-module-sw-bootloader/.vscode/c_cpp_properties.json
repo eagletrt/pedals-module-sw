@@ -1,0 +1,49 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
+{
+    "configurations": [
+        {
+            "name": "PlatformIO",
+            "includePath": [
+                "/home/wigosas/Scrivania/pedals-module-sw/pedals-module-sw-bootloader/Core/Inc",
+                "/home/wigosas/Scrivania/pedals-module-sw/pedals-module-sw-bootloader/Core/Src",
+                "/home/wigosas/Scrivania/pedals-module-sw/pedals-module-sw-bootloader/Drivers/STM32F1xx_HAL_Driver/Inc",
+                "/home/wigosas/Scrivania/pedals-module-sw/pedals-module-sw-bootloader/Drivers/STM32F1xx_HAL_Driver/Inc/Legacy",
+                "/home/wigosas/Scrivania/pedals-module-sw/pedals-module-sw-bootloader/Drivers/CMSIS/Device/ST/STM32F1xx/Include",
+                "/home/wigosas/Scrivania/pedals-module-sw/pedals-module-sw-bootloader/Drivers/CMSIS/Include",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "/home/wigosas/Scrivania/pedals-module-sw/pedals-module-sw-bootloader/Core/Inc",
+                    "/home/wigosas/Scrivania/pedals-module-sw/pedals-module-sw-bootloader/Core/Src",
+                    "/home/wigosas/Scrivania/pedals-module-sw/pedals-module-sw-bootloader/Drivers/STM32F1xx_HAL_Driver/Inc",
+                    "/home/wigosas/Scrivania/pedals-module-sw/pedals-module-sw-bootloader/Drivers/STM32F1xx_HAL_Driver/Inc/Legacy",
+                    "/home/wigosas/Scrivania/pedals-module-sw/pedals-module-sw-bootloader/Drivers/CMSIS/Device/ST/STM32F1xx/Include",
+                    "/home/wigosas/Scrivania/pedals-module-sw/pedals-module-sw-bootloader/Drivers/CMSIS/Include",
+                    ""
+                ]
+            },
+            "defines": [
+                "F_CPU=16000000L",
+                "PLATFORMIO=60118",
+                "STM32F103xB",
+                "STM32F1",
+                "USE_HAL_DRIVERS",
+                "STM32F103xB",
+                ""
+            ],
+            "compilerPath": "/home/wigosas/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc",
+            "compilerArgs": [
+                "-mthumb",
+                "-mcpu=cortex-m3",
+                ""
+            ]
+        }
+    ],
+    "version": 4
+}

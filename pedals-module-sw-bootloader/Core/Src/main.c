@@ -95,6 +95,7 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
+  BootInit();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -104,6 +105,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    BootTask();
   }
   /* USER CODE END 3 */
 }
