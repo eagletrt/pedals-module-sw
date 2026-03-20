@@ -424,3 +424,4 @@ STM32Make.make
 ## miscellaneous
 extra/
 additional_info/
+fsm_work/
