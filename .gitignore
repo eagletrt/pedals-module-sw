@@ -425,3 +425,4 @@ STM32Make.make
 extra/
 additional_info/
 fsm_work/
+.vscode/
