@@ -5,7 +5,7 @@
 *   C P U   D R I V E R   C O N F I G U R A T I O N
 ****************************************************************************************/
 /* External crystal frequency (if you only use HSI = 8 MHz, just leave at 8000). */
-#define BOOT_CPU_XTAL_SPEED_KHZ (8000) // have to check oscillator frew
+#define BOOT_CPU_XTAL_SPEED_KHZ (8000) // have to check oscillator freq
 
 /* System clock frequency (typical STM32C0 max ~48 MHz). */
 #define BOOT_CPU_SYSTEM_SPEED_KHZ (8000) // probably same as oscillator
@@ -21,7 +21,7 @@
 ****************************************************************************************/
 /* CAN communication (C0 has FDCAN). */
 #define BOOT_COM_CAN_ENABLE (1)
-#define BOOT_COM_CAN_BAUDRATE (500000) /* pick what matches your bus */
+#define BOOT_COM_CAN_BAUDRATE (1000000) /* pick what matches your bus */
 #define BOOT_COM_CAN_TX_MSG_ID (0x17u)
 #define BOOT_COM_CAN_TX_MAX_DATA (8)
 #define BOOT_COM_CAN_RX_MSG_ID (0x18u)
