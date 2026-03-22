@@ -94,8 +94,11 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  BootInit();
   while (1)
   {
+	BootTask();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
