@@ -7,4 +7,4 @@ float brake_get_front_pressure();
 
 float brake_get_rear_pressure();
 
-#endif BRAKE_API_H
+#endif //BRAKE_API_H

@@ -3,4 +3,4 @@
 
 void bots_triggered(void);
 
-#endif BOTS_API_H
+#endif //BOTS_API_H

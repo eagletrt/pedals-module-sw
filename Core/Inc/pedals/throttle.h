@@ -20,4 +20,4 @@ enum ThrottleStatus {
 	THROTTLE_STATUS_BAD
 };
 
-#endif THROTTLE_H
+#endif //THROTTLE_H

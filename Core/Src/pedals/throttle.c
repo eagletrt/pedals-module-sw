@@ -2,13 +2,54 @@
 #include "throttle-api.h"
 #include "adc_reading.h"
 
-#include "math.h"
+#include "stdlib.h"
 #include "stdbool.h"
 
 float last_throttle_value = 0.0;
 
 //used for timer mocking
 int time = 0;
+
+// internal functions ---------------------------------------
+
+bool is_perc_valid(float val){
+	return val - 100.0 < APPS_EPSILON && val < -APPS_EPSILON;
+}
+
+bool is_within_plausibility(float val_1, float val_2) {
+	return abs(val_1 - val_2) < APPS_IMPLAUSIBILITY_PERCENTAGE + APPS_EPSILON;
+}
+
+
+// mock logic
+float get_result_implausibility (enum ThrottleStatus* status) {
+	time++;
+	float result;
+	if(time > APPS_MAX_IMPLAUSIBILITY_TIME) {
+		*status = THROTTLE_STATUS_BAD;
+		result = 0.0;
+		last_throttle_value = 0.0;
+	} else {
+		*status = THROTTLE_STATUS_INSTABLE;
+		result = last_throttle_value;
+	}
+	return result;
+} 
+
+float get_result_valid(enum ThrottleStatus* status, bool is_valid[], int n_valid, float percentages[]) {
+	time = 0;
+	float result = 0.0;
+
+	for(int i=0; i<APPS_NUMBER; i++){
+		result = is_valid[i] ? result + percentages[i] : result;
+	}
+
+	last_throttle_value = result / n_valid;
+
+	return last_throttle_value;
+}
+
+// actual api ---------------------------------------
 
 float throttle_get_percentage(enum ThrottleStatus* status) {
 
@@ -49,41 +90,4 @@ float throttle_get_percentage(enum ThrottleStatus* status) {
 
 	return result;
 
-}
-
-bool is_perc_valid(float val){
-	return val - 100.0 < APPS_EPSILON && val < -APPS_EPSILON;
-}
-
-bool is_within_plausibility(float val_1, float val_2) {
-	return abs(val_1 - val_2) < APPS_IMPLAUSIBILITY_PERCENTAGE + APPS_EPSILON;
-}
-
-
-// mock logic
-float get_result_implausibility (enum ThrottleStatus* status) {
-	time++;
-	float result;
-	if(time > APPS_MAX_IMPLAUSIBILITY_TIME) {
-		*status = THROTTLE_STATUS_BAD;
-		result = 0.0;
-		last_throttle_value = 0.0;
-	} else {
-		*status = THROTTLE_STATUS_INSTABLE;
-		result = last_throttle_value;
-	}
-	return result;
-} 
-
-float get_result_valid(enum ThrottleStatus* status, bool is_valid[], int n_valid, float percentages[]) {
-	time = 0;
-	float result = 0.0;
-
-	for(int i=0; i<APPS_NUMBER; i++){
-		result = is_valid[i] ? result + percentages[i] : result;
-	}
-
-	last_throttle_value = result / n_valid;
-
-	return last_throttle_value;
 }

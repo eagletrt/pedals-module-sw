@@ -5,4 +5,4 @@
 
 float throttle_get_percentage(enum ThrottleStatus* status);
 
-#endif THROTTLE_API_H
+#endif //THROTTLE_API_H

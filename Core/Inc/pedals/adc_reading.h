@@ -1,8 +1,8 @@
 #ifndef ADC_READING_H
 #define ADC_READING_H
 
-// this array will be used to collect data from the adc module
-int adc_reading_raw_data[ADC_READING_SENSOR_NAME_NUMBER_OF_SENSORS];
+#include "stdint.h"
+#include "eagletrt-api.h"
 
 enum ADCReadingSensorName {
 	ADC_READING_SENSOR_NAME_SENSE_5V,
@@ -15,8 +15,11 @@ enum ADCReadingSensorName {
 	ADC_READING_SENSOR_NAME_NUMBER_OF_SENSORS
 };
 
-int adc_reading_read_raw(enum ADCReadingSensorName sensor);
+// this array will be used to collect data from the adc module
+EAGLETRT_STATIC int32_t adc_reading_raw_data[ADC_READING_SENSOR_NAME_NUMBER_OF_SENSORS];
 
-float adc_reading_return_percentage(enum ADCReadingSensorName sensor, int normal_min, int normal_max);
+int32_t adc_reading_read_raw(enum ADCReadingSensorName sensor);
 
-#endif ADC_READING_H
+float adc_reading_return_percentage(enum ADCReadingSensorName sensor, int32_t normal_min, int32_t normal_max);
+
+#endif //ADC_READING_H
