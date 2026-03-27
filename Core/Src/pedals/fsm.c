@@ -14,6 +14,7 @@ The finite state machine has:
 ******************************************************************************/
 
 #include "fsm.h"
+#include "eagletrt-api.h"
 
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!
 
@@ -48,6 +49,8 @@ state_func_t *const state_table[NUM_STATES] = {
 state_t do_init(state_data_t *data) {
   state_t next_state = STATE_IDLE;
   /* Your Code Here */
+
+  EAGLETRT_API_UNUSED(data);
   
   switch (next_state) {
   case STATE_IDLE:
@@ -66,6 +69,8 @@ state_t do_init(state_data_t *data) {
 state_t do_idle(state_data_t *data) {
   state_t next_state = NO_CHANGE;
   /* Your Code Here */
+
+  EAGLETRT_API_UNUSED(data);
   
   switch (next_state) {
   case NO_CHANGE:
@@ -86,6 +91,8 @@ state_t do_idle(state_data_t *data) {
 state_t do_error(state_data_t *data) {
   state_t next_state = NO_CHANGE;
   /* Your Code Here */
+
+  EAGLETRT_API_UNUSED(data);
   
   switch (next_state) {
   case NO_CHANGE:
@@ -104,6 +111,8 @@ state_t do_error(state_data_t *data) {
 state_t do_flash(state_data_t *data) {
   state_t next_state = NO_CHANGE;
   /* Your Code Here */
+
+  EAGLETRT_API_UNUSED(data);
   
   switch (next_state) {
   case NO_CHANGE:
@@ -140,7 +149,7 @@ state_t run_state(state_t cur_state, state_data_t *data) {
   if (new_state == NO_CHANGE) new_state = cur_state;
 
   return new_state;
-};
+}
 
 
 
