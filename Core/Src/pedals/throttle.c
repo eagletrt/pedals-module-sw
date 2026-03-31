@@ -4,8 +4,6 @@
 
 #include "test_definitions.h"
 
-#include "stdio.h"
-
 EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
 	.is_changed_to_implausible = false,
 	.last_throttle_value = 0.0,
@@ -69,7 +67,6 @@ float throttle_get_percentage() {
 
 	bool perc_is_valid[APPS_NUMBER];
 	int valid_sensors = 0;
-	//printf("apps1:%f-apps2:%f-apps3:%f",percentages[0],percentages[1],percentages[2]);
 
 	// check if it's in range [0,1] as per T 11.9.2
 	for (int i=0; i<APPS_NUMBER; i++){
@@ -77,14 +74,12 @@ float throttle_get_percentage() {
 		valid_sensors = perc_is_valid[i] ? valid_sensors + 1 : valid_sensors;
 	}
 
-	//printf("apps1:%d-apps2:%d-apps3:%d-valid:%d",perc_is_valid[0],perc_is_valid[1],perc_is_valid[2],valid_sensors);
 
 	// check if every pair has less than 10% difference
 	bool perc_1_2_is_plausible = is_within_plausibility(percentages[0], percentages[1]);
 	bool perc_1_3_is_plausible = is_within_plausibility(percentages[0], percentages[2]);
 	bool perc_2_3_is_plausible = is_within_plausibility(percentages[1], percentages[2]);
 
-	//printf("(1-2):%d-(1-3):%d-(2-3):%d",perc_1_2_is_plausible,perc_1_3_is_plausible,perc_2_3_is_plausible);
 
 	// values are implausible if there are less than 2 working sensors or if any of the working pair of sensors has more than 10% difference as per T 11.8.9 and T 11.9
 	if(
@@ -98,8 +93,6 @@ float throttle_get_percentage() {
 	} else {
 		set_to_valid(perc_is_valid, valid_sensors, percentages);
 	}
-
-	printf("lastval:%f,timer:%d,status,%d",throttle_handler.last_throttle_value,throttle_handler.is_changed_to_implausible,throttle_handler.status);
 
 	return throttle_handler.last_throttle_value;
 
