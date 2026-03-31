@@ -7,7 +7,7 @@
 
 
 //TODO use correct values
-#define BSPS_F_CONVERSION_VALUE 0.5
-#define BSPS_R_CONVERSION_VALUE 0.25
+#define BSPS_F_CONVERSION_VALUE 30.0
+#define BSPS_R_CONVERSION_VALUE 40.0
 
 #endif //BRAKE_H

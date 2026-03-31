@@ -2,8 +2,14 @@
 #define ADC_READING_H
 
 #include "stdint.h"
-#include "eagletrt-api.h"
 
+#define ADC_READING_MIN_RAW_VALUE 0.0f
+#define ADC_READING_MAX_RAW_VALUE 4095.0f
+
+/*!
+ * \brief used to identify the different values read in the adc module
+ * 
+ */
 enum ADCReadingSensorName {
 	ADC_READING_SENSOR_NAME_SENSE_5V,
 	ADC_READING_SENSOR_NAME_BSPS_F,
@@ -15,11 +21,14 @@ enum ADCReadingSensorName {
 	ADC_READING_SENSOR_NAME_NUMBER_OF_SENSORS
 };
 
-// this array will be used to collect data from the adc module
-EAGLETRT_STATIC int32_t adc_reading_raw_data[ADC_READING_SENSOR_NAME_NUMBER_OF_SENSORS];
-
-int32_t adc_reading_read_raw(enum ADCReadingSensorName sensor);
-
+/*!
+ * \brief Given an interval, it returns the value read in the adc module as a percentage of the interval 
+ * 
+ * \param sensor name of the sensor of which you want the percentage of
+ * \param normal_min lower bound of the interval
+ * \param normal_max upper bound of the interval
+ * \return float ideally in range [0,1], but can be outside depending on normal_min, normal_max and the values read in the adc module
+ */
 float adc_reading_return_percentage(enum ADCReadingSensorName sensor, int32_t normal_min, int32_t normal_max);
 
 #endif //ADC_READING_H
