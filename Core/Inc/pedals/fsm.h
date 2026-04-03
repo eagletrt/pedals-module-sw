@@ -13,7 +13,6 @@ The finite state machine has:
 
 ******************************************************************************/
 
-
 #ifndef FSM_H
 #define FSM_H
 #ifdef __cplusplus
@@ -30,12 +29,12 @@ typedef void state_data_t;
 
 // List of states
 typedef enum {
-  STATE_INIT = 0,  
-  STATE_IDLE,  
-  STATE_ERROR,  
-  STATE_FLASH,  
-  NUM_STATES,
-  NO_CHANGE
+    STATE_INIT = 0,
+    STATE_IDLE,
+    STATE_ERROR,
+    STATE_FLASH,
+    NUM_STATES,
+    NO_CHANGE
 } state_t;
 
 // State human-readable names
@@ -58,10 +57,8 @@ state_t do_error(state_data_t *data);
 // valid return states: NO_CHANGE, STATE_IDLE, STATE_FLASH, STATE_ERROR
 state_t do_flash(state_data_t *data);
 
-
 // List of state functions
 extern state_func_t *const state_table[NUM_STATES];
-
 
 // No transition functions
 
