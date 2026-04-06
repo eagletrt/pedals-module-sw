@@ -30,7 +30,7 @@
 * Include files
 ****************************************************************************************/
 #include "boot.h"                                /* bootloader generic header          */
-
+#include "eagletrt-api.h"
 
 #if (BOOT_COM_ENABLE > 0)
 /****************************************************************************************
@@ -1492,6 +1492,7 @@ static void XcpCmdProgramReset(blt_int8u *data)
 ****************************************************************************************/
 static void XcpCmdProgramPrepare(blt_int8u *data)
 {
+  EAGLETRT_API_UNUSED(data);
 #if (XCP_SEED_KEY_PROTECTION_EN == 1)
   /* check if PGM resource is unlocked */
   if ((xcpInfo.protection & XCP_RES_PGM) == XCP_RES_PGM)

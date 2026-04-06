@@ -30,7 +30,7 @@
 * Include files
 ****************************************************************************************/
 #include "boot.h"                                /* bootloader generic header          */
-
+#include "eagletrt-api.h"
 
 #ifndef NDEBUG
 /************************************************************************************//**
@@ -43,6 +43,8 @@
 ****************************************************************************************/
 void AssertFailure(blt_char *file, blt_int32u line)
 {
+	EAGLETRT_API_UNUSED(file);
+	EAGLETRT_API_UNUSED(line);
   /* hang the software so that it requires a hard reset */
   for (;;)
   {
