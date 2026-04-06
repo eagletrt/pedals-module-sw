@@ -5,10 +5,10 @@
 *   C P U   D R I V E R   C O N F I G U R A T I O N
 ****************************************************************************************/
 /* External crystal frequency (if you only use HSI = 8 MHz, just leave at 8000). */
-#define BOOT_CPU_XTAL_SPEED_KHZ (8000) // have to check oscillator freq
+#define BOOT_CPU_XTAL_SPEED_KHZ (16000) 
 
 /* System clock frequency (typical STM32C0 max ~48 MHz). */
-#define BOOT_CPU_SYSTEM_SPEED_KHZ (8000) // probably same as oscillator
+#define BOOT_CPU_SYSTEM_SPEED_KHZ (16000) // temporary frequency, tbd what to do
 
 /* STM32C0 is little endian. */
 #define BOOT_CPU_BYTE_ORDER_MOTOROLA (0)
