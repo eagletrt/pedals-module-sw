@@ -20,7 +20,7 @@
 *   C O M M U N I C A T I O N   I N T E R F A C E   C O N F I G U R A T I O N
 ****************************************************************************************/
 /* CAN communication (C0 has FDCAN). */
-#define BOOT_COM_CAN_ENABLE (1)
+#define BOOT_COM_CAN_FD_ENABLE (1)
 #define BOOT_COM_CAN_BAUDRATE (1000000) /* pick what matches your bus */
 #define BOOT_COM_CAN_TX_MSG_ID (0x17u)
 #define BOOT_COM_CAN_TX_MAX_DATA (8)
