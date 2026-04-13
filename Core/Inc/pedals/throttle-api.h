@@ -17,7 +17,6 @@ float throttle_get_percentage();
  */
 void throttle_timer_trigger(void);
 
-
 /*!
  * \brief Get bool to see if implausibility kept for more than 100ms and, consequently, send an error message. It consumes true values, see below
  * 

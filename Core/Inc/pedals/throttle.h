@@ -12,8 +12,8 @@
 #define APPS_3_MAX_VALUE 3000
 
 #define APPS_IMPLAUSIBILITY_PERCENTAGE 0.1 // equivalent of 10% of 1.0
-#define APPS_MAX_IMPLAUSIBILITY_TIME 100 // in ms
-#define APPS_EPSILON 0.001 // equivalent to 0.1% of 1.0
+#define APPS_MAX_IMPLAUSIBILITY_TIME 100   // in ms
+#define APPS_EPSILON 0.001                 // equivalent to 0.1% of 1.0
 
 #define APPS_NUMBER 3
 
@@ -22,9 +22,9 @@
  * 
  */
 enum ThrottleStatus {
-	THROTTLE_STATUS_OK,
-	THROTTLE_STATUS_UNSTABLE,
-	THROTTLE_STATUS_BAD
+    THROTTLE_STATUS_OK,
+    THROTTLE_STATUS_UNSTABLE,
+    THROTTLE_STATUS_BAD
 };
 
 /*!
@@ -32,9 +32,9 @@ enum ThrottleStatus {
  * 
  */
 struct ThrottleHandler {
-	float last_throttle_value;
-	enum ThrottleStatus status;
-	bool is_changed_to_implausible;
+    float last_throttle_value;
+    enum ThrottleStatus status;
+    bool is_changed_to_implausible;
 };
 
 #endif //THROTTLE_H

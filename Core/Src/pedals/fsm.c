@@ -20,14 +20,14 @@ The finite state machine has:
 
 // GLOBALS
 // State human-readable names
-const char *state_names[] = {"init", "idle", "error", "flash"};
+const char *state_names[] = { "init", "idle", "error", "flash" };
 
 // List of state functions
 state_func_t *const state_table[NUM_STATES] = {
-  do_init,  // in state init
-  do_idle,  // in state idle
-  do_error, // in state error
-  do_flash, // in state flash
+    do_init,  // in state init
+    do_idle,  // in state idle
+    do_error, // in state error
+    do_flash, // in state flash
 };
 // No transition functions
 
@@ -42,93 +42,87 @@ state_func_t *const state_table[NUM_STATES] = {
  * | |_| | | | '_ \ / __| __| |/ _ \| '_ \/ __|
  * |  _| |_| | | | | (__| |_| | (_) | | | \__ \
  * |_|  \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
- */                                             
+ */
 
 // Function to be executed in state init
 // valid return states: STATE_IDLE, STATE_ERROR
 state_t do_init(state_data_t *data) {
-  state_t next_state = STATE_IDLE;
-  /* Your Code Here */
+    state_t next_state = STATE_IDLE;
+    /* Your Code Here */
 
-  EAGLETRT_API_UNUSED(data);
-  
-  switch (next_state) {
-  case STATE_IDLE:
-  case STATE_ERROR:
-    break;
-  default:
-    next_state = NO_CHANGE;
-  }
+    EAGLETRT_API_UNUSED(data);
 
-  return next_state;
+    switch (next_state) {
+        case STATE_IDLE:
+        case STATE_ERROR:
+            break;
+        default:
+            next_state = NO_CHANGE;
+    }
+
+    return next_state;
 }
-
 
 // Function to be executed in state idle
 // valid return states: NO_CHANGE, STATE_IDLE, STATE_FLASH, STATE_ERROR
 state_t do_idle(state_data_t *data) {
-  state_t next_state = NO_CHANGE;
-  /* Your Code Here */
+    state_t next_state = NO_CHANGE;
+    /* Your Code Here */
 
-  EAGLETRT_API_UNUSED(data);
-  
-  switch (next_state) {
-  case NO_CHANGE:
-  case STATE_IDLE:
-  case STATE_FLASH:
-  case STATE_ERROR:
-    break;
-  default:
-    next_state = NO_CHANGE;
-  }
+    EAGLETRT_API_UNUSED(data);
 
-  return next_state;
+    switch (next_state) {
+        case NO_CHANGE:
+        case STATE_IDLE:
+        case STATE_FLASH:
+        case STATE_ERROR:
+            break;
+        default:
+            next_state = NO_CHANGE;
+    }
+
+    return next_state;
 }
-
 
 // Function to be executed in state error
 // valid return states: NO_CHANGE, STATE_ERROR
 state_t do_error(state_data_t *data) {
-  state_t next_state = NO_CHANGE;
-  /* Your Code Here */
+    state_t next_state = NO_CHANGE;
+    /* Your Code Here */
 
-  EAGLETRT_API_UNUSED(data);
-  
-  switch (next_state) {
-  case NO_CHANGE:
-  case STATE_ERROR:
-    break;
-  default:
-    next_state = NO_CHANGE;
-  }
+    EAGLETRT_API_UNUSED(data);
 
-  return next_state;
+    switch (next_state) {
+        case NO_CHANGE:
+        case STATE_ERROR:
+            break;
+        default:
+            next_state = NO_CHANGE;
+    }
+
+    return next_state;
 }
-
 
 // Function to be executed in state flash
 // valid return states: NO_CHANGE, STATE_IDLE, STATE_FLASH, STATE_ERROR
 state_t do_flash(state_data_t *data) {
-  state_t next_state = NO_CHANGE;
-  /* Your Code Here */
+    state_t next_state = NO_CHANGE;
+    /* Your Code Here */
 
-  EAGLETRT_API_UNUSED(data);
-  
-  switch (next_state) {
-  case NO_CHANGE:
-  case STATE_IDLE:
-  case STATE_FLASH:
-  case STATE_ERROR:
-    break;
-  default:
-    next_state = NO_CHANGE;
-  }
+    EAGLETRT_API_UNUSED(data);
 
-  return next_state;
+    switch (next_state) {
+        case NO_CHANGE:
+        case STATE_IDLE:
+        case STATE_FLASH:
+        case STATE_ERROR:
+            break;
+        default:
+            next_state = NO_CHANGE;
+    }
+
+    return next_state;
 }
-
-
-
 
 /*  ____  _        _        
  * / ___|| |_ __ _| |_ ___  
@@ -145,26 +139,24 @@ state_t do_flash(state_data_t *data) {
  */
 
 state_t run_state(state_t cur_state, state_data_t *data) {
-  state_t new_state = state_table[cur_state](data);
-  if (new_state == NO_CHANGE) new_state = cur_state;
+    state_t new_state = state_table[cur_state](data);
+    if (new_state == NO_CHANGE)
+        new_state = cur_state;
 
-  return new_state;
+    return new_state;
 }
-
-
 
 #ifdef TEST_MAIN
 #include <unistd.h>
 int main() {
-  state_t cur_state = STATE_INIT;
+    state_t cur_state = STATE_INIT;
 
-  do {
-    cur_state = run_state(cur_state, NULL);
-    sleep(1);
+    do {
+        cur_state = run_state(cur_state, NULL);
+        sleep(1);
 
-  } while (1);
+    } while (1);
 
-  return 0;
+    return 0;
 }
 #endif
-

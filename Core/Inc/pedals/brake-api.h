@@ -3,7 +3,6 @@
 
 #include "brake.h"
 
-
 /*!
  * \brief Get percentage of brake travel from BPPS
  * 
