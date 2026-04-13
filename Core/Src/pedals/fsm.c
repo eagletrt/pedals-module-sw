@@ -16,6 +16,10 @@ The finite state machine has:
 #include "fsm.h"
 #include "eagletrt-api.h"
 
+#include "throttle-api.h"
+#include "brake-api.h"
+#include "bots-api.h"
+
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!
 
 // GLOBALS
@@ -70,6 +74,25 @@ state_t do_idle(state_data_t *data) {
     /* Your Code Here */
 
     EAGLETRT_API_UNUSED(data);
+
+    float throttle = throttle_get_percentage();
+    float brake = brake_get_percentage();
+    float front_brake_pressure = brake_get_front_pressure();
+    float rear_brake_pressure = brake_get_rear_pressure();
+
+    bool is_throttle_bad = throttle_is_now_implausible();
+    bool is_bots_activated = bots_is_bots_triggered();
+
+    // based on the frequency, send the data
+    // here below an example of how it would look like
+    // Struct ErrorMessage error;
+    // if(is_throttle_bad) error_add_throttle_error(&error)
+    // if(is_bots_activated) error_add_bots_error(&error)
+    // if(error_is_not_empty(&error)) PAL_send_message(&error)
+    //
+    // if(enough time for throttle message passed) PAL_send_message(&throttle)
+    // if(enough time for brake message passed) PAL_send_message(&brake)
+    // if(enough time for brake pressure message passed) PAL_send_message(&front_brake_pressure,&rear_brake_pressure)
 
     switch (next_state) {
         case NO_CHANGE:
