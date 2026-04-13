@@ -83,6 +83,13 @@ state_t do_idle(state_data_t *data) {
     bool is_throttle_bad = throttle_is_now_implausible();
     bool is_bots_activated = bots_is_bots_triggered();
 
+    EAGLETRT_API_UNUSED(throttle);
+    EAGLETRT_API_UNUSED(brake);
+    EAGLETRT_API_UNUSED(front_brake_pressure);
+    EAGLETRT_API_UNUSED(rear_brake_pressure);
+    EAGLETRT_API_UNUSED(is_throttle_bad);
+    EAGLETRT_API_UNUSED(is_bots_activated);
+
     // based on the frequency, send the data
     // here below an example of how it would look like
     // Struct ErrorMessage error;
