@@ -9,7 +9,7 @@
  * 
  * \return float in range [0,1] when status in (THROTTLE_STATUS_OK, THROTTLE_STATUS_UNSTABLE), 0.0 if status is THROTTLE_STATUS_BAD
  */
-float throttle_get_percentage();
+float throttle_get_travel_percentage();
 
 /*!
  * \brief Function to activate when implausibility timer goes off
@@ -23,6 +23,6 @@ void throttle_timer_trigger(void);
  * \return true if throttle_timer_trigger was called. After returning true, successive calls will return false until throttle_timer_trigger is called again
  * \return false if throttle_timer_trigger wasn't called or if it already returned true without throttle_timer_trigger being called again
  */
-bool throttle_is_now_implausible(void);
+bool throttle_is_throttle_bad(void);
 
 #endif //THROTTLE_API_H

@@ -8,7 +8,7 @@
  * 
  * \return float ideally in range [0,1], if outside there's an error
  */
-float brake_get_percentage(); //if outside the [0,1] range should it send error or shut motor down (does this influence wheel torque, if yes the latter as per T 11.9.5 )
+float brake_get_travel_percentage(); //if outside the [0,1] range should it send error or shut motor down (does this influence wheel torque, if yes the latter as per T 11.9.5 )
 
 /*!
  * \brief Get value of front brake pressure in [TODO unit of measure] 
