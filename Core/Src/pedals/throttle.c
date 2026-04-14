@@ -12,12 +12,25 @@ EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
 
 // internal functions ---------------------------------------
 
-// checks if a percentage is in the range [0,1]
-bool throttle_is_perc_valid(float val) {
+/*!
+ * \brief Checks if a percentage is within [0%-100%] with an epsilon
+ * 
+ * \param val
+ * \return true if it's between 0% and 100%
+ * \return false if outside the range
+ */
+bool throttle_is_percentage_valid(float val) {
     return val - 1.0 < THROTTLE_APPS_EPSILON && val > -THROTTLE_APPS_EPSILON;
 }
 
-// checks if there's more than 10% points of difference between two values
+/*!
+ * \brief Checks if there is less than 10% between two APPS sensors
+ * 
+ * \param val_1
+ * \param val_2
+ * \return true if within 10% of difference
+ * \return false if outside
+ */
 bool throttle_is_percentage_within_plausibility(float val_1, float val_2) {
     if (val_1 > val_2) {
         return (val_1 - val_2) < (THROTTLE_APPS_IMPLAUSIBILITY_PERCENTAGE + THROTTLE_APPS_EPSILON);
@@ -26,7 +39,10 @@ bool throttle_is_percentage_within_plausibility(float val_1, float val_2) {
     }
 }
 
-// set the throttle to wait for implausibility error
+/*!
+ * \brief function called to start the timer for implausibility
+ * 
+ */
 void throttle_set_to_implausibility() {
     if (throttle_handler.status == THROTTLE_STATUS_OK) {
         test_start_timer();
@@ -34,7 +50,13 @@ void throttle_set_to_implausibility() {
     }
 }
 
-// reset the throttle to its valid state and calculates new value
+/*!
+ * \brief resets the throttle to its good state, stops implausibility timer and calculates the next travel percentage 
+ * 
+ * \param is_valid bool array to indicate if a sensor is within the values [0%-100%]
+ * \param n_valid number of valid sensors
+ * \param percentages the percentages measured by the APPS sensors
+ */
 void throttle_set_to_valid(bool is_valid[], int n_valid, float percentages[]) {
     if (throttle_handler.status == THROTTLE_STATUS_UNSTABLE) {
         test_reset_timer();
@@ -70,7 +92,7 @@ float throttle_get_travel_percentage() {
 
     // check if it's in range [0,1] as per T 11.9.2
     for (int i = 0; i < THROTTLE_APPS_NUMBER; i++) {
-        perc_is_valid[i] = throttle_is_perc_valid(percentages[i]);
+        perc_is_valid[i] = throttle_is_percentage_valid(percentages[i]);
         valid_sensors = perc_is_valid[i] ? valid_sensors + 1 : valid_sensors;
     }
 

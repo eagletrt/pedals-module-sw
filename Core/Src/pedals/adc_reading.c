@@ -5,6 +5,12 @@
 // the idea is to collect data with this array from the actual adc module
 EAGLETRT_STATIC int32_t adc_reading_raw_data[ADC_READING_SENSOR_NAME_NUMBER_OF_SENSORS];
 
+/*!
+ * \brief Returns the value of the sensor read from the ADC
+ * 
+ * \param sensor name of the sensor of which returns the value 
+ * \return int32_t 
+ */
 int32_t adc_reading_read_raw(enum ADCReadingSensorName sensor) {
     return adc_reading_raw_data[sensor];
 }
