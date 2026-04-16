@@ -420,3 +420,9 @@ STM32Make.make
 .local_gitignore
 
 ## ---------------- END MANUALLY ADDED ---------------- ##
+
+## miscellaneous
+extra/
+additional_info/
+fsm_work/
+.vscode/
