@@ -16,8 +16,8 @@ EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
  * \brief Checks if a percentage is within [0%-100%] with an epsilon
  * 
  * \param val
- * \return true if it's between 0% and 100%
- * \return false if outside the range
+ * \retval true if it's between 0% and 100%
+ * \retval false if outside the range
  */
 bool throttle_is_percentage_valid(float val) {
     return val - 1.0 < THROTTLE_APPS_EPSILON && val > -THROTTLE_APPS_EPSILON;
@@ -28,8 +28,8 @@ bool throttle_is_percentage_valid(float val) {
  * 
  * \param val_1
  * \param val_2
- * \return true if within 10% of difference
- * \return false if outside
+ * \retval true if within 10% of difference
+ * \retval false if outside
  */
 bool throttle_is_percentage_within_plausibility(float val_1, float val_2) {
     if (val_1 > val_2) {

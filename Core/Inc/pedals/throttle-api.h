@@ -20,8 +20,8 @@ void throttle_timer_trigger(void);
 /*!
  * \brief Get bool to see if implausibility kept for more than 100ms and, consequently, send an error message. It consumes true values, see below
  * 
- * \return true if throttle_timer_trigger was called. After returning true, successive calls will return false until throttle_timer_trigger is called again
- * \return false if throttle_timer_trigger wasn't called or if it already returned true without throttle_timer_trigger being called again
+ * \retval true if throttle_timer_trigger was called. After returning true, successive calls will return false until throttle_timer_trigger is called again
+ * \retval false if throttle_timer_trigger wasn't called or if it already returned true without throttle_timer_trigger being called again
  */
 bool throttle_is_throttle_bad(void);
 
