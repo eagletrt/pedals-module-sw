@@ -1,7 +1,7 @@
 #ifndef TEST_ADC_READING_H
 #define TEST_ADC_READING_H
 
-#include "adc_reading.h"
+#include "adc-reading-api.h"
 
 extern int32_t adc_reading_raw_data[];
 

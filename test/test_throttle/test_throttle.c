@@ -4,7 +4,7 @@
 #include "fake_functions.h"
 
 #include "test_adc_reading.h"
-#include "adc_reading.h"
+#include "adc-reading-api.h"
 #include "stdint.h"
 
 

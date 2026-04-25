@@ -1,6 +1,6 @@
 #include "brake.h"
 #include "brake-api.h"
-#include "adc_reading.h"
+#include "adc-reading-api.h"
 
 float brake_get_travel_percentage() {
     return adc_reading_return_percentage(ADC_READING_SENSOR_NAME_BPPS, BRAKE_BPPS_MIN_VALUE, BRAKE_BPPS_MAX_VALUE);

@@ -1,4 +1,4 @@
-#include "adc_reading.h"
+#include "adc-reading-api.h"
 #include "eagletrt-api.h"
 #include "stdio.h"
 

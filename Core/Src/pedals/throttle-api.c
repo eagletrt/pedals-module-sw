@@ -1,8 +1,8 @@
 #include "throttle-api.h"
-#include "adc_reading.h"
+#include "adc-reading-api.h"
 #include "eagletrt-api.h"
 
-#include "test_definitions.h"
+#include "test-definitions.h"
 
 EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
     .is_changed_to_implausible = false,
