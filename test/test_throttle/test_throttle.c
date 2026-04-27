@@ -36,11 +36,11 @@ void test_throttle_is_throttle_bad_false(void){
 void test_throttle_is_throttle_bad_true(void){
 	throttle_handler.last_throttle_value = 0.50f;
 	throttle_timer_trigger();
-	TEST_ASSERT_TRUE(throttle_is_throttle_bad());
-	TEST_ASSERT_EQUAL_FLOAT(0.0f,throttle_handler.last_throttle_value);
-	TEST_ASSERT_EQUAL(THROTTLE_STATUS_BAD, throttle_handler.status);
-	TEST_ASSERT_FALSE(throttle_handler.is_changed_to_implausible);
-	TEST_ASSERT_FALSE(throttle_is_throttle_bad());
+	TEST_ASSERT_TRUE_MESSAGE(throttle_is_throttle_bad(), "Throttle trigger was not activated");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(0.0f,throttle_handler.last_throttle_value, "Last value is not 0% as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_BAD, throttle_handler.status, "Throttle state is not equal to BAD");
+	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Trigger boolean is still true");
+	TEST_ASSERT_FALSE_MESSAGE(throttle_is_throttle_bad(), "Throttle trigger activated, even if it should not");
 
 }
 
@@ -53,10 +53,10 @@ void test_throttle_three_ok_sensors_valid(void) {
 
 	float res = throttle_get_travel_percentage();
 
-	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.50f, res);
-	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.50f, throttle_handler.last_throttle_value);
-	TEST_ASSERT_EQUAL(THROTTLE_STATUS_OK, throttle_handler.status);
-	TEST_ASSERT_FALSE(throttle_handler.is_changed_to_implausible);
+	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, res, "Travel is not 50% as expected");
+	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, throttle_handler.last_throttle_value, "Last value is not 50% as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_OK, throttle_handler.status, "Throttle state is equal to not OK");
+	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Throttle trigger activated, even if it should not");
 
 }
 
@@ -71,10 +71,10 @@ void test_throttle_three_ok_sensors_implausible(void) {
 
 	float res = throttle_get_travel_percentage();
 
-	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.50f, res);
-	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.50f, throttle_handler.last_throttle_value);
-	TEST_ASSERT_EQUAL(THROTTLE_STATUS_UNSTABLE, throttle_handler.status);
-	TEST_ASSERT_FALSE(throttle_handler.is_changed_to_implausible);
+	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, res, "Travel is not 50% as expected");
+	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, throttle_handler.last_throttle_value, "Last value is not 50% as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_UNSTABLE, throttle_handler.status, "Throttle state is not equal to UNSTABLE");
+	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Throttle trigger activated, even if it should not");
 }
 
 void test_throttle_two_ok_sensors_valid(void) {
@@ -88,10 +88,10 @@ void test_throttle_two_ok_sensors_valid(void) {
 
 	float res = throttle_get_travel_percentage();
 
-	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.87f, res);
-	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.87f, throttle_handler.last_throttle_value);
-	TEST_ASSERT_EQUAL(THROTTLE_STATUS_OK, throttle_handler.status);
-	TEST_ASSERT_FALSE(throttle_handler.is_changed_to_implausible);
+	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.87f, res, "Travel is not 87% as expected");
+	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.87f, throttle_handler.last_throttle_value, "Last value is not 87% as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_OK, throttle_handler.status, "Throttle state is not equal to OK");
+	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Throttle trigger activated, even if it should not");
 }
 
 void test_throttle_two_ok_sensors_implausible(void) {
@@ -105,10 +105,10 @@ void test_throttle_two_ok_sensors_implausible(void) {
 
 	float res = throttle_get_travel_percentage();
 
-	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.50f, res);
-	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.50f, throttle_handler.last_throttle_value);
-	TEST_ASSERT_EQUAL(THROTTLE_STATUS_UNSTABLE, throttle_handler.status);
-	TEST_ASSERT_FALSE(throttle_handler.is_changed_to_implausible);
+	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, res, "Travel is not 50% as expected");
+	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, throttle_handler.last_throttle_value, "Last value is not 50% as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_UNSTABLE, throttle_handler.status, "Throttle state is not equal to UNSTABLE");
+	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Throttle trigger activated, even if it should not");
 }
 
 void test_throttle_no_ok_sensors(void) {
@@ -122,10 +122,10 @@ void test_throttle_no_ok_sensors(void) {
 
 	float res = throttle_get_travel_percentage();
 
-	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.50f, res);
-	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.50f, throttle_handler.last_throttle_value);
-	TEST_ASSERT_EQUAL(THROTTLE_STATUS_UNSTABLE, throttle_handler.status);
-	TEST_ASSERT_FALSE(throttle_handler.is_changed_to_implausible);
+	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, res, "Travel is not 50% as expected");
+	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, throttle_handler.last_throttle_value, "Last value is not 50% as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_UNSTABLE, throttle_handler.status, "Throttle state is not equal to OK");
+	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Throttle trigger activated, even if it should not");
 }
 
 void test_throttle_sim_valid_unstable_valid(void) {
