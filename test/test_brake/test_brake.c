@@ -15,10 +15,6 @@ void tearDown(void) {
     // clean stuff up here
 }
 
-void test_test(void) {
-
-}
-
 void test_brake_bpps_percentage(void) {
 	const int32_t MIN_VAL = BRAKE_BPPS_MIN_VALUE, MAX_VAL = BRAKE_BPPS_MAX_VALUE, CURRENT = 4095;
 	int32_t sensor = MIN_VAL + (MAX_VAL - MIN_VAL) / 2;
