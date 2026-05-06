@@ -47,7 +47,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-state_t current_state = STATE_INIT;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -87,7 +87,7 @@ int main(void) {
     HAL_Init();
 
     /* USER CODE BEGIN Init */
-
+    state_t current_state = STATE_INIT;
     /* USER CODE END Init */
 
     /* Configure the system clock */
