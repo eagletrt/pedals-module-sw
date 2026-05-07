@@ -22,7 +22,7 @@ void test_bots_not_activated() {
 }
 
 void test_bots_activated() {
-	bots_trigger_function();
+	bots_set_triggered();
 
 	TEST_ASSERT_TRUE(bots_is_trigger_activated);
 

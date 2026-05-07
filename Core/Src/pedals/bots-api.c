@@ -3,7 +3,7 @@
 
 EAGLETRT_STATIC bool bots_is_trigger_activated = false;
 
-void bots_trigger_function(void) {
+void bots_set_triggered(void) {
     bots_is_trigger_activated = true;
 }
 
