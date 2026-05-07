@@ -28,19 +28,19 @@ void test_throttle_timer_trigger(void){
 	TEST_ASSERT_TRUE(throttle_handler.is_changed_to_implausible);
 }
 
-void test_throttle_is_throttle_bad_false(void){
+void test_throttle_has_error_occured_false(void){
 	throttle_handler.last_throttle_value = 0.50f;
-	TEST_ASSERT_FALSE(throttle_is_throttle_bad());
+	TEST_ASSERT_FALSE(throttle_has_error_occured());
 }
 
-void test_throttle_is_throttle_bad_true(void){
+void test_throttle_has_error_occured_true(void){
 	throttle_handler.last_throttle_value = 0.50f;
 	throttle_timer_trigger();
-	TEST_ASSERT_TRUE_MESSAGE(throttle_is_throttle_bad(), "Throttle trigger was not activated");
+	TEST_ASSERT_TRUE_MESSAGE(throttle_has_error_occured(), "Throttle trigger was not activated");
 	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(0.0f,throttle_handler.last_throttle_value, "Last value is not 0% as expected");
 	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_IMPLAUSIBLE_ERROR, throttle_handler.status, "Throttle state is not equal to BAD");
 	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Trigger boolean is still true");
-	TEST_ASSERT_FALSE_MESSAGE(throttle_is_throttle_bad(), "Throttle trigger activated, even if it should not");
+	TEST_ASSERT_FALSE_MESSAGE(throttle_has_error_occured(), "Throttle trigger activated, even if it should not");
 
 }
 
@@ -204,7 +204,7 @@ void test_throttle_sim_valid_unstable_bad(void) {
 	throttle_timer_trigger(); // simulate timer going off
 	res = throttle_get_travel_percentage();
 
-	// this part should not change until throttle_is_throttle_bad gets called
+	// this part should not change until throttle_has_error_occured gets called
 	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.07f, res);
 	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.07f, throttle_handler.last_throttle_value);
 	TEST_ASSERT_EQUAL(THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, throttle_handler.status);
@@ -212,7 +212,7 @@ void test_throttle_sim_valid_unstable_bad(void) {
 	TEST_ASSERT_EQUAL(1, test_start_timer_fake.call_count);
 	TEST_ASSERT_EQUAL(0, test_reset_timer_fake.call_count);
 
-	bool tmp = throttle_is_throttle_bad();
+	bool tmp = throttle_has_error_occured();
 	res = throttle_get_travel_percentage();
 
 	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.0f, res);
@@ -226,8 +226,8 @@ void test_throttle_sim_valid_unstable_bad(void) {
 int main( int argc, char **argv) {
     UNITY_BEGIN();
 	RUN_TEST(test_throttle_timer_trigger);
-	RUN_TEST(test_throttle_is_throttle_bad_false);
-	RUN_TEST(test_throttle_is_throttle_bad_true);
+	RUN_TEST(test_throttle_has_error_occured_false);
+	RUN_TEST(test_throttle_has_error_occured_true);
 
 	RUN_TEST(test_throttle_three_ok_sensors_valid);
 	RUN_TEST(test_throttle_three_ok_sensors_implausible);

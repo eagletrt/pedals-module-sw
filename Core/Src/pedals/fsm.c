@@ -80,7 +80,7 @@ state_t do_idle(state_data_t *data) {
     float front_brake_pressure = brake_get_front_pressure();
     float rear_brake_pressure = brake_get_rear_pressure();
 
-    bool is_throttle_bad = throttle_is_throttle_bad();
+    bool is_throttle_bad = throttle_has_error_occured();
     bool is_bots_activated = bots_is_bots_triggered();
 
     EAGLETRT_API_UNUSED(throttle);

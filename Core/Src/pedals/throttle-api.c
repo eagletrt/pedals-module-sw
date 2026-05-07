@@ -116,7 +116,7 @@ float throttle_get_travel_percentage() {
     return throttle_handler.last_throttle_value;
 }
 
-bool throttle_is_throttle_bad() {
+bool throttle_has_error_occured() {
     if (throttle_handler.is_changed_to_implausible) {
         throttle_handler.status = THROTTLE_STATUS_IMPLAUSIBLE_ERROR;
         throttle_handler.last_throttle_value = 0.0;
