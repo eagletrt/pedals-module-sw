@@ -38,7 +38,7 @@ void test_throttle_is_throttle_bad_true(void){
 	throttle_timer_trigger();
 	TEST_ASSERT_TRUE_MESSAGE(throttle_is_throttle_bad(), "Throttle trigger was not activated");
 	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(0.0f,throttle_handler.last_throttle_value, "Last value is not 0% as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_BAD, throttle_handler.status, "Throttle state is not equal to BAD");
+	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_IMPLAUSIBLE_ERROR, throttle_handler.status, "Throttle state is not equal to BAD");
 	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Trigger boolean is still true");
 	TEST_ASSERT_FALSE_MESSAGE(throttle_is_throttle_bad(), "Throttle trigger activated, even if it should not");
 
@@ -73,7 +73,7 @@ void test_throttle_three_ok_sensors_implausible(void) {
 
 	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, res, "Travel is not 50% as expected");
 	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, throttle_handler.last_throttle_value, "Last value is not 50% as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_UNSTABLE, throttle_handler.status, "Throttle state is not equal to UNSTABLE");
+	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, throttle_handler.status, "Throttle state is not equal to UNSTABLE");
 	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Throttle trigger activated, even if it should not");
 }
 
@@ -107,7 +107,7 @@ void test_throttle_two_ok_sensors_implausible(void) {
 
 	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, res, "Travel is not 50% as expected");
 	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, throttle_handler.last_throttle_value, "Last value is not 50% as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_UNSTABLE, throttle_handler.status, "Throttle state is not equal to UNSTABLE");
+	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, throttle_handler.status, "Throttle state is not equal to UNSTABLE");
 	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Throttle trigger activated, even if it should not");
 }
 
@@ -124,7 +124,7 @@ void test_throttle_no_ok_sensors(void) {
 
 	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, res, "Travel is not 50% as expected");
 	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, throttle_handler.last_throttle_value, "Last value is not 50% as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_UNSTABLE, throttle_handler.status, "Throttle state is not equal to OK");
+	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, throttle_handler.status, "Throttle state is not equal to OK");
 	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Throttle trigger activated, even if it should not");
 }
 
@@ -153,7 +153,7 @@ void test_throttle_sim_valid_unstable_valid(void) {
 
 	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.07f, res);
 	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.07f, throttle_handler.last_throttle_value);
-	TEST_ASSERT_EQUAL(THROTTLE_STATUS_UNSTABLE, throttle_handler.status);
+	TEST_ASSERT_EQUAL(THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, throttle_handler.status);
 	TEST_ASSERT_FALSE(throttle_handler.is_changed_to_implausible);
 	TEST_ASSERT_EQUAL(1, test_start_timer_fake.call_count);
 	TEST_ASSERT_EQUAL(0, test_reset_timer_fake.call_count);
@@ -196,7 +196,7 @@ void test_throttle_sim_valid_unstable_bad(void) {
 
 	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.07f, res);
 	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.07f, throttle_handler.last_throttle_value);
-	TEST_ASSERT_EQUAL(THROTTLE_STATUS_UNSTABLE, throttle_handler.status);
+	TEST_ASSERT_EQUAL(THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, throttle_handler.status);
 	TEST_ASSERT_FALSE(throttle_handler.is_changed_to_implausible);
 	TEST_ASSERT_EQUAL(1, test_start_timer_fake.call_count);
 	TEST_ASSERT_EQUAL(0, test_reset_timer_fake.call_count);
@@ -207,7 +207,7 @@ void test_throttle_sim_valid_unstable_bad(void) {
 	// this part should not change until throttle_is_throttle_bad gets called
 	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.07f, res);
 	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.07f, throttle_handler.last_throttle_value);
-	TEST_ASSERT_EQUAL(THROTTLE_STATUS_UNSTABLE, throttle_handler.status);
+	TEST_ASSERT_EQUAL(THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, throttle_handler.status);
 	TEST_ASSERT_TRUE(throttle_handler.is_changed_to_implausible); // only this variable is triggered
 	TEST_ASSERT_EQUAL(1, test_start_timer_fake.call_count);
 	TEST_ASSERT_EQUAL(0, test_reset_timer_fake.call_count);
@@ -217,7 +217,7 @@ void test_throttle_sim_valid_unstable_bad(void) {
 
 	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.0f, res);
 	TEST_ASSERT_FLOAT_WITHIN(THROTTLE_APPS_EPSILON, 0.0f, throttle_handler.last_throttle_value);
-	TEST_ASSERT_EQUAL(THROTTLE_STATUS_BAD, throttle_handler.status);
+	TEST_ASSERT_EQUAL(THROTTLE_STATUS_IMPLAUSIBLE_ERROR, throttle_handler.status);
 	TEST_ASSERT_FALSE(throttle_handler.is_changed_to_implausible);
 	TEST_ASSERT_EQUAL(1, test_start_timer_fake.call_count);
 	TEST_ASSERT_EQUAL(0, test_reset_timer_fake.call_count);

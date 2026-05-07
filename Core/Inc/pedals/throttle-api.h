@@ -7,7 +7,7 @@
 /*!
  * \brief Get the average percentage of throttle travel from the three APPS
  * 
- * \return float in range [0,1] when status in (THROTTLE_STATUS_OK, THROTTLE_STATUS_UNSTABLE), 0.0 if status is THROTTLE_STATUS_BAD
+ * \return float in range [0,1] when status in (THROTTLE_STATUS_OK, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE), 0.0 if status is THROTTLE_STATUS_IMPLAUSIBLE_ERROR
  */
 float throttle_get_travel_percentage();
 

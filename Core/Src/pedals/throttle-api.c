@@ -46,7 +46,7 @@ bool throttle_is_percentage_within_plausibility(float val_1, float val_2) {
 void throttle_set_to_implausibility() {
     if (throttle_handler.status == THROTTLE_STATUS_OK) {
         test_start_timer();
-        throttle_handler.status = THROTTLE_STATUS_UNSTABLE;
+        throttle_handler.status = THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE;
     }
 }
 
@@ -58,7 +58,7 @@ void throttle_set_to_implausibility() {
  * \param percentages the percentages measured by the APPS sensors
  */
 void throttle_set_to_valid(bool is_valid[], int n_valid, float percentages[]) {
-    if (throttle_handler.status == THROTTLE_STATUS_UNSTABLE) {
+    if (throttle_handler.status == THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE) {
         test_reset_timer();
         throttle_handler.status = THROTTLE_STATUS_OK;
     }
@@ -76,8 +76,8 @@ void throttle_set_to_valid(bool is_valid[], int n_valid, float percentages[]) {
 
 float throttle_get_travel_percentage() {
 
-    // if status is THROTTLE_STATUS_BAD just return 0.0, as to shut down the power to the motor as per T 11.8.8
-    if (throttle_handler.status == THROTTLE_STATUS_BAD) {
+    // if status is THROTTLE_STATUS_IMPLAUSIBLE_ERROR just return 0.0, as to shut down the power to the motor as per T 11.8.8
+    if (throttle_handler.status == THROTTLE_STATUS_IMPLAUSIBLE_ERROR) {
         return 0.0;
     }
 
@@ -118,7 +118,7 @@ float throttle_get_travel_percentage() {
 
 bool throttle_is_throttle_bad() {
     if (throttle_handler.is_changed_to_implausible) {
-        throttle_handler.status = THROTTLE_STATUS_BAD;
+        throttle_handler.status = THROTTLE_STATUS_IMPLAUSIBLE_ERROR;
         throttle_handler.last_throttle_value = 0.0;
         throttle_handler.is_changed_to_implausible = false;
         return true;

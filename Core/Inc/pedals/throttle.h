@@ -18,13 +18,13 @@
 #define THROTTLE_APPS_NUMBER 3
 
 /*!
- * \brief THROTTLE_STATUS_OK if there are no errors in the sensors or can be solved by redundancy, THROTTLE_STATUS_UNSTABLE when errors can't be solved and persisted for less than 100ms, THROTTLE_STATUS_BAD if they persisted for more than 100ms
+ * \brief THROTTLE_STATUS_OK if there are no errors in the sensors or can be solved by redundancy, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE when errors can't be solved and persisted for less than 100ms, THROTTLE_STATUS_IMPLAUSIBLE_ERROR if they persisted for more than 100ms
  * 
  */
 enum ThrottleStatus {
     THROTTLE_STATUS_OK,
-    THROTTLE_STATUS_UNSTABLE,
-    THROTTLE_STATUS_BAD
+    THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE,
+    THROTTLE_STATUS_IMPLAUSIBLE_ERROR
 };
 
 /*!
