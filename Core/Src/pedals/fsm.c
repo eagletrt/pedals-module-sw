@@ -82,7 +82,7 @@ state_t do_idle(state_data_t *data) {
 
     bool is_throttle_bad = throttle_has_error_occured();
     bool is_bots_activated = bots_is_triggered();
-	bool is_brake_percentage_valid = brake_is_percentage_valid();
+	bool is_brake_percentage_valid = brake_is_percentage_outside_range();
 
     EAGLETRT_API_UNUSED(throttle);
     EAGLETRT_API_UNUSED(brake);
@@ -97,7 +97,7 @@ state_t do_idle(state_data_t *data) {
     // Struct ErrorMessage error;
     // if(throttle_has_error_occured()) error_add_throttle_error(&error)
     // if(bots_is_triggered()) error_add_bots_error(&error)
-	// if(brake_is_percentage_valid()) error_add_brake_error(&error)
+	// if(brake_is_percentage_outside_range()) error_add_brake_error(&error)
     // if(error_is_not_empty(&error)) PAL_send_message(&error)
     //
     // if(enough time for throttle message passed) PAL_send_message(&throttle)
