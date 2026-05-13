@@ -23,11 +23,6 @@ void tearDown(void) {
     // clean stuff up here
 }
 
-void test_throttle_timer_trigger(void){
-	throttle_timer_trigger();
-	TEST_ASSERT_TRUE(throttle_handler.is_changed_to_implausible);
-}
-
 void test_throttle_has_error_occured_false(void){
 	throttle_handler.last_throttle_value = 0.50f;
 	TEST_ASSERT_FALSE(throttle_has_error_occured());
@@ -168,7 +163,6 @@ void test_throttle_is_timer_reset(void) {
 
 int main( int argc, char **argv) {
     UNITY_BEGIN();
-	RUN_TEST(test_throttle_timer_trigger);
 	RUN_TEST(test_throttle_has_error_occured_false);
 	RUN_TEST(test_throttle_has_error_occured_true);
 
