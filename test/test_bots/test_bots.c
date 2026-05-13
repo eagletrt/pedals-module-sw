@@ -15,7 +15,7 @@ void setUp(void) {
 }*/
 
 void test_bots_not_activated() {
-	bool res = bots_is_bots_triggered();
+	bool res = bots_is_triggered();
 
 	TEST_ASSERT_FALSE(res);
 	TEST_ASSERT_FALSE(bots_is_trigger_activated);
@@ -26,7 +26,7 @@ void test_bots_activated() {
 
 	TEST_ASSERT_TRUE(bots_is_trigger_activated);
 
-	bool res = bots_is_bots_triggered();
+	bool res = bots_is_triggered();
 
 	TEST_ASSERT_TRUE(res);
 	TEST_ASSERT_FALSE(bots_is_trigger_activated);

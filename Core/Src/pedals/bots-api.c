@@ -7,7 +7,7 @@ void bots_set_triggered(void) {
     bots_is_trigger_activated = true;
 }
 
-bool bots_is_bots_triggered(void) {
+bool bots_is_triggered(void) {
     if (bots_is_trigger_activated) {
         bots_is_trigger_activated = false;
         return true;
