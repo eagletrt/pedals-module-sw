@@ -63,7 +63,7 @@ void throttle_set_to_valid(bool is_valid[], int n_valid, float percentages[]) {
         throttle_handler.status = THROTTLE_STATUS_OK;
     }
 
-    float result = 0.0;
+    float result = 0.0F;
 
     for (int i = 0; i < THROTTLE_APPS_NUMBER; i++) {
         result = is_valid[i] ? result + percentages[i] : result;
@@ -78,7 +78,7 @@ float throttle_get_travel_percentage() {
 
     // if status is THROTTLE_STATUS_IMPLAUSIBLE_ERROR just return 0.0, as to shut down the power to the motor as per T 11.8.8
     if (throttle_handler.status == THROTTLE_STATUS_IMPLAUSIBLE_ERROR) {
-        return 0.0;
+        return 0.0F;
     }
 
     float percentages[THROTTLE_APPS_NUMBER];
@@ -119,7 +119,7 @@ float throttle_get_travel_percentage() {
 bool throttle_has_error_occured() {
     if (throttle_handler.is_changed_to_implausible) {
         throttle_handler.status = THROTTLE_STATUS_IMPLAUSIBLE_ERROR;
-        throttle_handler.last_throttle_value = 0.0;
+        throttle_handler.last_throttle_value = 0.0F;
         throttle_handler.is_changed_to_implausible = false;
         return true;
     }

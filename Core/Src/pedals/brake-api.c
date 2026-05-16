@@ -7,15 +7,15 @@ EAGLETRT_STATIC bool brake_is_percentage_truncated = false;
 
 float brake_get_travel_percentage() {
     float res = adc_reading_return_percentage(ADC_READING_SENSOR_NAME_BPPS, BRAKE_BPPS_MIN_VALUE, BRAKE_BPPS_MAX_VALUE);
-	if (res < 0.0f) {
+	if (res < 0.0F) {
 		brake_is_percentage_truncated = true;
-		return 0.0f;
-	} else if (res > 1.0f) {
+		return 0.0F;
+	} 
+	if (res > 1.0F) {
 		brake_is_percentage_truncated = true;
-		return 1.0f;
-	} else {
-		return res;
-	}
+		return 1.0F;
+	} 
+	return res; // Returns the percentage as it is if it's not outisde the range
 }
 
 bool brake_is_percentage_outside_range() {

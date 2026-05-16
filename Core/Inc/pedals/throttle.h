@@ -11,9 +11,9 @@
 #define THROTTLE_APPS_3_MIN_VALUE 2000
 #define THROTTLE_APPS_3_MAX_VALUE 3000
 
-#define THROTTLE_APPS_IMPLAUSIBILITY_PERCENTAGE 0.1 // equivalent of 10% of 1.0
+#define THROTTLE_APPS_IMPLAUSIBILITY_PERCENTAGE 0.1F // equivalent of 10% of 1.0
 #define THROTTLE_APPS_MAX_IMPLAUSIBILITY_TIME 100   // in ms
-#define THROTTLE_APPS_EPSILON 0.001                 // equivalent to 0.1% of 1.0
+#define THROTTLE_APPS_EPSILON 0.001F                // equivalent to 0.1% of 1.0
 
 #define THROTTLE_APPS_NUMBER 3
 
