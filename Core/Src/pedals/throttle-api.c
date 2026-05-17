@@ -1,5 +1,5 @@
 #include "throttle-api.h"
-#include "adc-reading-api.h"
+#include "adc.h"
 #include "eagletrt-api.h"
 
 #include "test-definitions.h"

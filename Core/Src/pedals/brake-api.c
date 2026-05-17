@@ -1,6 +1,6 @@
 #include "brake.h"
 #include "brake-api.h"
-#include "adc-reading-api.h"
+#include "adc.h"
 #include "eagletrt-api.h"
 
 EAGLETRT_STATIC bool brake_is_percentage_truncated = false;
