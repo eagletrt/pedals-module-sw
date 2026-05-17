@@ -1,6 +1,6 @@
 #include "unity.h"
 #include "brake-api.h"
-#include "adc-reading-api.h"
+#include "adc.h"
 
 #include "test_adc_reading.h"
 #include "stdint.h"

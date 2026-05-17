@@ -1,5 +1,5 @@
 #include <unity.h>
-#include "adc-reading-api.h"
+#include "adc.h"
 #include "test_adc_reading.h"
 
 #include "fake_functions.h" // to avoid linking errors
