@@ -3,8 +3,8 @@
 
 #include "stdint.h"
 
-#define ADC_READING_MIN_RAW_VALUE 0.0F
-#define ADC_READING_MAX_RAW_VALUE 4095.0F
+#define ADC_READING_MIN_RAW_VALUE (0.0F)
+#define ADC_READING_MAX_RAW_VALUE (4095.0F)
 
 /*!
  * \brief used to identify the different values read in the adc module
