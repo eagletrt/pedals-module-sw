@@ -26,14 +26,20 @@ enum ThrottleStatus {
     THROTTLE_STATUS_IMPLAUSIBLE_ERROR
 };
 
+enum ThrottleErrorStatus{
+	THROTTLE_ERROR_STATUS_NO_ERROR,
+	THROTTLE_ERROR_STATUS_IMPLAUSIBILITY,
+	THROTTLE_ERROR_STATUS_CALLBACK_FAILURE
+};
+
 /*!
  * \brief structure to handle the status of the throttle
  * 
  */
 struct ThrottleHandler {
     float last_throttle_value;
-    enum ThrottleStatus status;
-    bool is_changed_to_implausible;
+    enum ThrottleStatus throttle_status;
+    enum ThrottleErrorStatus error_status;
 };
 
 #endif //THROTTLE_H

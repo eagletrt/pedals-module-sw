@@ -23,19 +23,19 @@ void tearDown(void) {
     // clean stuff up here
 }
 
-void test_throttle_has_error_occured_false(void){
+void test_throttle_get_error_status_false(void){
 	throttle_handler.last_throttle_value = 0.50f;
-	TEST_ASSERT_FALSE(throttle_has_error_occured());
+	TEST_ASSERT_FALSE(throttle_get_error_status());
 }
 
-void test_throttle_has_error_occured_true(void){
+void test_throttle_get_error_status_true(void){
 	throttle_handler.last_throttle_value = 0.50f;
 	throttle_timer_trigger();
-	TEST_ASSERT_TRUE_MESSAGE(throttle_has_error_occured(), "Throttle trigger was not activated");
+	TEST_ASSERT_TRUE_MESSAGE(throttle_get_error_status(), "Throttle trigger was not activated");
 	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(0.0f,throttle_handler.last_throttle_value, "Last value is not 0% as expected");
 	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_IMPLAUSIBLE_ERROR, throttle_handler.status, "Throttle state is not equal to BAD");
 	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Trigger boolean is still true");
-	TEST_ASSERT_FALSE_MESSAGE(throttle_has_error_occured(), "Throttle trigger activated, even if it should not");
+	TEST_ASSERT_FALSE_MESSAGE(throttle_get_error_status(), "Throttle trigger activated, even if it should not");
 
 }
 
@@ -44,7 +44,7 @@ void test_throttle_three_ok_sensors_valid(void) {
 	int32_t apps2 = THROTTLE_APPS_2_MIN_VALUE + (THROTTLE_APPS_2_MAX_VALUE - THROTTLE_APPS_2_MIN_VALUE) / 2; //50%
 	int32_t apps3 = THROTTLE_APPS_3_MIN_VALUE + (THROTTLE_APPS_3_MAX_VALUE - THROTTLE_APPS_3_MIN_VALUE) / 2; //50%
 
-	insert_values_in_array(ADC_READING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
+	insert_values_in_array(VOLTAGE_SCALING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
 
 	float res = throttle_get_travel_percentage();
 
@@ -62,7 +62,7 @@ void test_throttle_three_ok_sensors_implausible(void) {
 
 	throttle_handler.last_throttle_value = 0.50f;
 
-	insert_values_in_array(ADC_READING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
+	insert_values_in_array(VOLTAGE_SCALING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
 
 	float res = throttle_get_travel_percentage();
 
@@ -79,7 +79,7 @@ void test_throttle_two_ok_sensors_valid(void) {
 
 	throttle_handler.last_throttle_value = 0.50f;
 
-	insert_values_in_array(ADC_READING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
+	insert_values_in_array(VOLTAGE_SCALING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
 
 	float res = throttle_get_travel_percentage();
 
@@ -96,7 +96,7 @@ void test_throttle_two_ok_sensors_implausible(void) {
 
 	throttle_handler.last_throttle_value = 0.50f;
 
-	insert_values_in_array(ADC_READING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
+	insert_values_in_array(VOLTAGE_SCALING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
 
 	float res = throttle_get_travel_percentage();
 
@@ -113,7 +113,7 @@ void test_throttle_no_ok_sensors(void) {
 
 	throttle_handler.last_throttle_value = 0.50f;
 
-	insert_values_in_array(ADC_READING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
+	insert_values_in_array(VOLTAGE_SCALING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
 
 	float res = throttle_get_travel_percentage();
 
@@ -128,7 +128,7 @@ void test_throttle_is_timer_start(void) {
 	int32_t apps2 = THROTTLE_APPS_2_MIN_VALUE + (THROTTLE_APPS_2_MAX_VALUE - THROTTLE_APPS_2_MIN_VALUE) * 0.08f; // 8% 
 	int32_t apps3 = THROTTLE_APPS_3_MIN_VALUE + (THROTTLE_APPS_3_MAX_VALUE - THROTTLE_APPS_3_MIN_VALUE) * 0.14f; // 14%, now invalid because of 2%-14% difference
 
-	insert_values_in_array(ADC_READING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
+	insert_values_in_array(VOLTAGE_SCALING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
 	throttle_handler.last_throttle_value = 0.07f;
 
 	float res = throttle_get_travel_percentage();
@@ -149,7 +149,7 @@ void test_throttle_is_timer_reset(void) {
 	throttle_handler.last_throttle_value = 0.50f;
 	throttle_handler.status = THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE;
 
-	insert_values_in_array(ADC_READING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
+	insert_values_in_array(VOLTAGE_SCALING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
 
 	float res = throttle_get_travel_percentage();
 
@@ -163,8 +163,8 @@ void test_throttle_is_timer_reset(void) {
 
 int main( int argc, char **argv) {
     UNITY_BEGIN();
-	RUN_TEST(test_throttle_has_error_occured_false);
-	RUN_TEST(test_throttle_has_error_occured_true);
+	RUN_TEST(test_throttle_get_error_status_false);
+	RUN_TEST(test_throttle_get_error_status_true);
 
 	RUN_TEST(test_throttle_three_ok_sensors_valid);
 	RUN_TEST(test_throttle_three_ok_sensors_implausible);

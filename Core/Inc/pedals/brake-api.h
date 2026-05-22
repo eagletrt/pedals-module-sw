@@ -7,7 +7,7 @@
 /*!
  * \brief Get percentage of brake travel from BPPS
  * 
- * \return float in range [0,1], if it gets from the sensors a value outside the range, it truncates to 0 or 1 and sets a flag checked with brake_is_percentage_outside_range
+ * \return float in range [0,1], if it gets from the sensors a value outside the range, it truncates to 0 or 1 and sets a flag checked with brake_get_error_status
  */
 float brake_get_travel_percentage();
 
@@ -17,7 +17,7 @@ float brake_get_travel_percentage();
  * \retval true if the last percentage was truncated because it was outside range. After returning true, it will return false until a percentage is truncated again
  * \retval false if the last percentage was inside the expected range and so wasn't truncated
  */
-bool brake_is_percentage_outside_range();
+enum BrakeErrorStatus brake_get_error_status();
 
 /*!
  * \brief Get value of front brake pressure in [TODO unit of measure] 
