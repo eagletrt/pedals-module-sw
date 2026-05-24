@@ -4,6 +4,8 @@
 #include "throttle.h"
 #include "stdbool.h"
 
+enum ThrottleReturnCode throttle_init(throttle_timer_callback start_timer, throttle_timer_callback stop_timer);
+
 /*!
  * \brief Get the average percentage of throttle travel from the three APPS
  * 
@@ -23,6 +25,6 @@ void throttle_timer_trigger(void);
  * \retval true if throttle_timer_trigger was called. After returning true, successive calls will return false until throttle_timer_trigger is called again
  * \retval false if throttle_timer_trigger wasn't called or if it already returned true without throttle_timer_trigger being called again
  */
-enum ThrottleErrorStatus throttle_get_error_status(void);
+enum ThrottleReturnCode throttle_get_error_status(void);
 
 #endif //THROTTLE_API_H

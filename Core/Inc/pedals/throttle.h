@@ -26,11 +26,13 @@ enum ThrottleStatus {
     THROTTLE_STATUS_IMPLAUSIBLE_ERROR
 };
 
-enum ThrottleErrorStatus{
-	THROTTLE_ERROR_STATUS_NO_ERROR,
-	THROTTLE_ERROR_STATUS_IMPLAUSIBILITY,
-	THROTTLE_ERROR_STATUS_CALLBACK_FAILURE
+enum ThrottleReturnCode{
+	THROTTLE_RC_NO_ERROR,
+	THROTTLE_RC_IMPLAUSIBILITY,
+	THROTTLE_RC_CALLBACK_FAILURE
 };
+
+typedef enum ThrottleReturnCode (*throttle_timer_callback) ();
 
 /*!
  * \brief structure to handle the status of the throttle
@@ -39,7 +41,9 @@ enum ThrottleErrorStatus{
 struct ThrottleHandler {
     float last_throttle_value;
     enum ThrottleStatus throttle_status;
-    enum ThrottleErrorStatus error_status;
+    enum ThrottleReturnCode error_status;
+	throttle_timer_callback start_timer;
+	throttle_timer_callback stop_timer;
 };
 
 #endif //THROTTLE_H

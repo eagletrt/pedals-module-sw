@@ -1,13 +1,14 @@
 #include "throttle-api.h"
+#include "sensor-types.h"
 #include "voltage-scaling-api.h"
 #include "eagletrt-api.h"
 
-#include "test-definitions.h"
-
 EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
-    .error_status = THROTTLE_ERROR_STATUS_NO_ERROR,
+    .error_status = THROTTLE_RC_NO_ERROR,
     .last_throttle_value = 0.0,
-    .throttle_status = THROTTLE_STATUS_OK
+    .throttle_status = THROTTLE_STATUS_OK,
+	.start_timer = NULL,
+	.stop_timer = NULL
 };
 
 // internal functions ---------------------------------------
@@ -45,7 +46,10 @@ bool prv_throttle_is_percentage_within_plausibility(float val_1, float val_2) {
  */
 void prv_throttle_set_to_implausibility() {
     if (throttle_handler.throttle_status == THROTTLE_STATUS_OK) {
-        test_start_timer();
+        if(throttle_handler.start_timer == NULL || throttle_handler.start_timer() == THROTTLE_RC_CALLBACK_FAILURE){
+			throttle_handler.error_status = THROTTLE_RC_CALLBACK_FAILURE;
+			return;
+		}
         throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE;
     }
 }
@@ -59,7 +63,10 @@ void prv_throttle_set_to_implausibility() {
  */
 void prv_throttle_set_to_valid(bool is_valid[], int n_valid, float percentages[]) {
     if (throttle_handler.throttle_status == THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE) {
-        test_reset_timer();
+        if(throttle_handler.stop_timer == NULL || throttle_handler.stop_timer() == THROTTLE_RC_CALLBACK_FAILURE){
+			throttle_handler.error_status = THROTTLE_RC_CALLBACK_FAILURE;
+			return;
+		}
         throttle_handler.throttle_status = THROTTLE_STATUS_OK;
     }
 
@@ -74,6 +81,16 @@ void prv_throttle_set_to_valid(bool is_valid[], int n_valid, float percentages[]
 
 // actual api ---------------------------------------
 
+enum ThrottleReturnCode throttle_init(throttle_timer_callback start_timer, throttle_timer_callback stop_timer){
+	if(start_timer == NULL || stop_timer == NULL){
+		return THROTTLE_RC_CALLBACK_FAILURE;
+	}
+
+	throttle_handler.start_timer = start_timer;
+	throttle_handler.stop_timer = stop_timer;
+	return THROTTLE_RC_NO_ERROR;
+}
+
 float throttle_get_travel_percentage() {
 
     // if status is THROTTLE_STATUS_IMPLAUSIBLE_ERROR just return 0.0, as to shut down the power to the motor as per T 11.8.8
@@ -86,17 +103,17 @@ float throttle_get_travel_percentage() {
 
     rc = voltage_scaling_get_percentage(&percentages[0], SENSOR_TYPES_NAME_APPS_1, THROTTLE_APPS_1_MIN_VALUE, THROTTLE_APPS_1_MAX_VALUE);
     if(rc == VOLTAGE_SCALING_RC_ERROR){
-		throttle_handler.error_status = THROTTLE_ERROR_STATUS_CALLBACK_FAILURE;
+		throttle_handler.error_status = THROTTLE_RC_CALLBACK_FAILURE;
 		return 0.0F;
 	}
 	rc = voltage_scaling_get_percentage(&percentages[1],SENSOR_TYPES_NAME_APPS_2, THROTTLE_APPS_2_MIN_VALUE, THROTTLE_APPS_2_MAX_VALUE);
     if(rc == VOLTAGE_SCALING_RC_ERROR){
-		throttle_handler.error_status = THROTTLE_ERROR_STATUS_CALLBACK_FAILURE;
+		throttle_handler.error_status = THROTTLE_RC_CALLBACK_FAILURE;
 		return 0.0F;
 	}
 	rc = voltage_scaling_get_percentage(&percentages[2],SENSOR_TYPES_NAME_APPS_3, THROTTLE_APPS_3_MIN_VALUE, THROTTLE_APPS_3_MAX_VALUE);
 	if(rc == VOLTAGE_SCALING_RC_ERROR){
-		throttle_handler.error_status = THROTTLE_ERROR_STATUS_CALLBACK_FAILURE;
+		throttle_handler.error_status = THROTTLE_RC_CALLBACK_FAILURE;
 		return 0.0F;
 	}
 
@@ -129,18 +146,18 @@ float throttle_get_travel_percentage() {
     return throttle_handler.last_throttle_value;
 }
 
-enum ThrottleErrorStatus throttle_get_error_status() {
-    if (throttle_handler.error_status != THROTTLE_ERROR_STATUS_NO_ERROR) {
+enum ThrottleReturnCode throttle_get_error_status() {
+    if (throttle_handler.error_status != THROTTLE_RC_NO_ERROR) {
         throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBLE_ERROR;
         throttle_handler.last_throttle_value = 0.0F;
-		enum ThrottleErrorStatus error_state = throttle_handler.error_status; 
-        throttle_handler.error_status = THROTTLE_ERROR_STATUS_NO_ERROR;
+		enum ThrottleReturnCode error_state = throttle_handler.error_status; 
+        throttle_handler.error_status = THROTTLE_RC_NO_ERROR;
         return error_state;
     }
 
-    return THROTTLE_ERROR_STATUS_NO_ERROR;
+    return THROTTLE_RC_NO_ERROR;
 }
 
 void throttle_timer_trigger() {
-    throttle_handler.error_status = THROTTLE_ERROR_STATUS_IMPLAUSIBILITY;
+    throttle_handler.error_status = THROTTLE_RC_IMPLAUSIBILITY;
 }
