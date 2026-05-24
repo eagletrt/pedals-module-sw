@@ -14,6 +14,6 @@ enum VoltageScalingReturnCode voltage_scaling_init(voltage_scaling_sensor_read_c
  * \param normal_max upper bound of the interval
  * \return float ideally in range [0,1], but can be outside depending on normal_min, normal_max and the values read in the adc module
  */
-enum VoltageScalingReturnCode voltage_scaling_get_percentage(float* percentage, enum SensorTypesName sensor, int32_t normal_min, int32_t normal_max);
+enum VoltageScalingReturnCode voltage_scaling_get_percentage(float* percentage, enum SensorTypesName sensor, float normal_min, float normal_max);
 
 #endif /* VOLTAGE_SCALING_API_H */

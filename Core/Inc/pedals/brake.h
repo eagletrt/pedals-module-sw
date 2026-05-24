@@ -2,8 +2,8 @@
 #define BRAKE_H
 
 //TODO use correct values
-#define BRAKE_BPPS_MIN_VALUE 0
-#define BRAKE_BPPS_MAX_VALUE 1000
+#define BRAKE_BPPS_MIN_VALUE (0.0F)
+#define BRAKE_BPPS_MAX_VALUE (1000.0F)
 
 //TODO use correct values
 #define BRAKE_BSPS_F_CONVERSION_VALUE (30.0F)

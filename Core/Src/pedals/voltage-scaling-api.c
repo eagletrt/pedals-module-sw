@@ -12,7 +12,7 @@ enum VoltageScalingReturnCode voltage_scaling_init(voltage_scaling_sensor_read_c
 	return VOLTAGE_SCALING_RC_OK;
 }
 
-enum VoltageScalingReturnCode voltage_scaling_get_percentage(float* percentage, enum SensorTypesName sensor, int32_t normal_min, int32_t normal_max){
+enum VoltageScalingReturnCode voltage_scaling_get_percentage(float* percentage, enum SensorTypesName sensor, float normal_min, float normal_max){
     if(voltage_scaling_handler.read_raw == NULL){
 		return VOLTAGE_SCALING_RC_ERROR;
 	}
@@ -21,8 +21,8 @@ enum VoltageScalingReturnCode voltage_scaling_get_percentage(float* percentage, 
 
     float current_percentage = (float)raw_current / VOLTAGE_SCALING_MAX_RAW_VALUE;
 
-    float new_min = current_percentage * (float)normal_min;
-    float new_max = current_percentage * (float)normal_max;
+    float new_min = current_percentage * normal_min;
+    float new_max = current_percentage * normal_max;
 
     int32_t value = voltage_scaling_handler.read_raw(sensor);
 

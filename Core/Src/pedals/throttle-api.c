@@ -99,20 +99,20 @@ float throttle_get_travel_percentage() {
     }
 
     float percentages[THROTTLE_APPS_NUMBER];
-	enum VoltageScalingReturnCode rc;
+	enum VoltageScalingReturnCode return_code;
 
-    rc = voltage_scaling_get_percentage(&percentages[0], SENSOR_TYPES_NAME_APPS_1, THROTTLE_APPS_1_MIN_VALUE, THROTTLE_APPS_1_MAX_VALUE);
-    if(rc == VOLTAGE_SCALING_RC_ERROR){
+    return_code = voltage_scaling_get_percentage(&percentages[0], SENSOR_TYPES_NAME_APPS_1, THROTTLE_APPS_1_MIN_VALUE, THROTTLE_APPS_1_MAX_VALUE);
+    if(return_code== VOLTAGE_SCALING_RC_ERROR){
 		throttle_handler.error_status = THROTTLE_RC_CALLBACK_FAILURE;
 		return 0.0F;
 	}
-	rc = voltage_scaling_get_percentage(&percentages[1],SENSOR_TYPES_NAME_APPS_2, THROTTLE_APPS_2_MIN_VALUE, THROTTLE_APPS_2_MAX_VALUE);
-    if(rc == VOLTAGE_SCALING_RC_ERROR){
+	return_code= voltage_scaling_get_percentage(&percentages[1],SENSOR_TYPES_NAME_APPS_2, THROTTLE_APPS_2_MIN_VALUE, THROTTLE_APPS_2_MAX_VALUE);
+    if(return_code== VOLTAGE_SCALING_RC_ERROR){
 		throttle_handler.error_status = THROTTLE_RC_CALLBACK_FAILURE;
 		return 0.0F;
 	}
-	rc = voltage_scaling_get_percentage(&percentages[2],SENSOR_TYPES_NAME_APPS_3, THROTTLE_APPS_3_MIN_VALUE, THROTTLE_APPS_3_MAX_VALUE);
-	if(rc == VOLTAGE_SCALING_RC_ERROR){
+	return_code= voltage_scaling_get_percentage(&percentages[2],SENSOR_TYPES_NAME_APPS_3, THROTTLE_APPS_3_MIN_VALUE, THROTTLE_APPS_3_MAX_VALUE);
+	if(return_code== VOLTAGE_SCALING_RC_ERROR){
 		throttle_handler.error_status = THROTTLE_RC_CALLBACK_FAILURE;
 		return 0.0F;
 	}
