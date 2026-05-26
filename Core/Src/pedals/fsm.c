@@ -80,17 +80,17 @@ state_t do_idle(state_data_t *data) {
     float front_brake_pressure = brake_get_front_pressure();
     float rear_brake_pressure = brake_get_rear_pressure();
 
-    bool is_throttle_bad = throttle_get_error_status();
+    enum ThrottleReturnCode throttle_result = throttle_get_error_status();
     bool is_bots_activated = bots_is_triggered();
-	bool is_brake_percentage_valid = brake_get_error_status();
+	enum BrakeReturnCode brake_error_status = brake_get_error_status();
 
     EAGLETRT_API_UNUSED(throttle);
     EAGLETRT_API_UNUSED(brake);
     EAGLETRT_API_UNUSED(front_brake_pressure);
     EAGLETRT_API_UNUSED(rear_brake_pressure);
-    EAGLETRT_API_UNUSED(is_throttle_bad);
+    EAGLETRT_API_UNUSED(throttle_result);
     EAGLETRT_API_UNUSED(is_bots_activated);
-	EAGLETRT_API_UNUSED(is_brake_percentage_valid);
+	EAGLETRT_API_UNUSED(brake_error_status);
 
     // based on the frequency, send the data
     // here below an example of how it would look like

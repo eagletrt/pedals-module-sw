@@ -17,7 +17,7 @@ float brake_get_travel_percentage();
  * \retval true if the last percentage was truncated because it was outside range. After returning true, it will return false until a percentage is truncated again
  * \retval false if the last percentage was inside the expected range and so wasn't truncated
  */
-enum BrakeErrorStatus brake_get_error_status();
+enum BrakeReturnCode brake_get_error_status();
 
 /*!
  * \brief Get value of front brake pressure in [TODO unit of measure] 
