@@ -4,6 +4,13 @@
 #include "throttle.h"
 #include "stdbool.h"
 
+/*!
+ * \brief function to initialise the external callbacks related to the timer
+ * 
+ * \param start_timer pointer to function that will start the timer to check for implausibility
+ * \param stop_timer pointer to function that will reset the implausibility timer
+ * \return enum ThrottleReturnCode status of the operation
+ */
 enum ThrottleReturnCode throttle_init(throttle_timer_callback start_timer, throttle_timer_callback stop_timer);
 
 /*!

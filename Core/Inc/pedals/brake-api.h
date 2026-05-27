@@ -12,10 +12,11 @@
 float brake_get_travel_percentage();
 
 /*!
- * \brief Get bool to see if the percentages weren't truncated to 0 or 1 due to them being outside the expected range. It consumes true values
+ * \brief Get return code to check what kind of error occured between this and the last call of the function
  * 
- * \retval true if the last percentage was truncated because it was outside range. After returning true, it will return false until a percentage is truncated again
- * \retval false if the last percentage was inside the expected range and so wasn't truncated
+ * \retval BRAKE_RC_NO_ERROR if no error occured. After the error was retrieved, the state will default to this value
+ * \retval BRAKE_RC_VALUE_OUTSIDE_RANGE one of the values was truncated because it was outside the range
+ * \retval BRAKE_RC_CALLBACK_FAILURE if external called failed
  */
 enum BrakeReturnCode brake_get_error_status();
 

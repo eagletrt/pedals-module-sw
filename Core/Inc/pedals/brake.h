@@ -9,10 +9,14 @@
 #define BRAKE_BSPS_F_CONVERSION_VALUE (30.0F)
 #define BRAKE_BSPS_R_CONVERSION_VALUE (40.0F)
 
+/*!
+ * \brief Return code for brake's operations
+ * 
+ */
 enum BrakeReturnCode{
-	BRAKE_RC_NO_ERROR,
-	BRAKE_RC_VALUE_OUTSIDE_RANGE,
-	BRAKE_RC_CALLBACK_FAILURE
+	BRAKE_RC_NO_ERROR,				/*!< Operation success*/
+	BRAKE_RC_VALUE_OUTSIDE_RANGE,	/*!< The actual value was outside the established range and so the results had been clipped*/
+	BRAKE_RC_CALLBACK_FAILURE		/*!< External function call failed, not possible to retrieve the true value*/
 };
 
 #endif //BRAKE_H
