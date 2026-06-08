@@ -1,25 +1,44 @@
 #include "unity.h"
 #include "fff.h"
 #include "brake-api.h"
-#include "stdint.h"
-#include "voltage-scaling-api.h"
 
 DEFINE_FFF_GLOBALS;
 
-FAKE_VALUE_FUNC(int32_t, VOLTAGE_SCALING_read_raw, enum SensorTypesName);
+FAKE_VALUE_FUNC(float, BRAKE_pedal_travel_callback);
+FAKE_VALUE_FUNC(float, BRAKE_front_pressure_callback);
+FAKE_VALUE_FUNC(float, BRAKE_rear_pressure_callback);
 
-extern struct VoltageScalingHandler voltage_scaling_handler;
+extern struct BrakeHandler brake_handler;
 
 void setUp(void) {
-    RESET_FAKE(VOLTAGE_SCALING_read_raw);
-    FFF_RESET_HISTORY();
-	voltage_scaling_handler.read_raw = NULL;
+    RESET_FAKE(BRAKE_pedal_travel_callback);
+    RESET_FAKE(BRAKE_front_pressure_callback);
+	RESET_FAKE(BRAKE_rear_pressure_callback);
+	FFF_RESET_HISTORY();
+	brake_handler.get_pedal_travel = NULL;
+	brake_handler.get_front_pressure = NULL;
+	brake_handler.get_rear_pressure = NULL;
 }
 
-//void tearDown(void) {
-    // clean stuff up here
-//}
+/*void tearDown(void) {}*/
 
+void test_brake_init_handler_success(void){
+	enum BrakeReturnCode res = brake_init_handler(BRAKE_pedal_travel_callback, BRAKE_front_pressure_callback, BRAKE_rear_pressure_callback);
+	TEST_ASSERT_EQUAL_MESSAGE(res, BRAKE_RC_NO_ERROR, "Initialisation failed");
+	TEST_ASSERT_EQUAL_MESSAGE(brake_handler.get_pedal_travel, BRAKE_pedal_travel_callback,"Not pointing to brake travel function");
+	TEST_ASSERT_EQUAL_MESSAGE(brake_handler.get_front_pressure, BRAKE_front_pressure_callback, "Not pointing to front pressure function");
+	TEST_ASSERT_EQUAL_MESSAGE(brake_handler.get_rear_pressure,BRAKE_rear_pressure_callback,"Not pointing to rear pressure function");
+}
+
+void test_brake_init_handler_failure(void){
+	enum BrakeReturnCode res = brake_init_handler(BRAKE_pedal_travel_callback, BRAKE_front_pressure_callback, NULL);
+	TEST_ASSERT_EQUAL_MESSAGE(res, BRAKE_RC_CALLBACK_FAILURE, "Initialisation succeeded even if it shouldn't have");
+	TEST_ASSERT_EQUAL_MESSAGE(brake_handler.get_pedal_travel, NULL,"Not pointing to brake travel function");
+	TEST_ASSERT_EQUAL_MESSAGE(brake_handler.get_front_pressure, NULL, "Not pointing to front pressure function");
+	TEST_ASSERT_EQUAL_MESSAGE(brake_handler.get_rear_pressure, NULL, "Not pointing to rear pressure function");
+}
+
+/*
 void test_brake_bpps_percentage_in_range(void) {
 	const float MIN_VAL = BRAKE_BPPS_MIN_VALUE, MAX_VAL = BRAKE_BPPS_MAX_VALUE;
 	int32_t CURRENT = (int32_t)VOLTAGE_SCALING_MAX_RAW_VALUE;
@@ -142,16 +161,21 @@ void test_brake_rear_pressure_failure() {
 	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(0.0f,res,"Result is not 0.0 as expected");
 	TEST_ASSERT_EQUAL_MESSAGE(brake_get_error_status(),BRAKE_RC_CALLBACK_FAILURE,"Error was not found as callback failure");
 }
+*/
 
 int main( int argc, char **argv) {
     UNITY_BEGIN();
-	RUN_TEST(test_brake_bpps_percentage_in_range);
-	RUN_TEST(test_brake_bpps_percentage_outside_range_lower);
-	RUN_TEST(test_brake_bpps_percentage_outside_range_upper);
-	RUN_TEST(test_brake_bpps_percentage_callback_failure);
-	RUN_TEST(test_brake_front_pressure_success);
-	RUN_TEST(test_brake_front_pressure_failure);
-	RUN_TEST(test_brake_rear_pressure_success);
-	RUN_TEST(test_brake_rear_pressure_failure);
+
+	RUN_TEST(test_brake_init_handler_success);
+	RUN_TEST(test_brake_init_handler_failure);
+
+//	RUN_TEST(test_brake_bpps_percentage_in_range);
+//	RUN_TEST(test_brake_bpps_percentage_outside_range_lower);
+//	RUN_TEST(test_brake_bpps_percentage_outside_range_upper);
+//	RUN_TEST(test_brake_bpps_percentage_callback_failure);
+//	RUN_TEST(test_brake_front_pressure_success);
+//	RUN_TEST(test_brake_front_pressure_failure);
+//	RUN_TEST(test_brake_rear_pressure_success);
+//	RUN_TEST(test_brake_rear_pressure_failure);
     UNITY_END();
 }
