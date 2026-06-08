@@ -3,6 +3,15 @@
 
 #include "brake.h"
 
+/*!
+ * \brief Initialisation function
+ * 
+ * \param pedal_travel_cb pointer to the function that will get the pedal travel
+ * \param front_pressure_cb pointer to the function that will get front brakes' pressure
+ * \param rear_pressure_cb pointer to the function that will get rear brakes' pressure
+ * \retval BRAKE_RC_NO_ERROR initialisation was successful
+ * \retval BRAKE_RC_VALUE_CALLBACK_FAILURE One or more pointers were null. No other return value possible
+ */
 enum BrakeReturnCode brake_init_handler(
 	brake_percentage_callback pedal_travel_cb, 
 	brake_percentage_callback front_pressure_cb,
