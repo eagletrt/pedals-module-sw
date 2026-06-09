@@ -38,130 +38,89 @@ void test_brake_init_handler_failure(void){
 	TEST_ASSERT_EQUAL_MESSAGE(brake_handler.get_rear_pressure, NULL, "Not pointing to rear pressure function");
 }
 
-/*
-void test_brake_bpps_percentage_in_range(void) {
-	const float MIN_VAL = BRAKE_BPPS_MIN_VALUE, MAX_VAL = BRAKE_BPPS_MAX_VALUE;
-	int32_t CURRENT = (int32_t)VOLTAGE_SCALING_MAX_RAW_VALUE;
-	int32_t sensor = (int32_t)(MIN_VAL + (MAX_VAL - MIN_VAL) / 2);
-
-	int32_t return_values[2] = { CURRENT, sensor };
-    SET_RETURN_SEQ(VOLTAGE_SCALING_read_raw, return_values, 2);
-
-	enum VoltageScalingReturnCode rc = voltage_scaling_init(VOLTAGE_SCALING_read_raw);
-	TEST_ASSERT_EQUAL_MESSAGE(rc,VOLTAGE_SCALING_RC_OK,"Initialisation failed");
-	float res = brake_get_travel_percentage();
-
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.001,0.50f,res,"Result is outside expected range"); // [49.9%,50.1%] range is valid
-	TEST_ASSERT_EQUAL_MESSAGE(brake_get_error_status(),BRAKE_RC_NO_ERROR,"Error was detected even if it should have been valid"); // Since the value is in range, it should be valid
+void test_brake_travel_callback_failure(void){
+	enum BrakeReturnCode res = brake_init_handler(NULL, BRAKE_front_pressure_callback, BRAKE_rear_pressure_callback);
+	
+	float result = 0.3F;
+	res = brake_get_travel_percentage(&result);
+	TEST_ASSERT_EQUAL_MESSAGE(res, BRAKE_RC_CALLBACK_FAILURE, "Callback should have failed");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(result, 0.3F, "Result of operation was touched");
 }
 
-void test_brake_bpps_percentage_outside_range_lower(void) {
-	const float MIN_VAL = BRAKE_BPPS_MIN_VALUE, MAX_VAL = BRAKE_BPPS_MAX_VALUE;
-	int32_t CURRENT = (int32_t)VOLTAGE_SCALING_MAX_RAW_VALUE;
-	int32_t sensor = (int32_t)MIN_VAL - 1; // Set sensor value outside the valid range
+void test_brake_travel_success(void){
+	enum BrakeReturnCode res = brake_init_handler(BRAKE_pedal_travel_callback, BRAKE_front_pressure_callback, BRAKE_rear_pressure_callback);
+	
+	float ret_vals = 0.82F;
+	SET_RETURN_SEQ(BRAKE_pedal_travel_callback, &ret_vals, 1);
 
-	int32_t return_values[2] = { CURRENT, sensor };
-    SET_RETURN_SEQ(VOLTAGE_SCALING_read_raw, return_values, 2);
-
-	enum VoltageScalingReturnCode rc = voltage_scaling_init(VOLTAGE_SCALING_read_raw);
-	TEST_ASSERT_EQUAL_MESSAGE(rc,VOLTAGE_SCALING_RC_OK,"Initialisation failed");
-	float res = brake_get_travel_percentage();
-
-	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(0.0f,res,"Result is not truncated to 0.0 to expected"); // Should be truncated to 0.0f
-	TEST_ASSERT_EQUAL_MESSAGE(brake_get_error_status(),BRAKE_RC_VALUE_OUTSIDE_RANGE,"Error was not found as outside range");
+	float result = 0.4F;
+	res = brake_get_travel_percentage(&result);
+	TEST_ASSERT_EQUAL_MESSAGE(res, BRAKE_RC_NO_ERROR, "Callback has failed");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(result, ret_vals, "Result is not as expected");
 }
 
-void test_brake_bpps_percentage_outside_range_upper(void) {
-	const float MIN_VAL = BRAKE_BPPS_MIN_VALUE, MAX_VAL = BRAKE_BPPS_MAX_VALUE;
-	int32_t CURRENT = (int32_t)VOLTAGE_SCALING_MAX_RAW_VALUE;
-	int32_t sensor = (int32_t)MAX_VAL + 1; // Set sensor value outside the valid range
+void test_brake_travel_low_perc(void){
+	enum BrakeReturnCode res = brake_init_handler(BRAKE_pedal_travel_callback, BRAKE_front_pressure_callback, BRAKE_rear_pressure_callback);
+	
+	float ret_vals = -0.01F;
+	SET_RETURN_SEQ(BRAKE_pedal_travel_callback, &ret_vals, 1);
 
-	int32_t return_values[2] = { CURRENT, sensor };
-    SET_RETURN_SEQ(VOLTAGE_SCALING_read_raw, return_values, 2);
-
-	enum VoltageScalingReturnCode rc = voltage_scaling_init(VOLTAGE_SCALING_read_raw);
-	TEST_ASSERT_EQUAL_MESSAGE(rc,VOLTAGE_SCALING_RC_OK,"Initialisation failed");
-	float res = brake_get_travel_percentage();
-
-	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(1.0f,res,"Result is not truncated as 1.0 to expected"); // Should be truncated to 1.0f
-	TEST_ASSERT_EQUAL_MESSAGE(brake_get_error_status(),BRAKE_RC_VALUE_OUTSIDE_RANGE,"Error was not found as outside range");
+	float result = 0.4F;
+	res = brake_get_travel_percentage(&result);
+	TEST_ASSERT_EQUAL_MESSAGE(res, BRAKE_RC_VALUE_OUTSIDE_RANGE, "Value was not truncated");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(result, 0.0F, "Result is not as expected");
 }
 
-void test_brake_bpps_percentage_callback_failure(void){
-	const float MIN_VAL = BRAKE_BPPS_MIN_VALUE, MAX_VAL = BRAKE_BPPS_MAX_VALUE;
-	int32_t CURRENT = (int32_t)VOLTAGE_SCALING_MAX_RAW_VALUE;
-	int32_t sensor = (int32_t)(MIN_VAL + (MAX_VAL - MIN_VAL) / 2);
+void test_brake_travel_high_perc(void){
+	enum BrakeReturnCode res = brake_init_handler(BRAKE_pedal_travel_callback, BRAKE_front_pressure_callback, BRAKE_rear_pressure_callback);
+	
+	float ret_vals = 1.03F;
+	SET_RETURN_SEQ(BRAKE_pedal_travel_callback, &ret_vals, 1);
 
-	int32_t return_values[2] = { CURRENT, sensor };
-    SET_RETURN_SEQ(VOLTAGE_SCALING_read_raw, return_values, 2);
-
-	float res = brake_get_travel_percentage();
-
-	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(0.0f,res,"Result is not 0.0 as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(brake_get_error_status(),BRAKE_RC_CALLBACK_FAILURE,"Error was not found as callback failure");
+	float result = 0.4F;
+	res = brake_get_travel_percentage(&result);
+	TEST_ASSERT_EQUAL_MESSAGE(res, BRAKE_RC_VALUE_OUTSIDE_RANGE, "Value was not truncated");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(result, 1.0F, "Result is not as expected");
 }
 
-
-void test_brake_front_pressure_success() {
-	const int32_t MIN_VAL = VOLTAGE_SCALING_MIN_RAW_VALUE, MAX_VAL = VOLTAGE_SCALING_MAX_RAW_VALUE;
-	int32_t CURRENT = (int32_t)VOLTAGE_SCALING_MAX_RAW_VALUE;
-	int32_t sensor = (int32_t)(MIN_VAL + (MAX_VAL - MIN_VAL) / 2);
-
-	int32_t return_values[2] = { CURRENT, sensor };
-    SET_RETURN_SEQ(VOLTAGE_SCALING_read_raw, return_values, 2);
-
-	enum VoltageScalingReturnCode rc = voltage_scaling_init(VOLTAGE_SCALING_read_raw);
-	TEST_ASSERT_EQUAL_MESSAGE(rc,VOLTAGE_SCALING_RC_OK,"Initialisation failed");
-	float res = brake_get_front_pressure();
-
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.001 * BRAKE_BSPS_F_CONVERSION_VALUE, 0.50f * BRAKE_BSPS_F_CONVERSION_VALUE, res,"Pressure is not as expected"); // [49.9%,50.1%] range is valid
-	TEST_ASSERT_EQUAL_MESSAGE(brake_get_error_status(),BRAKE_RC_NO_ERROR,"Error was detected even if it should have been valid");
+void test_brake_pressures_callback_failure(void){
+	enum BrakeReturnCode res = brake_init_handler(BRAKE_pedal_travel_callback, BRAKE_front_pressure_callback, NULL);
+	
+	float front = 0.3F, rear = 0.5F;
+	res = brake_get_pressures(&front, &rear);
+	TEST_ASSERT_EQUAL_MESSAGE(res, BRAKE_RC_CALLBACK_FAILURE, "Callback should have failed");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(front, 0.3F, "Front was touched");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(rear, 0.5F, "Rear was touched");
 }
 
-void test_brake_front_pressure_failure() {
-	const int32_t MIN_VAL = VOLTAGE_SCALING_MIN_RAW_VALUE, MAX_VAL = VOLTAGE_SCALING_MAX_RAW_VALUE;
-	int32_t CURRENT = (int32_t)VOLTAGE_SCALING_MAX_RAW_VALUE;
-	int32_t sensor = (int32_t)(MIN_VAL + (MAX_VAL - MIN_VAL) / 2);
+void test_brake_pressures_success(void){
+	enum BrakeReturnCode res = brake_init_handler(BRAKE_pedal_travel_callback, BRAKE_front_pressure_callback, BRAKE_rear_pressure_callback);
+	
+	float ret_front = 0.03F, ret_rear = 0.47F;
+	SET_RETURN_SEQ(BRAKE_front_pressure_callback, &ret_front, 1);
+	SET_RETURN_SEQ(BRAKE_rear_pressure_callback, &ret_rear, 1);
 
-	int32_t return_values[2] = { CURRENT, sensor };
-    SET_RETURN_SEQ(VOLTAGE_SCALING_read_raw, return_values, 2);
-
-	float res = brake_get_front_pressure();
-
-	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(0.0f,res,"Result is not 0.0 as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(brake_get_error_status(),BRAKE_RC_CALLBACK_FAILURE,"Error was not found as callback failure");
+	float front = 0.3F, rear = 0.5F;
+	res = brake_get_pressures(&front, &rear);
+	TEST_ASSERT_EQUAL_MESSAGE(res, BRAKE_RC_NO_ERROR, "Callback should have failed");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(front, 0.03F * BRAKE_PRESSURE_CONVERSION_VALUE, "Front wasn't as expected");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(rear, 0.47F * BRAKE_PRESSURE_CONVERSION_VALUE, "Rear wasn't as expected");
 }
 
-void test_brake_rear_pressure_success() {
-	const int32_t MIN_VAL = VOLTAGE_SCALING_MIN_RAW_VALUE, MAX_VAL = VOLTAGE_SCALING_MAX_RAW_VALUE;
-	int32_t CURRENT = (int32_t)VOLTAGE_SCALING_MAX_RAW_VALUE;
-	int32_t sensor = (int32_t)(MIN_VAL + (MAX_VAL - MIN_VAL) / 2);
+void test_brake_pressures_outside_range(void){
+	enum BrakeReturnCode res = brake_init_handler(BRAKE_pedal_travel_callback, BRAKE_front_pressure_callback, BRAKE_rear_pressure_callback);
+	
+	float ret_front = 0.15F, ret_rear = -0.04F;
+	SET_RETURN_SEQ(BRAKE_front_pressure_callback, &ret_front, 1);
+	SET_RETURN_SEQ(BRAKE_rear_pressure_callback, &ret_rear, 1);
 
-	int32_t return_values[2] = { CURRENT, sensor };
-    SET_RETURN_SEQ(VOLTAGE_SCALING_read_raw, return_values, 2);
-
-	enum VoltageScalingReturnCode rc = voltage_scaling_init(VOLTAGE_SCALING_read_raw);
-	TEST_ASSERT_EQUAL_MESSAGE(rc,VOLTAGE_SCALING_RC_OK,"Initialisation failed");
-	float res = brake_get_rear_pressure();
-
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.001 * BRAKE_BSPS_R_CONVERSION_VALUE, 0.50f * BRAKE_BSPS_R_CONVERSION_VALUE, res,"Pressure is not as expected"); // [49.9%,50.1%] range is valid
-	TEST_ASSERT_EQUAL_MESSAGE(brake_get_error_status(),BRAKE_RC_NO_ERROR,"Error was detected even if it should have been valid");
+	float front = 0.3F, rear = 0.5F;
+	res = brake_get_pressures(&front, &rear);
+	TEST_ASSERT_EQUAL_MESSAGE(res, BRAKE_RC_VALUE_OUTSIDE_RANGE, "Result is not as expected");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(front, 0.15F * BRAKE_PRESSURE_CONVERSION_VALUE, "Front wasn't as expected");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(rear, 0.0F, "Rear wasn't as expected");
 }
 
-void test_brake_rear_pressure_failure() {
-	const int32_t MIN_VAL = VOLTAGE_SCALING_MIN_RAW_VALUE, MAX_VAL = VOLTAGE_SCALING_MAX_RAW_VALUE;
-	int32_t CURRENT = (int32_t)VOLTAGE_SCALING_MAX_RAW_VALUE;
-	int32_t sensor = (int32_t)(MIN_VAL + (MAX_VAL - MIN_VAL) / 2);
-
-	int32_t return_values[2] = { CURRENT, sensor };
-    SET_RETURN_SEQ(VOLTAGE_SCALING_read_raw, return_values, 2);
-
-	float res = brake_get_rear_pressure();
-
-	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(0.0f,res,"Result is not 0.0 as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(brake_get_error_status(),BRAKE_RC_CALLBACK_FAILURE,"Error was not found as callback failure");
-}
-*/
 
 int main( int argc, char **argv) {
     UNITY_BEGIN();
@@ -169,13 +128,14 @@ int main( int argc, char **argv) {
 	RUN_TEST(test_brake_init_handler_success);
 	RUN_TEST(test_brake_init_handler_failure);
 
-//	RUN_TEST(test_brake_bpps_percentage_in_range);
-//	RUN_TEST(test_brake_bpps_percentage_outside_range_lower);
-//	RUN_TEST(test_brake_bpps_percentage_outside_range_upper);
-//	RUN_TEST(test_brake_bpps_percentage_callback_failure);
-//	RUN_TEST(test_brake_front_pressure_success);
-//	RUN_TEST(test_brake_front_pressure_failure);
-//	RUN_TEST(test_brake_rear_pressure_success);
-//	RUN_TEST(test_brake_rear_pressure_failure);
+	RUN_TEST(test_brake_travel_callback_failure);
+	RUN_TEST(test_brake_travel_success);
+	RUN_TEST(test_brake_travel_low_perc);
+	RUN_TEST(test_brake_travel_high_perc);
+
+	RUN_TEST(test_brake_pressures_callback_failure);
+	RUN_TEST(test_brake_pressures_success);
+	RUN_TEST(test_brake_pressures_outside_range);
+
     UNITY_END();
 }
