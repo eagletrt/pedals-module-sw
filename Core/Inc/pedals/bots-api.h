@@ -7,7 +7,7 @@
  * \brief Function to activate when BOTS is triggered
  * 
  */
-void bots_set_triggered(void);
+void bots_trigger(void);
 
 /*!
  * \brief Get bool to see if BOTS was triggered and, consequently, send an error message. It consumes true values, see below

@@ -19,10 +19,7 @@ void test_bots_not_activated() {
 }
 
 void test_bots_activated() {
-	bots_set_triggered();
-
-	TEST_ASSERT_TRUE(bots_is_trigger_activated);
-
+	bots_trigger();
 	bool res = bots_is_triggered();
 
 	TEST_ASSERT_TRUE(res);
