@@ -4,7 +4,8 @@ Import("env")
 STRICT_WARNINGS = [
     "-Wall",
     "-Wextra",
-    "-Wpedantic"
+    "-Wpedantic",
+	"-Werror"
 ]
 
 
