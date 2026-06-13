@@ -4,40 +4,52 @@
 #include "brake.h"
 
 /*!
- * \brief Initialisation function
+ * \brief Function to call when ADC finished its conversion of the pedal travel percentage
  * 
- * \param pedal_travel_cb pointer to the function that will get the pedal travel
- * \param front_pressure_cb pointer to the function that will get front brakes' pressure
- * \param rear_pressure_cb pointer to the function that will get rear brakes' pressure
- * \retval BRAKE_RC_NO_ERROR initialisation was successful
- * \retval BRAKE_RC_VALUE_CALLBACK_FAILURE One or more pointers were null. No other return value possible
+ * \param percentage it represents the percentage of the brake pedal travel. Value must be either in range [0,1] or -1 if original signal is out of range
+ * 
+ * \details This function will enforce the restriction in values of the 'percentage' parameter, if not in range [0,1] the saved value will be -1
  */
-enum BrakeReturnCode brake_init_handler(
-	brake_percentage_callback pedal_travel_cb, 
-	brake_percentage_callback front_pressure_cb,
-	brake_percentage_callback rear_pressure_cb
-);
+void brake_update_pedal_travel_percentage(float percentage);
 
 /*!
- * \brief Get percentage of brake travel from BPPS
+ * \brief Function to call when ADC finished its conversion of the front brake liquid pressure 
  * 
- * \param travel pointer to float to store percentage. Assured to be in range [0,1], if it gets from the sensors a value outside the range, it truncates it to 0 or 1
- * \retval BRAKE_RC_NO_ERROR if no error occured
- * \retval BRAKE_RC_VALUE_OUTSIDE_RANGE if the original percentage from the sensor was truncated because it was outside the range
- * \retval BRAKE_RC_CALLBACK_FAILURE if external call failed
+ * \param pressure it represents the value in bar [TENTATIVE UNIT OF MEASURE]. Value must be either positive > 0 or -1 if original signal is out of range
+ * 
+ * \details This function cannot check if the value is out of range, always check parameter value before calling the function
  */
-enum BrakeReturnCode brake_get_travel_percentage(float* travel);
+void brake_update_front_pressure(float pressure);
 
 /*!
- * \brief Get percentage of brake travel from BSPS_F and BSPS_R
+ * \brief Function to call when ADC finished its conversion of the rear brake liquid pressure 
  * 
- * \param travel pointer to float to store front brake pressure. Assured to be in range [0,1], if it gets from the sensors a value outside the range, it truncates it to 0 or 1
- * \param travel pointer to float to store rear brake pressure. It works the same as front 
- * \retval BRAKE_RC_NO_ERROR if no error occured
- * \retval BRAKE_RC_VALUE_OUTSIDE_RANGE if at least one of the two values from the sensor was truncated because it was outside the range
- * \retval BRAKE_RC_CALLBACK_FAILURE if external call failed
+ * \param pressure it represents the value in bar [TENTATIVE UNIT OF MEASURE]. Value must be either positive > 0 or -1 if original signal is out of range
+ * 
+ * \details This function cannot check if the value is out of range, always check parameter value before calling the function
  */
-enum BrakeReturnCode brake_get_pressures(float* front, float* rear);
+void brake_update_rear_pressure(float pressure);
+
+/*!
+ * \brief Returns value of the last read brake pedal travel percentage
+ * 
+ * \return float either in range [0,1] or -1 if the original signal is out of range
+ */
+float brake_get_pedal_travel_percentage();
+
+/*!
+ * \brief Returns value of the last read front brake pressure
+ * 
+ * \return float positive > 0 or -1 if the original signal is out of range
+ */
+float brake_get_front_pressure();
+
+/*!
+ * \brief Returns value of the last read rear brake pressure
+ * 
+ * \return float positive > 0 or -1 if the original signal is out of range
+ */
+float brake_get_rear_pressure();
 
 
 #endif //BRAKE_API_H
