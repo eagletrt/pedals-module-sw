@@ -5,6 +5,7 @@ STRICT_WARNINGS = [
     "-Wall",
     "-Wextra",
     "-Wpedantic"
+	"-Werror"
 ]
 
 
