@@ -1,24 +1,12 @@
 #ifndef THROTTLE_H
 #define THROTTLE_H
 
-#include "stdbool.h"
-
-// TODO insert exact values
-#define THROTTLE_APPS_1_MIN_VALUE (100.0F)
-#define THROTTLE_APPS_1_MAX_VALUE (1100.0F)
-#define THROTTLE_APPS_2_MIN_VALUE (1000.0F)
-#define THROTTLE_APPS_2_MAX_VALUE (2000.0F)
-#define THROTTLE_APPS_3_MIN_VALUE (2000.0F)
-#define THROTTLE_APPS_3_MAX_VALUE (3000.0F)
-
-#define THROTTLE_APPS_IMPLAUSIBILITY_PERCENTAGE (0.1F) // equivalent of 10% of 1.0
-#define THROTTLE_APPS_EPSILON (0.001F)                // equivalent to 0.1% of 1.0
-
 #define THROTTLE_APPS_NUMBER 3
+#define THROTTLE_MIN_NUMBER_VALID_APPS 2
+#define THROTTLE_MAX_PERCENTAGE_DEVIATION (0.1F)
 
 /*!
- * \brief THROTTLE_STATUS_OK if there are no errors in the sensors or can be solved by redundancy, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE when errors can't be solved and persisted for less than 100ms, THROTTLE_STATUS_IMPLAUSIBLE_ERROR if they persisted for more than 100ms
- * 
+ * \brief Represents throttle internal status regarding implausibility, different from return code
  */
 enum ThrottleStatus {
     THROTTLE_STATUS_OK,							/*!< Operations as normal*/
@@ -27,11 +15,11 @@ enum ThrottleStatus {
 };
 
 /*!
- * \brief return code for throttle operations
+ * \brief return code for throttle operations, different from throttle status
  * 
  */
 enum ThrottleReturnCode{
-	THROTTLE_RC_NO_ERROR,			/*!< No error occured*/
+	THROTTLE_RC_NO_ERROR,			/*!< No new error to signal, either ok or implausibility had already been signalled*/
 	THROTTLE_RC_IMPLAUSIBILITY,		/*!< Implausibility as for the rules occurred, no new values will be read*/
 	THROTTLE_RC_CALLBACK_FAILURE	/*!< Call to external functions failed*/
 };
@@ -45,15 +33,25 @@ enum ThrottleReturnCode{
 typedef enum ThrottleReturnCode (*throttle_timer_callback) ();
 
 /*!
- * \brief structure to handle the status of the throttle
+ * \brief Structure to handle the status of the throttle
  * 
  */
 struct ThrottleHandler {
     float last_throttle_value;				/*!< Last valid value of the throttle, used when it can't reliably read the sensors*/
     enum ThrottleStatus throttle_status;	/*!< Internal status of the throttle to check for implausibility*/
-    enum ThrottleReturnCode error_status;	/*!< Last type of error that occurred, can be retrieved*/
+	enum ThrottleReturnCode error_status;	/*!< Contains value of the most important type of error to be notified*/
 	throttle_timer_callback start_timer;	/*!< Pointer to external function to start the timer*/
 	throttle_timer_callback stop_timer;		/*!< Pointer to external function to stop and reset the timer*/
+	bool is_implausibility_timeout;		/*!< Bool to set to true when implausibility timer runs out*/
+};
+
+/*!
+ * \brief Structure that gets returned when throttle_get_travel_percentage is called
+ * 
+ */
+struct ThrottleReturnValue {
+	float throttle_value;
+	enum ThrottleReturnCode throttle_error;
 };
 
 #endif //THROTTLE_H

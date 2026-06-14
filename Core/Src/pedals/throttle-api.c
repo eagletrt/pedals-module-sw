@@ -1,82 +1,111 @@
 #include "throttle-api.h"
-#include "sensor-types.h"
-#include "voltage-scaling-api.h"
 #include "eagletrt-api.h"
 
 EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
-    .error_status = THROTTLE_RC_NO_ERROR,
+    .is_implausibility_timeout = false,
     .last_throttle_value = 0.0,
     .throttle_status = THROTTLE_STATUS_OK,
+	.error_status = THROTTLE_RC_NO_ERROR,
 	.start_timer = NULL,
 	.stop_timer = NULL
 };
 
 // internal functions ---------------------------------------
 
-/*!
- * \brief Checks if a percentage is within [0%-100%] with an epsilon
- * 
- * \param val
- * \retval true if it's between 0% and 100%
- * \retval false if outside the range
- */
-bool prv_throttle_is_percentage_valid(float val) {
-    return val - 1.0 < THROTTLE_APPS_EPSILON && val > -THROTTLE_APPS_EPSILON;
-}
+float prv_throttle_calculate_next_value(float apps1, float apps2, float apps3){
+	float values[] = {apps1, apps2, apps3};
+	float n_valid = 0.0F;
+	float total_value = 0.0F;
+	float min = 1.0F;
+	float max = 0.0F;
 
-/*!
- * \brief Checks if there is less than 10% between two APPS sensors
- * 
- * \param val_1
- * \param val_2
- * \retval true if within 10% of difference
- * \retval false if outside
- */
-bool prv_throttle_is_percentage_within_plausibility(float val_1, float val_2) {
-    if (val_1 > val_2) {
-        return (val_1 - val_2) < (THROTTLE_APPS_IMPLAUSIBILITY_PERCENTAGE + THROTTLE_APPS_EPSILON);
-    } else {
-        return (val_2 - val_1) < (THROTTLE_APPS_IMPLAUSIBILITY_PERCENTAGE + THROTTLE_APPS_EPSILON);
-    }
-}
-
-/*!
- * \brief function called to start the timer for implausibility
- * 
- */
-void prv_throttle_set_to_implausibility() {
-    if (throttle_handler.throttle_status == THROTTLE_STATUS_OK) {
-        if(throttle_handler.start_timer == NULL || throttle_handler.start_timer() == THROTTLE_RC_CALLBACK_FAILURE){
-			throttle_handler.error_status = THROTTLE_RC_CALLBACK_FAILURE;
-			return;
+	for(int i = 0; i < THROTTLE_APPS_NUMBER; i++){
+		// check if it's in range [0,1] as per T 11.9.2
+		if(values[i] != -1.0F){
+			n_valid++;
+			total_value += values[i];
+			min = EAGLETRT_API_MIN(min,values[i]);
+			max = EAGLETRT_API_MAX(max,values[i]);
 		}
-        throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE;
-    }
+	}
+
+	float result;
+	// values are implausible if there are less than 2 working sensors or if any of the working pair of sensors has more than 10% difference as per T 11.8.9 and T 11.9
+	if(n_valid >= THROTTLE_MIN_NUMBER_VALID_APPS && ((max - min) <= THROTTLE_MAX_PERCENTAGE_DEVIATION)){
+		result = total_value / n_valid;
+	} else {
+		result = -1.0F;
+	}
+
+	return result;
 }
 
-/*!
- * \brief resets the throttle to its good state, stops implausibility timer and calculates the next travel percentage 
- * 
- * \param is_valid bool array to indicate if a sensor is within the values [0%-100%]
- * \param n_valid number of valid sensors
- * \param percentages the percentages measured by the APPS sensors
- */
-void prv_throttle_set_to_valid(bool is_valid[], int n_valid, float percentages[]) {
-    if (throttle_handler.throttle_status == THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE) {
-        if(throttle_handler.stop_timer == NULL || throttle_handler.stop_timer() == THROTTLE_RC_CALLBACK_FAILURE){
-			throttle_handler.error_status = THROTTLE_RC_CALLBACK_FAILURE;
-			return;
+void prv_throttle_update_error(enum ThrottleReturnCode error){
+	if(error == THROTTLE_RC_IMPLAUSIBILITY || (error == THROTTLE_RC_CALLBACK_FAILURE && throttle_handler.error_status != THROTTLE_RC_IMPLAUSIBILITY)){
+		throttle_handler.error_status = error;
+	}
+}
+
+void prv_throttle_status_ok_routine(float new_value){
+	enum ThrottleReturnCode err = THROTTLE_RC_NO_ERROR;
+
+	if(new_value != -1.0F){
+		throttle_handler.last_throttle_value = new_value;
+	} 
+	else {
+		throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE;
+		if(throttle_handler.start_timer != NULL){
+			throttle_handler.start_timer();
+		} else {
+			err = THROTTLE_RC_CALLBACK_FAILURE;
 		}
-        throttle_handler.throttle_status = THROTTLE_STATUS_OK;
-    }
+	}
 
-    float result = 0.0F;
+	prv_throttle_update_error(err);
+}
 
-    for (int i = 0; i < THROTTLE_APPS_NUMBER; i++) {
-        result = is_valid[i] ? result + percentages[i] : result;
-    }
+void prv_throttle_status_recoverable_routine(float new_value){
+	enum ThrottleReturnCode err = THROTTLE_RC_NO_ERROR;
 
-    throttle_handler.last_throttle_value = result / (float)n_valid;
+	if(new_value != 1.0F){
+		throttle_handler.throttle_status = THROTTLE_STATUS_OK;
+		throttle_handler.last_throttle_value = new_value;
+		if(throttle_handler.stop_timer != NULL){
+			throttle_handler.stop_timer();
+		} else {
+			err = THROTTLE_RC_CALLBACK_FAILURE;
+		}
+	}
+
+	prv_throttle_update_error(err);
+}
+
+void prv_throttle_status_implausible_routine(){
+	throttle_handler.last_throttle_value = 0.0F;
+	throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBLE_ERROR;
+	throttle_handler.is_implausibility_timeout = false;
+	prv_throttle_update_error(THROTTLE_RC_IMPLAUSIBILITY);
+}
+
+void prv_throttle_next_state(float new_value){
+	// regardless of the current state, if the flag is found activated you must set to IMPLAUSIBLE_ERROR and notify the user
+	if(throttle_handler.is_implausibility_timeout){
+		prv_throttle_status_implausible_routine();
+	}
+
+	switch(throttle_handler.throttle_status) {
+		case THROTTLE_STATUS_OK: {
+			prv_throttle_status_ok_routine(new_value);
+			break;
+		}
+		case THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE: {
+			prv_throttle_status_recoverable_routine(new_value);
+			break;
+		}
+
+		default: {} //do nothing, in IMPLAUSIBLE ERROR you can't change state anymore
+	}
+
 }
 
 // actual api ---------------------------------------
@@ -91,71 +120,32 @@ enum ThrottleReturnCode throttle_init(throttle_timer_callback start_timer, throt
 	return THROTTLE_RC_NO_ERROR;
 }
 
-float throttle_get_travel_percentage() {
-
-    // if status is THROTTLE_STATUS_IMPLAUSIBLE_ERROR just return 0.0, as to shut down the power to the motor as per T 11.8.8
+void throttle_update_pedal_values(float apps1, float apps2, float apps3){
+	// if status is THROTTLE_STATUS_IMPLAUSIBLE_ERROR you can't recover from the error, leave the throttle state as it is
     if (throttle_handler.throttle_status == THROTTLE_STATUS_IMPLAUSIBLE_ERROR) {
-        return 0.0F;
+        return;
     }
+	apps1 = EAGLETRT_API_CLAMP(apps1, 0.0F, 1.0F);
+	apps2 = EAGLETRT_API_CLAMP(apps2, 0.0F, 1.0F);
+	apps3 = EAGLETRT_API_CLAMP(apps3, 0.0F, 1.0F);
 
-    float percentages[THROTTLE_APPS_NUMBER];
-	enum VoltageScalingReturnCode return_code;
+	float next_val = prv_throttle_calculate_next_value(apps1, apps2, apps3);
 
-    return_code = voltage_scaling_get_percentage(&percentages[0], SENSOR_TYPES_NAME_APPS_1, THROTTLE_APPS_1_MIN_VALUE, THROTTLE_APPS_1_MAX_VALUE);
-    if(return_code== VOLTAGE_SCALING_RC_ERROR){
-		throttle_handler.error_status = THROTTLE_RC_CALLBACK_FAILURE;
-		return 0.0F;
-	}
-	return_code= voltage_scaling_get_percentage(&percentages[1],SENSOR_TYPES_NAME_APPS_2, THROTTLE_APPS_2_MIN_VALUE, THROTTLE_APPS_2_MAX_VALUE);
-    if(return_code== VOLTAGE_SCALING_RC_ERROR){
-		throttle_handler.error_status = THROTTLE_RC_CALLBACK_FAILURE;
-		return 0.0F;
-	}
-	return_code= voltage_scaling_get_percentage(&percentages[2],SENSOR_TYPES_NAME_APPS_3, THROTTLE_APPS_3_MIN_VALUE, THROTTLE_APPS_3_MAX_VALUE);
-	if(return_code== VOLTAGE_SCALING_RC_ERROR){
-		throttle_handler.error_status = THROTTLE_RC_CALLBACK_FAILURE;
-		return 0.0F;
-	}
-
-    bool perc_is_valid[THROTTLE_APPS_NUMBER];
-    int valid_sensors = 0;
-
-    // check if it's in range [0,1] as per T 11.9.2
-    for (int i = 0; i < THROTTLE_APPS_NUMBER; i++) {
-        perc_is_valid[i] =prv_throttle_is_percentage_valid(percentages[i]);
-        valid_sensors = perc_is_valid[i] ? valid_sensors + 1 : valid_sensors;
-    }
-
-    // check if every pair has less than 10% difference
-    bool perc_1_2_is_plausible =prv_throttle_is_percentage_within_plausibility(percentages[0], percentages[1]);
-    bool perc_1_3_is_plausible =prv_throttle_is_percentage_within_plausibility(percentages[0], percentages[2]);
-    bool perc_2_3_is_plausible =prv_throttle_is_percentage_within_plausibility(percentages[1], percentages[2]);
-
-    // values are implausible if there are less than 2 working sensors or if any of the working pair of sensors has more than 10% difference as per T 11.8.9 and T 11.9
-    if (
-        (valid_sensors < 2) ||
-        (perc_is_valid[0] && perc_is_valid[1] && !perc_1_2_is_plausible) ||
-        (perc_is_valid[0] && perc_is_valid[2] && !perc_1_3_is_plausible) ||
-        (perc_is_valid[1] && perc_is_valid[2] && !perc_2_3_is_plausible)) {
-       prv_throttle_set_to_implausibility();
-
-    } else {
-      prv_throttle_set_to_valid(perc_is_valid, valid_sensors, percentages);
-    }
-
-    return throttle_handler.last_throttle_value;
+	prv_throttle_next_state(next_val);
 }
 
-enum ThrottleReturnCode throttle_get_error_status() {
-	enum ThrottleReturnCode error_state = throttle_handler.error_status;
+
+struct ThrottleReturnValue throttle_get_travel_percentage(){
+	struct ThrottleReturnValue ret = {
+		.throttle_error = throttle_handler.error_status,
+		.throttle_value = throttle_handler.last_throttle_value
+	};
 	throttle_handler.error_status = THROTTLE_RC_NO_ERROR;
-    if (error_state == THROTTLE_RC_IMPLAUSIBILITY) {
-        throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBLE_ERROR;
-        throttle_handler.last_throttle_value = 0.0F; 
-    }
-	return error_state;
+
+	return ret;
 }
 
-void throttle_timer_trigger() {
-    throttle_handler.error_status = THROTTLE_RC_IMPLAUSIBILITY;
+
+void throttle_implausibility_timeout_trigger() {
+    throttle_handler.is_implausibility_timeout = true;
 }

@@ -2,7 +2,6 @@
 #define THROTTLE_API_H
 
 #include "throttle.h"
-#include "stdbool.h"
 
 /*!
  * \brief function to initialise the external callbacks related to the timer
@@ -14,24 +13,25 @@
 enum ThrottleReturnCode throttle_init(throttle_timer_callback start_timer, throttle_timer_callback stop_timer);
 
 /*!
- * \brief Get the average percentage of throttle travel from the three APPS
+ * \brief Function to call when ADC completed its conversions. It runs throttle's internal status
  * 
- * \return float in range [0,1] when status in (THROTTLE_STATUS_OK, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE), 0.0 if status is THROTTLE_STATUS_IMPLAUSIBLE_ERROR
+ * \param apps1 Percentage of pedal travel read from APPS1, must be in range [0,1] or -1 if the original sensor read an out of bound value
+ * \param apps2 Percentage of pedal travel read from APPS2, must be in range [0,1] or -1 if the original sensor read an out of bound value
+ * \param apps3 Percentage of pedal travel read from APPS3, must be in range [0,1] or -1 if the original sensor read an out of bound value
  */
-float throttle_get_travel_percentage();
+void throttle_update_pedal_values(float apps1, float apps2, float apps3);
+
+/*!
+ * \brief Function to get the newest value of the throttle pedal travel
+ * 
+ * \return struct ThrottleReturnValue containing the percentage in range [0,1] and a return code specifying if the operation went ok, the external callbacks failed or it has reached implausible state
+ */
+struct ThrottleReturnValue throttle_get_travel_percentage();
 
 /*!
  * \brief Function to activate when implausibility timer goes off
  * 
  */
-void throttle_timer_trigger(void);
-
-/*!
- * \brief Get bool to see if implausibility kept for more than 100ms and, consequently, send an error message. It consumes true values, see below
- * 
- * \retval true if throttle_timer_trigger was called. After returning true, successive calls will return false until throttle_timer_trigger is called again
- * \retval false if throttle_timer_trigger wasn't called or if it already returned true without throttle_timer_trigger being called again
- */
-enum ThrottleReturnCode throttle_get_error_status(void);
+void throttle_implausibility_timeout_trigger(void);
 
 #endif //THROTTLE_API_H
