@@ -125,9 +125,9 @@ void throttle_update_pedal_values(float apps1, float apps2, float apps3){
     if (throttle_handler.throttle_status == THROTTLE_STATUS_IMPLAUSIBLE_ERROR) {
         return;
     }
-	apps1 = EAGLETRT_API_CLAMP(apps1, 0.0F, 1.0F);
-	apps2 = EAGLETRT_API_CLAMP(apps2, 0.0F, 1.0F);
-	apps3 = EAGLETRT_API_CLAMP(apps3, 0.0F, 1.0F);
+	apps1 = ((apps1 > 1.0F) || (apps1 < 0.0F)) ? -1.0F : apps1;
+	apps2 = ((apps2 > 1.0F) || (apps2 < 0.0F)) ? -1.0F : apps2;
+	apps3 = ((apps3 > 1.0F) || (apps3 < 0.0F)) ? -1.0F : apps3;
 
 	float next_val = prv_throttle_calculate_next_value(apps1, apps2, apps3);
 
