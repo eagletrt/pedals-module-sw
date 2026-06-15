@@ -3,7 +3,7 @@
 
 EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
     .is_implausibility_timeout = false,
-    .last_throttle_value = 0.0,
+    .last_throttle_value = THROTTLE_MIN_VALUE,
     .throttle_status = THROTTLE_STATUS_OK,
 	.error_status = THROTTLE_RC_NO_ERROR,
 	.start_timer = NULL,
@@ -14,14 +14,14 @@ EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
 
 float prv_throttle_calculate_next_value(float apps1, float apps2, float apps3){
 	float values[] = {apps1, apps2, apps3};
-	float n_valid = 0.0F;
-	float total_value = 0.0F;
-	float min = 1.0F;
-	float max = 0.0F;
+	float n_valid = THROTTLE_MIN_VALUE;
+	float total_value = THROTTLE_MIN_VALUE;
+	float min = THROTTLE_MAX_VALUE;
+	float max = THROTTLE_MIN_VALUE;
 
 	for(int i = 0; i < THROTTLE_APPS_NUMBER; i++){
 		// check if it's in range [0,1] as per T 11.9.2
-		if(values[i] != -1.0F){
+		if(values[i] != THROTTLE_ERROR_VALUE){
 			n_valid++;
 			total_value += values[i];
 			min = EAGLETRT_API_MIN(min,values[i]);
@@ -34,7 +34,7 @@ float prv_throttle_calculate_next_value(float apps1, float apps2, float apps3){
 	if(n_valid >= THROTTLE_MIN_NUMBER_VALID_APPS && ((max - min) <= THROTTLE_MAX_PERCENTAGE_DEVIATION)){
 		result = total_value / n_valid;
 	} else {
-		result = -1.0F;
+		result = THROTTLE_ERROR_VALUE;
 	}
 
 	return result;
@@ -49,7 +49,7 @@ void prv_throttle_update_error(enum ThrottleReturnCode error){
 void prv_throttle_status_ok_routine(float new_value){
 	enum ThrottleReturnCode err = THROTTLE_RC_NO_ERROR;
 
-	if(new_value != -1.0F){
+	if(new_value != THROTTLE_ERROR_VALUE){
 		throttle_handler.last_throttle_value = new_value;
 	} 
 	else {
@@ -67,7 +67,7 @@ void prv_throttle_status_ok_routine(float new_value){
 void prv_throttle_status_recoverable_routine(float new_value){
 	enum ThrottleReturnCode err = THROTTLE_RC_NO_ERROR;
 
-	if(new_value != 1.0F){
+	if(new_value != THROTTLE_ERROR_VALUE){
 		throttle_handler.throttle_status = THROTTLE_STATUS_OK;
 		throttle_handler.last_throttle_value = new_value;
 		if(throttle_handler.stop_timer != NULL){
@@ -81,7 +81,7 @@ void prv_throttle_status_recoverable_routine(float new_value){
 }
 
 void prv_throttle_status_implausible_routine(){
-	throttle_handler.last_throttle_value = 0.0F;
+	throttle_handler.last_throttle_value = THROTTLE_MIN_VALUE;
 	throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBLE_ERROR;
 	throttle_handler.is_implausibility_timeout = false;
 	prv_throttle_update_error(THROTTLE_RC_IMPLAUSIBILITY);
@@ -125,9 +125,9 @@ void throttle_update_pedal_values(float apps1, float apps2, float apps3){
     if (throttle_handler.throttle_status == THROTTLE_STATUS_IMPLAUSIBLE_ERROR) {
         return;
     }
-	apps1 = ((apps1 > 1.0F) || (apps1 < 0.0F)) ? -1.0F : apps1;
-	apps2 = ((apps2 > 1.0F) || (apps2 < 0.0F)) ? -1.0F : apps2;
-	apps3 = ((apps3 > 1.0F) || (apps3 < 0.0F)) ? -1.0F : apps3;
+	apps1 = ((apps1 > THROTTLE_MAX_VALUE) || (apps1 < THROTTLE_MIN_VALUE)) ? THROTTLE_ERROR_VALUE : apps1;
+	apps2 = ((apps2 > THROTTLE_MAX_VALUE) || (apps2 < THROTTLE_MIN_VALUE)) ? THROTTLE_ERROR_VALUE : apps2;
+	apps3 = ((apps3 > THROTTLE_MAX_VALUE) || (apps3 < THROTTLE_MIN_VALUE)) ? THROTTLE_ERROR_VALUE : apps3;
 
 	float next_val = prv_throttle_calculate_next_value(apps1, apps2, apps3);
 

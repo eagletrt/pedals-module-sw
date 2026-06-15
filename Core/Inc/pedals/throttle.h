@@ -5,6 +5,10 @@
 #define THROTTLE_MIN_NUMBER_VALID_APPS 2
 #define THROTTLE_MAX_PERCENTAGE_DEVIATION (0.1F)
 
+#define THROTTLE_MAX_VALUE (1.0F)
+#define THROTTLE_MIN_VALUE (0.0F)
+#define THROTTLE_ERROR_VALUE (-1.0F)
+
 /*!
  * \brief Represents throttle internal status regarding implausibility, different from return code
  */
