@@ -55,7 +55,7 @@ void prv_throttle_status_ok_routine(float new_value){
 	else {
 		throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE;
 		if(throttle_handler.start_timer != NULL){
-			throttle_handler.start_timer();
+			err = throttle_handler.start_timer();
 		} else {
 			err = THROTTLE_RC_CALLBACK_FAILURE;
 		}
@@ -71,7 +71,7 @@ void prv_throttle_status_recoverable_routine(float new_value){
 		throttle_handler.throttle_status = THROTTLE_STATUS_OK;
 		throttle_handler.last_throttle_value = new_value;
 		if(throttle_handler.stop_timer != NULL){
-			throttle_handler.stop_timer();
+			err = throttle_handler.stop_timer();
 		} else {
 			err = THROTTLE_RC_CALLBACK_FAILURE;
 		}
