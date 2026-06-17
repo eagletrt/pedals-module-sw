@@ -14,26 +14,35 @@ EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
 
 float prv_throttle_calculate_next_value(float apps1, float apps2, float apps3){
 	float values[] = {apps1, apps2, apps3};
-	float n_valid = THROTTLE_MIN_VALUE;
-	float total_value = THROTTLE_MIN_VALUE;
-	float min = THROTTLE_MAX_VALUE;
-	float max = THROTTLE_MIN_VALUE;
+	int n_valid_pairs = 0;
+	int last_good_idx = -1; // If > 0, it represents that pair i and i+1 (circular mode) is within ruleset 
 
+	// To know what sensors to exclude we need to know if they are in range and have at least 1 other sensor within max allowed difference
+	// Cases can be hardcodable but even with three there are too many combinations of values, so we decide to count the number of good pairs
+	// This works because there are only three sensors to check, if more a more sofisticated approach is required
 	for(int i = 0; i < THROTTLE_APPS_NUMBER; i++){
 		// check if it's in range [0,1] as per T 11.9.2
+		// We just need to care if the current sensors if invalid because only the difference between invalids would throw off the next check
+		// Any other check, even if next sensor is invalid, would fail the next if
 		if(values[i] != THROTTLE_ERROR_VALUE){
-			n_valid++;
-			total_value += values[i];
-			min = EAGLETRT_API_MIN(min,values[i]);
-			max = EAGLETRT_API_MAX(max,values[i]);
+			float diff = values[i] - values[(i+1)%3]; //circular mode, 
+			if(-THROTTLE_MAX_PERCENTAGE_DEVIATION <= diff && diff <= THROTTLE_MAX_PERCENTAGE_DEVIATION){
+				last_good_idx = i;
+				n_valid_pairs++;
+			}
 		}
 	}
 
 	float result;
-	// values are implausible if there are less than 2 working sensors or if any of the working pair of sensors has more than 10% difference as per T 11.8.9 and T 11.9
-	if(n_valid >= THROTTLE_MIN_NUMBER_VALID_APPS && ((max - min) <= THROTTLE_MAX_PERCENTAGE_DEVIATION)){
-		result = total_value / n_valid;
-	} else {
+	// values are implausible if there are less than 2 working sensors or if there is no working pair of sensors that has less than 10% difference as per T 11.8.9 and T 11.9
+	// if there are three valid pairs, every value is correct on its own and can be included in the result
+	if(n_valid_pairs == 3){
+		result = (apps1 + apps2 + apps3) / (float) THROTTLE_APPS_NUMBER;
+	} //if there are two or one valid pair, it means that we can choose whichever pair
+	else if (n_valid_pairs > 0){
+		result = (values[last_good_idx] + values[(last_good_idx+1)%3]) / (float) THROTTLE_MIN_NUMBER_VALID_APPS;
+	} // if zero valid pairs, you must return that values have become implausible
+	else {
 		result = THROTTLE_ERROR_VALUE;
 	}
 
