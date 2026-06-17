@@ -114,7 +114,7 @@ void test_throttle_update_two_values_valid_one_out_of_range(){
 //--------------------------------------------------
 //--------------------------------------------------
 // check OK -> IMPLAUSIBLE_RECOVERABLE behaviours
-void test_throttle_update_to_implausible(){
+void test_throttle_update_to_recoverable_success(){
 	float apps1 = 0.1F;
 	float apps2 = 0.25F;
 	float apps3 = 0.40F;
@@ -127,6 +127,41 @@ void test_throttle_update_to_implausible(){
 	throttle_update_pedal_values(apps1,apps2,apps3);
 
 	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_NO_ERROR, "An error was found");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.40f, "Value wasn't as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, "Status was changed from NO_ERROR");
+	TEST_ASSERT_EQUAL_MESSAGE(1, THROTTLE_start_timer_fake.call_count, "Start timer wasn't called exactly once");
+}
+
+void test_throttle_update_to_recoverable_no_callback(){
+	float apps1 = 0.1F;
+	float apps2 = 0.25F;
+	float apps3 = 0.40F;
+
+	throttle_handler.last_throttle_value = 0.4F;
+
+	THROTTLE_start_timer_fake.return_val = THROTTLE_RC_NO_ERROR;
+
+	throttle_update_pedal_values(apps1,apps2,apps3);
+
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_CALLBACK_FAILURE, "An error was found");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.40f, "Value wasn't as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, "Status was changed from NO_ERROR");
+	TEST_ASSERT_EQUAL_MESSAGE(0, THROTTLE_start_timer_fake.call_count, "Start timer wasn't called exactly once");
+}
+
+void test_throttle_update_to_recoverable_callback_failure(){
+	float apps1 = 0.1F;
+	float apps2 = 0.25F;
+	float apps3 = 0.40F;
+
+	throttle_handler.last_throttle_value = 0.4F;
+
+	THROTTLE_start_timer_fake.return_val = THROTTLE_RC_CALLBACK_FAILURE;
+
+	enum ThrottleReturnCode rc = throttle_init(THROTTLE_start_timer,THROTTLE_reset_timer);
+	throttle_update_pedal_values(apps1,apps2,apps3);
+
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_CALLBACK_FAILURE, "An error was found");
 	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.40f, "Value wasn't as expected");
 	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, "Status was changed from NO_ERROR");
 	TEST_ASSERT_EQUAL_MESSAGE(1, THROTTLE_start_timer_fake.call_count, "Start timer wasn't called exactly once");
@@ -309,7 +344,9 @@ int main( int argc, char **argv) {
 	RUN_TEST(test_throttle_update_all_values_valid);
 	RUN_TEST(test_throttle_update_two_values_valid_one_out_of_range);
 
-	RUN_TEST(test_throttle_update_to_implausible);
+	RUN_TEST(test_throttle_update_to_recoverable_success);
+	RUN_TEST(test_throttle_update_to_recoverable_no_callback);
+	RUN_TEST(test_throttle_update_to_recoverable_callback_failure);
 
 	//RUN_TEST(test_throttle_timer_trigger);
 
