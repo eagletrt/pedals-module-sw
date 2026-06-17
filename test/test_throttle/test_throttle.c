@@ -128,7 +128,7 @@ void test_throttle_update_to_recoverable_success(){
 
 	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_NO_ERROR, "An error was found");
 	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.40f, "Value wasn't as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, "Status was changed from NO_ERROR");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, "Status is not IMPLAUSIBLE_RECOVERABLE");
 	TEST_ASSERT_EQUAL_MESSAGE(1, THROTTLE_start_timer_fake.call_count, "Start timer wasn't called exactly once");
 }
 
@@ -143,10 +143,10 @@ void test_throttle_update_to_recoverable_no_callback(){
 
 	throttle_update_pedal_values(apps1,apps2,apps3);
 
-	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_CALLBACK_FAILURE, "An error was found");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_CALLBACK_FAILURE, "CALLBACK_FAILURE was not found");
 	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.40f, "Value wasn't as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, "Status was changed from NO_ERROR");
-	TEST_ASSERT_EQUAL_MESSAGE(0, THROTTLE_start_timer_fake.call_count, "Start timer wasn't called exactly once");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, "Status is not IMPLAUSIBLE_RECOVERABLE");
+	TEST_ASSERT_EQUAL_MESSAGE(0, THROTTLE_start_timer_fake.call_count, "Start timer was called");
 }
 
 void test_throttle_update_to_recoverable_callback_failure(){
@@ -161,153 +161,67 @@ void test_throttle_update_to_recoverable_callback_failure(){
 	enum ThrottleReturnCode rc = throttle_init(THROTTLE_start_timer,THROTTLE_reset_timer);
 	throttle_update_pedal_values(apps1,apps2,apps3);
 
-	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_CALLBACK_FAILURE, "An error was found");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_CALLBACK_FAILURE, "CALLBACK_FAILURE was not found");
 	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.40f, "Value wasn't as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, "Status was changed from NO_ERROR");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, "Status is not IMPLAUSIBLE_RECOVERABLE");
 	TEST_ASSERT_EQUAL_MESSAGE(1, THROTTLE_start_timer_fake.call_count, "Start timer wasn't called exactly once");
 }
-/*
-void test_throttle_internal_percentage_callback_failure(void){
-	int32_t apps1 = THROTTLE_APPS_1_MIN_VALUE + (THROTTLE_APPS_1_MAX_VALUE - THROTTLE_APPS_1_MIN_VALUE) / 2; //50%
-	int32_t apps2 = THROTTLE_APPS_2_MIN_VALUE + (THROTTLE_APPS_2_MAX_VALUE - THROTTLE_APPS_2_MIN_VALUE) / 2; //50%
-	int32_t apps3 = THROTTLE_APPS_3_MIN_VALUE + (THROTTLE_APPS_3_MAX_VALUE - THROTTLE_APPS_3_MIN_VALUE) / 2; //50%
-	int32_t CURRENT = (int32_t)VOLTAGE_SCALING_MAX_RAW_VALUE;
 
-	int32_t return_values[6] = { CURRENT, apps1, CURRENT, apps2, CURRENT, apps3 };
-    SET_RETURN_SEQ(VOLTAGE_SCALING_read_raw, return_values, 6);
+// check IMPLAUSIBLE_RECOVERABLE -> OK behaviours
+void test_throttle_update_to_ok_status_success(){
+	float apps1 = 0.5F;
+	float apps2 = 0.53F;
+	float apps3 = 0.56F;
 
-	float res = throttle_get_travel_percentage();
+	throttle_handler.last_throttle_value = 0.4F;
+	throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE;
 
-	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(res,0.0f,"Result was not equal to zero");
-	TEST_ASSERT_EQUAL_MESSAGE(throttle_get_error_status(),THROTTLE_RC_CALLBACK_FAILURE,"Return was not about callback failure");
+	THROTTLE_reset_timer_fake.return_val = THROTTLE_RC_NO_ERROR;
+
+	enum ThrottleReturnCode rc = throttle_init(THROTTLE_start_timer,THROTTLE_reset_timer);
+	throttle_update_pedal_values(apps1,apps2,apps3);
+
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_NO_ERROR, "An error was found");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.53f, "Value wasn't as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_OK, "Status is not OK");
+	TEST_ASSERT_EQUAL_MESSAGE(1, THROTTLE_reset_timer_fake.call_count, "Reset timer wasn't called exactly once");
 }
 
-/*
+void test_throttle_update_to_ok_status_no_callback(){
+	float apps1 = 0.5F;
+	float apps2 = 0.53F;
+	float apps3 = 0.56F;
 
-void test_throttle_three_ok_sensors_valid(void) { 
-	int32_t apps1 = THROTTLE_APPS_1_MIN_VALUE + (THROTTLE_APPS_1_MAX_VALUE - THROTTLE_APPS_1_MIN_VALUE) / 2; //50%
-	int32_t apps2 = THROTTLE_APPS_2_MIN_VALUE + (THROTTLE_APPS_2_MAX_VALUE - THROTTLE_APPS_2_MIN_VALUE) / 2; //50%
-	int32_t apps3 = THROTTLE_APPS_3_MIN_VALUE + (THROTTLE_APPS_3_MAX_VALUE - THROTTLE_APPS_3_MIN_VALUE) / 2; //50%
-	int32_t CURRENT = (int32_t)VOLTAGE_SCALING_MAX_RAW_VALUE;
+	throttle_handler.last_throttle_value = 0.4F;
+	throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE;
 
-	int32_t return_values[6] = { CURRENT, apps1, CURRENT, apps2, CURRENT, apps3 };
-    SET_RETURN_SEQ(VOLTAGE_SCALING_read_raw, return_values, 6);
+	throttle_update_pedal_values(apps1,apps2,apps3);
 
-	float res = throttle_get_travel_percentage();
-
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, res, "Travel is not 50% as expected");
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, throttle_handler.last_throttle_value, "Last value is not 50% as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_OK, throttle_handler.status, "Throttle state is equal to not OK");
-	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Throttle trigger activated, even if it should not");
-
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_CALLBACK_FAILURE, "CALLBACK_FAILURE was not found");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.53f, "Value wasn't as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_OK, "Status is not OK");
+	TEST_ASSERT_EQUAL_MESSAGE(0, THROTTLE_reset_timer_fake.call_count, "Reset timer wasn't called exactly once");
 }
 
-void test_throttle_three_ok_sensors_implausible(void) {
-	int32_t apps1 = THROTTLE_APPS_1_MIN_VALUE + (THROTTLE_APPS_1_MAX_VALUE - THROTTLE_APPS_1_MIN_VALUE) * 0.85; //85%
-	int32_t apps2 = THROTTLE_APPS_2_MIN_VALUE + (THROTTLE_APPS_2_MAX_VALUE - THROTTLE_APPS_2_MIN_VALUE) * 0.89f; //89%
-	int32_t apps3 = THROTTLE_APPS_3_MIN_VALUE + (THROTTLE_APPS_3_MAX_VALUE - THROTTLE_APPS_3_MIN_VALUE) * 0.96f; //96%
+void test_throttle_update_to_ok_status_callback_failure(){
+	float apps1 = 0.5F;
+	float apps2 = 0.53F;
+	float apps3 = 0.56F;
 
-	throttle_handler.last_throttle_value = 0.50f;
+	throttle_handler.last_throttle_value = 0.4F;
+	throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE;
 
-	insert_values_in_array(VOLTAGE_SCALING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
+	THROTTLE_reset_timer_fake.return_val = THROTTLE_RC_CALLBACK_FAILURE;
 
-	float res = throttle_get_travel_percentage();
+	enum ThrottleReturnCode rc = throttle_init(THROTTLE_start_timer,THROTTLE_reset_timer);
+	throttle_update_pedal_values(apps1,apps2,apps3);
 
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, res, "Travel is not 50% as expected");
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, throttle_handler.last_throttle_value, "Last value is not 50% as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, throttle_handler.status, "Throttle state is not equal to UNSTABLE");
-	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Throttle trigger activated, even if it should not");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_CALLBACK_FAILURE, "CALLBACK_FAILURE was not found");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.53f, "Value wasn't as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_OK, "Status is not OK");
+	TEST_ASSERT_EQUAL_MESSAGE(1, THROTTLE_reset_timer_fake.call_count, "Reset timer wasn't called exactly once");
 }
-
-void test_throttle_two_ok_sensors_valid(void) {
-	int32_t apps1 = THROTTLE_APPS_1_MIN_VALUE + (THROTTLE_APPS_1_MAX_VALUE - THROTTLE_APPS_1_MIN_VALUE) * 0.85; //85%
-	int32_t apps2 = THROTTLE_APPS_2_MIN_VALUE + (THROTTLE_APPS_2_MAX_VALUE - THROTTLE_APPS_2_MIN_VALUE) * 0.89f; //89%
-	int32_t apps3 = THROTTLE_APPS_3_MIN_VALUE + (THROTTLE_APPS_3_MAX_VALUE - THROTTLE_APPS_3_MIN_VALUE) * 1.02f; //102% - not valid
-
-	throttle_handler.last_throttle_value = 0.50f;
-
-	insert_values_in_array(VOLTAGE_SCALING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
-
-	float res = throttle_get_travel_percentage();
-
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.87f, res, "Travel is not 87% as expected");
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.87f, throttle_handler.last_throttle_value, "Last value is not 87% as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_OK, throttle_handler.status, "Throttle state is not equal to OK");
-	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Throttle trigger activated, even if it should not");
-}
-
-void test_throttle_two_ok_sensors_implausible(void) {
-	int32_t apps1 = THROTTLE_APPS_1_MIN_VALUE + (THROTTLE_APPS_1_MAX_VALUE - THROTTLE_APPS_1_MIN_VALUE) * 0.85; //85%
-	int32_t apps2 = THROTTLE_APPS_2_MIN_VALUE + (THROTTLE_APPS_2_MAX_VALUE - THROTTLE_APPS_2_MIN_VALUE) * 0.97f; //97%
-	int32_t apps3 = THROTTLE_APPS_3_MIN_VALUE + (THROTTLE_APPS_3_MAX_VALUE - THROTTLE_APPS_3_MIN_VALUE) * 1.02f; //102% - not valid
-
-	throttle_handler.last_throttle_value = 0.50f;
-
-	insert_values_in_array(VOLTAGE_SCALING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
-
-	float res = throttle_get_travel_percentage();
-
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, res, "Travel is not 50% as expected");
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, throttle_handler.last_throttle_value, "Last value is not 50% as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, throttle_handler.status, "Throttle state is not equal to UNSTABLE");
-	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Throttle trigger activated, even if it should not");
-}
-
-void test_throttle_no_ok_sensors(void) {
-	int32_t apps1 = THROTTLE_APPS_1_MIN_VALUE + (THROTTLE_APPS_1_MAX_VALUE - THROTTLE_APPS_1_MIN_VALUE) * 1.01; //101%  - not valid
-	int32_t apps2 = THROTTLE_APPS_2_MIN_VALUE + (THROTTLE_APPS_2_MAX_VALUE - THROTTLE_APPS_2_MIN_VALUE) * 1.03f; //103% - not valid
-	int32_t apps3 = THROTTLE_APPS_3_MIN_VALUE + (THROTTLE_APPS_3_MAX_VALUE - THROTTLE_APPS_3_MIN_VALUE) * 1.02f; //102% - not valid
-
-	throttle_handler.last_throttle_value = 0.50f;
-
-	insert_values_in_array(VOLTAGE_SCALING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
-
-	float res = throttle_get_travel_percentage();
-
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, res, "Travel is not 50% as expected");
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.50f, throttle_handler.last_throttle_value, "Last value is not 50% as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, throttle_handler.status, "Throttle state is not equal to OK");
-	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Throttle trigger activated, even if it should not");
-}
-
-void test_throttle_is_timer_start(void) {
-	int32_t apps1 = THROTTLE_APPS_1_MIN_VALUE + (THROTTLE_APPS_1_MAX_VALUE - THROTTLE_APPS_1_MIN_VALUE) * 0.02; // 2% 
-	int32_t apps2 = THROTTLE_APPS_2_MIN_VALUE + (THROTTLE_APPS_2_MAX_VALUE - THROTTLE_APPS_2_MIN_VALUE) * 0.08f; // 8% 
-	int32_t apps3 = THROTTLE_APPS_3_MIN_VALUE + (THROTTLE_APPS_3_MAX_VALUE - THROTTLE_APPS_3_MIN_VALUE) * 0.14f; // 14%, now invalid because of 2%-14% difference
-
-	insert_values_in_array(VOLTAGE_SCALING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
-	throttle_handler.last_throttle_value = 0.07f;
-
-	float res = throttle_get_travel_percentage();
-
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.07f, res, "Travel percentage result is not 7% as expected");
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.07f, throttle_handler.last_throttle_value, "Last throttle value is not 7% as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, throttle_handler.status, "Throttle status is not equal to IMPLAUSIBLE_RECOVERABLE");
-	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Throttle trigger activated, even if it should not");
-	TEST_ASSERT_EQUAL_MESSAGE(1, test_start_timer_fake.call_count, "Expected 1 call to start timer");
-	TEST_ASSERT_EQUAL_MESSAGE(0, test_reset_timer_fake.call_count, "Expected 0 calls to reset timer");
-}
-
-void test_throttle_is_timer_reset(void) {
-	int32_t apps1 = THROTTLE_APPS_1_MIN_VALUE + (THROTTLE_APPS_1_MAX_VALUE - THROTTLE_APPS_1_MIN_VALUE) * 0.02; // 2% 
-	int32_t apps2 = THROTTLE_APPS_2_MIN_VALUE + (THROTTLE_APPS_2_MAX_VALUE - THROTTLE_APPS_2_MIN_VALUE) * 0.08f; // 8% 
-	int32_t apps3 = THROTTLE_APPS_3_MIN_VALUE + (THROTTLE_APPS_3_MAX_VALUE - THROTTLE_APPS_3_MIN_VALUE) * 0.11f; // 11%
-
-	throttle_handler.last_throttle_value = 0.50f;
-	throttle_handler.status = THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE;
-
-	insert_values_in_array(VOLTAGE_SCALING_MAX_RAW_VALUE,0,0,0,apps1,apps2,apps3);
-
-	float res = throttle_get_travel_percentage();
-
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.07f, res, "Travel percentage result is not 7% as expected");
-	TEST_ASSERT_FLOAT_WITHIN_MESSAGE(THROTTLE_APPS_EPSILON, 0.07f, throttle_handler.last_throttle_value, "Last throttle value is not 7% as expected");
-	TEST_ASSERT_EQUAL_MESSAGE(THROTTLE_STATUS_OK, throttle_handler.status, "Throttle status is not equal to OK");
-	TEST_ASSERT_FALSE_MESSAGE(throttle_handler.is_changed_to_implausible, "Throttle trigger activated, even if it should not");
-	TEST_ASSERT_EQUAL_MESSAGE(0, test_start_timer_fake.call_count, "Expected 0 calls to start timer");
-	TEST_ASSERT_EQUAL_MESSAGE(1, test_reset_timer_fake.call_count, "Expected 1 call to reset timer");
-}
-*/
+//////////////////////////////////////
 
 void test_throttle_get_travel_percentage_no_error(void){
 	enum ThrottleReturnCode rc = throttle_init(THROTTLE_start_timer,THROTTLE_reset_timer);
@@ -348,25 +262,9 @@ int main( int argc, char **argv) {
 	RUN_TEST(test_throttle_update_to_recoverable_no_callback);
 	RUN_TEST(test_throttle_update_to_recoverable_callback_failure);
 
-	//RUN_TEST(test_throttle_timer_trigger);
-
-	//RUN_TEST(test_throttle_get_error_from_ok);
-	//RUN_TEST(test_throttle_get_error_from_callback_failure);
-	//RUN_TEST(test_throttle_get_error_from_implausibility);
-
-	//RUN_TEST(test_throttle_internal_percentage_callback_failure);
-
-	//RUN_TEST(test_throttle_get_error_status_false);
-	//RUN_TEST(test_throttle_get_error_status_true);
-
-	//RUN_TEST(test_throttle_three_ok_sensors_valid);
-	//RUN_TEST(test_throttle_three_ok_sensors_implausible);
-	//RUN_TEST(test_throttle_two_ok_sensors_valid);
-	//RUN_TEST(test_throttle_two_ok_sensors_implausible);
-	//RUN_TEST(test_throttle_no_ok_sensors);
-
-	//RUN_TEST(test_throttle_is_timer_start);
-	//RUN_TEST(test_throttle_is_timer_reset);
+	RUN_TEST(test_throttle_update_to_ok_status_success);
+	RUN_TEST(test_throttle_update_to_ok_status_no_callback);
+	RUN_TEST(test_throttle_update_to_ok_status_callback_failure);
 
 	RUN_TEST(test_throttle_get_travel_percentage_no_error);
 	RUN_TEST(test_throttle_get_travel_percentage_error_found);
