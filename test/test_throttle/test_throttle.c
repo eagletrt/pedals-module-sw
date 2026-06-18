@@ -86,16 +86,43 @@ void test_throttle_update_stay_in_implausible_error(){
 
 // check if these values are handled correctly and keep the throttle in NO_ERROR state
 
-void test_throttle_update_all_values_valid(){
+void test_throttle_update_all_values_valid(){ 
 	float apps1 = 0.50F;
 	float apps2 = 0.52F;
 	float apps3 = 0.54F;
+	//result should be 50+52+54/3=52
 
 	enum ThrottleReturnCode rc = throttle_init(THROTTLE_start_timer,THROTTLE_reset_timer);
 	throttle_update_pedal_values(apps1,apps2,apps3);
 
 	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_NO_ERROR, "An error was found");
 	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.52f, "Value wasn't as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
+}
+void test_throttle_update_all_values_valid_one_implausible_pair(){
+	float apps1 = 0.50F;
+	float apps2 = 0.54F;
+	float apps3 = 0.61F;
+	//result should be 50+54/2=52
+
+	enum ThrottleReturnCode rc = throttle_init(THROTTLE_start_timer,THROTTLE_reset_timer);
+	throttle_update_pedal_values(apps1,apps2,apps3);
+
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_NO_ERROR, "An error was found");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.52f, "Value wasn't as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
+}
+void test_throttle_update_all_values_valid_two_implausible_pair(){
+	float apps1 = 0.60F;
+	float apps2 = 0.64F;
+	float apps3 = 0.81F;
+	//result should be 60+64/2=62
+
+	enum ThrottleReturnCode rc = throttle_init(THROTTLE_start_timer,THROTTLE_reset_timer);
+	throttle_update_pedal_values(apps1,apps2,apps3);
+
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_NO_ERROR, "An error was found");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.62f, "Value wasn't as expected");
 	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
 }
 
@@ -111,8 +138,69 @@ void test_throttle_update_two_values_valid_one_out_of_range(){
 	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.95f, "Value wasn't as expected");
 	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
 }
-//--------------------------------------------------
-//--------------------------------------------------
+
+// check that this values make the throttle go into recoverable state (implausible values) (result = -1)
+
+void test_throttle_update_all_values_valid_all_implausible_pair(){
+	float apps1 = 0.40F;
+	float apps2 = 0.54F;
+	float apps3 = 0.71F;
+
+	throttle_handler.last_throttle_value = 0.15F;
+
+	enum ThrottleReturnCode rc = throttle_init(THROTTLE_start_timer,THROTTLE_reset_timer);
+	throttle_update_pedal_values(apps1,apps2,apps3);
+
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_NO_ERROR, "An error was found");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.15F, "Value wasn't as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, "Status isn't in IMPLAUSIBLE_RECOVERABLE");
+}
+
+void test_throttle_update_two_values_valid_one_out_of_range_no_valid_pair(){
+	float apps1 = -0.03F;
+	float apps2 = 0.87F;
+	float apps3 = 0.99F; 
+
+	throttle_handler.last_throttle_value = 0.15F;
+
+	enum ThrottleReturnCode rc = throttle_init(THROTTLE_start_timer,THROTTLE_reset_timer);
+	throttle_update_pedal_values(apps1,apps2,apps3);
+
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_NO_ERROR, "An error was found");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.15F, "Value wasn't as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, "Status isn't in IMPLAUSIBLE_RECOVERABLE");
+}
+
+void test_throttle_update_one_value_valid(){
+	float apps1 = -0.03F;
+	float apps2 = 1.87F;
+	float apps3 = 0.99F; 
+
+	throttle_handler.last_throttle_value = 0.15F;
+
+	enum ThrottleReturnCode rc = throttle_init(THROTTLE_start_timer,THROTTLE_reset_timer);
+	throttle_update_pedal_values(apps1,apps2,apps3);
+
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_NO_ERROR, "An error was found");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.15F, "Value wasn't as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, "Status isn't in IMPLAUSIBLE_RECOVERABLE");
+}
+
+void test_throttle_update_no_value_valid(){
+	float apps1 = -0.03F;
+	float apps2 = 1.87F;
+	float apps3 = 1.99F; 
+
+	throttle_handler.last_throttle_value = 0.15F;
+
+	enum ThrottleReturnCode rc = throttle_init(THROTTLE_start_timer,THROTTLE_reset_timer);
+	throttle_update_pedal_values(apps1,apps2,apps3);
+
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.error_status, THROTTLE_RC_NO_ERROR, "An error was found");
+	TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.15F, "Value wasn't as expected");
+	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, "Status isn't in IMPLAUSIBLE_RECOVERABLE");
+}
+
 // check OK -> IMPLAUSIBLE_RECOVERABLE behaviours
 void test_throttle_update_to_recoverable_success(){
 	float apps1 = 0.1F;
@@ -221,7 +309,7 @@ void test_throttle_update_to_ok_status_callback_failure(){
 	TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_OK, "Status is not OK");
 	TEST_ASSERT_EQUAL_MESSAGE(1, THROTTLE_reset_timer_fake.call_count, "Reset timer wasn't called exactly once");
 }
-//////////////////////////////////////
+// check get travel percentage bahaviours
 
 void test_throttle_get_travel_percentage_no_error(void){
 	enum ThrottleReturnCode rc = throttle_init(THROTTLE_start_timer,THROTTLE_reset_timer);
@@ -257,6 +345,13 @@ int main( int argc, char **argv) {
 
 	RUN_TEST(test_throttle_update_all_values_valid);
 	RUN_TEST(test_throttle_update_two_values_valid_one_out_of_range);
+	RUN_TEST(test_throttle_update_all_values_valid_two_implausible_pair);
+	RUN_TEST(test_throttle_update_all_values_valid_one_implausible_pair);
+
+	RUN_TEST(test_throttle_update_all_values_valid_all_implausible_pair);
+	RUN_TEST(test_throttle_update_two_values_valid_one_out_of_range_no_valid_pair);
+	RUN_TEST(test_throttle_update_one_value_valid);
+	RUN_TEST(test_throttle_update_no_value_valid);
 
 	RUN_TEST(test_throttle_update_to_recoverable_success);
 	RUN_TEST(test_throttle_update_to_recoverable_no_callback);
