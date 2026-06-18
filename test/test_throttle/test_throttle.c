@@ -101,9 +101,9 @@ void test_throttle_update_all_values_valid(){
 }
 void test_throttle_update_all_values_valid_one_implausible_pair(){
 	float apps1 = 0.50F;
-	float apps2 = 0.54F;
-	float apps3 = 0.61F;
-	//result should be 50+54/2=52
+	float apps2 = 0.62F;
+	float apps3 = 0.54F;
+	//result should be 50+54/2=52 -> 50-62 X - 62-54 OK - 54-50 OK -> last pair chosen
 
 	enum ThrottleReturnCode rc = throttle_init(THROTTLE_start_timer,THROTTLE_reset_timer);
 	throttle_update_pedal_values(apps1,apps2,apps3);
