@@ -4,7 +4,7 @@
 EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
     .is_implausibility_timeout = false,
     .apps_percentages = { 0.0F, 0.0F, 0.0F },
-    .last_throttle_value = THROTTLE_MIN_VALUE,
+    .last_throttle_value = 0.0F,
     .throttle_status = THROTTLE_STATUS_OK,
     .error_status = THROTTLE_RC_NO_ERROR,
     .start_timer = NULL,
@@ -90,7 +90,7 @@ void prv_throttle_status_recoverable_routine(float new_value) {
 }
 
 void prv_throttle_status_implausible_routine() {
-    throttle_handler.last_throttle_value = THROTTLE_MIN_VALUE;
+    //throttle_handler.last_throttle_value = THROTTLE_MIN_VALUE;
     throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBLE_ERROR;
     throttle_handler.is_implausibility_timeout = false;
     prv_throttle_update_error(THROTTLE_RC_IMPLAUSIBILITY);
@@ -130,8 +130,19 @@ enum ThrottleReturnCode throttle_api_init(throttle_timer_callback start_timer, t
 }
 
 void throttle_api_update_pedal_values(float apps1, float apps2, float apps3) {
+    throttle_handler.apps_percentages[0] = apps1;
+    throttle_handler.apps_percentages[1] = apps2;
+    throttle_handler.apps_percentages[2] = apps3;
+}
+
+void throttle_api_update_internal_status() {
     constexpr float THROTTLE_MAX_VALUE = 1.0F;
     constexpr float THROTTLE_MIN_VALUE = 0.0F;
+
+    float apps1 = throttle_handler.apps_percentages[0];
+    float apps2 = throttle_handler.apps_percentages[1];
+    float apps3 = throttle_handler.apps_percentages[2];
+
     // if status is THROTTLE_STATUS_IMPLAUSIBLE_ERROR you can't recover from the error, leave the throttle state as it is
     if (throttle_handler.throttle_status == THROTTLE_STATUS_IMPLAUSIBLE_ERROR) {
         return;
@@ -153,6 +164,18 @@ struct ThrottleReturnValue throttle_api_get_travel_percentage() {
     throttle_handler.error_status = THROTTLE_RC_NO_ERROR;
 
     return ret;
+}
+
+float throttle_api_get_apps1(void) {
+    return throttle_handler.apps_percentages[0];
+}
+
+float throttle_api_get_apps2(void) {
+    return throttle_handler.apps_percentages[1];
+}
+
+float throttle_api_get_apps3(void) {
+    return throttle_handler.apps_percentages[2];
 }
 
 void throttle_api_implausibility_timeout_trigger() {
