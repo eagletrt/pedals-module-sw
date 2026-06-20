@@ -3,6 +3,7 @@
 
 EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
     .is_implausibility_timeout = false,
+    .apps_percentages = { 0.0F, 0.0F, 0.0F },
     .last_throttle_value = THROTTLE_MIN_VALUE,
     .throttle_status = THROTTLE_STATUS_OK,
     .error_status = THROTTLE_RC_NO_ERROR,
@@ -13,9 +14,9 @@ EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
 // internal functions ---------------------------------------
 
 float prv_throttle_calculate_next_value(float apps1, float apps2, float apps3) {
-    float values[] = { apps1, apps2, apps3 };
-    int n_valid_pairs = 0;
-    int last_good_idx = -1; // If > 0, it represents that pair i and i+1 (circular mode) is within ruleset
+    float apps[] = { apps1, apps2, apps3 };
+    int valid_apps_pair_count = 0;
+    int last_valid_apps_pair_index = -1; // If > 0, it represents that pair i and i+1 (circular mode) is within ruleset
 
     // To know what sensors to exclude we need to know if they are in range and have at least 1 other sensor within max allowed difference
     // Cases can be hardcodable but even with three there are too many combinations of values, so we decide to count the number of good pairs
@@ -24,28 +25,28 @@ float prv_throttle_calculate_next_value(float apps1, float apps2, float apps3) {
         // check if it's in range [0,1] as per T 11.9.2
         // We just need to care if the current sensors if invalid because only the difference between invalids would throw off the next check
         // Any other check, even if next sensor is invalid, would fail the next if
-        if (values[i] != THROTTLE_ERROR_VALUE) {
-            float diff = values[i] - values[(i + 1) % 3]; //circular mode,
-            if (-THROTTLE_MAX_PERCENTAGE_DEVIATION <= diff && diff <= THROTTLE_MAX_PERCENTAGE_DEVIATION) {
-                last_good_idx = i;
-                n_valid_pairs++;
+        if (apps[i] != THROTTLE_ERROR_VALUE) {
+            float diff = apps[i] - apps[(i + 1) % 3];
+            if (diff < 0.0f) {
+                diff *= -1.0f;
+            }
+            if (diff <= THROTTLE_MAX_PERCENTAGE_DEVIATION) {
+                last_valid_apps_pair_index = i;
+                ++valid_apps_pair_count;
             }
         }
     }
 
-    float result;
-    // values are implausible if there are less than 2 working sensors or if there is no working pair of sensors that has less than 10% difference as per T 11.8.9 and T 11.9
-    // if there are three valid pairs, every value is correct on its own and can be included in the result
-    if (n_valid_pairs == 3) {
+    // values are implausible only if there are less than 2 working sensors or if there is no working pair of sensors that has less than 10% difference as per T 11.8.9 and T 11.9
+    //     - If there are three valid pairs, every value is correct on its own and can be included in the result
+    //     - If there are two or one valid pair, it means that we can choose whichever pair
+    //     - If zero valid pairs, you must return that values have become implausible
+    float result = THROTTLE_ERROR_VALUE;
+    if (valid_apps_pair_count == 3) {
         result = (apps1 + apps2 + apps3) / (float)THROTTLE_APPS_NUMBER;
-    } //if there are two or one valid pair, it means that we can choose whichever pair
-    else if (n_valid_pairs > 0) {
-        result = (values[last_good_idx] + values[(last_good_idx + 1) % 3]) / (float)THROTTLE_MIN_NUMBER_VALID_APPS;
-    } // if zero valid pairs, you must return that values have become implausible
-    else {
-        result = THROTTLE_ERROR_VALUE;
+    } else if (valid_apps_pair_count > 0) {
+        result = (apps[last_valid_apps_pair_index] + apps[(last_valid_apps_pair_index + 1) % 3]) / (float)THROTTLE_MIN_NUMBER_VALID_APPS;
     }
-
     return result;
 }
 
@@ -118,7 +119,7 @@ void prv_throttle_next_state(float new_value) {
 
 // actual api ---------------------------------------
 
-enum ThrottleReturnCode throttle_init(throttle_timer_callback start_timer, throttle_timer_callback stop_timer) {
+enum ThrottleReturnCode throttle_api_init(throttle_timer_callback start_timer, throttle_timer_callback stop_timer) {
     if (start_timer == NULL || stop_timer == NULL) {
         return THROTTLE_RC_CALLBACK_FAILURE;
     }
@@ -128,7 +129,9 @@ enum ThrottleReturnCode throttle_init(throttle_timer_callback start_timer, throt
     return THROTTLE_RC_NO_ERROR;
 }
 
-void throttle_update_pedal_values(float apps1, float apps2, float apps3) {
+void throttle_api_update_pedal_values(float apps1, float apps2, float apps3) {
+    constexpr float THROTTLE_MAX_VALUE = 1.0F;
+    constexpr float THROTTLE_MIN_VALUE = 0.0F;
     // if status is THROTTLE_STATUS_IMPLAUSIBLE_ERROR you can't recover from the error, leave the throttle state as it is
     if (throttle_handler.throttle_status == THROTTLE_STATUS_IMPLAUSIBLE_ERROR) {
         return;
@@ -142,7 +145,7 @@ void throttle_update_pedal_values(float apps1, float apps2, float apps3) {
     prv_throttle_next_state(next_val);
 }
 
-struct ThrottleReturnValue throttle_get_travel_percentage() {
+struct ThrottleReturnValue throttle_api_get_travel_percentage() {
     struct ThrottleReturnValue ret = {
         .throttle_error = throttle_handler.error_status,
         .throttle_value = throttle_handler.last_throttle_value
@@ -152,6 +155,6 @@ struct ThrottleReturnValue throttle_get_travel_percentage() {
     return ret;
 }
 
-void throttle_implausibility_timeout_trigger() {
+void throttle_api_implausibility_timeout_trigger() {
     throttle_handler.is_implausibility_timeout = true;
 }
