@@ -26,8 +26,8 @@ float prv_throttle_calculate_next_value(float apps1, float apps2, float apps3) {
         // Any other check, even if next sensor is invalid, would fail the next if
         if (apps[i] != THROTTLE_ERROR_VALUE) {
             float diff = apps[i] - apps[(i + 1) % 3];
-            if (diff < 0.0f) {
-                diff *= -1.0f;
+            if (diff < 0.0F) {
+                diff *= -1.0F;
             }
             if (diff <= THROTTLE_MAX_PERCENTAGE_DEVIATION) {
                 last_valid_apps_pair_index = i;
@@ -113,7 +113,7 @@ void throttle_api_update_internal_status() {
     float apps3 = throttle_handler.apps_percentages[2];
 
     // if status is THROTTLE_STATUS_IMPLAUSIBILITY_ERROR you can't recover from the error, leave the throttle state as it is
-    if (throttle_handler.throttle_status != THROTTLE_STATUS_OK || throttle_handler.throttle_status != THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE) {
+    if (throttle_handler.throttle_status != THROTTLE_STATUS_OK && throttle_handler.throttle_status != THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE) {
         return;
     }
     apps1 = ((apps1 > THROTTLE_MAX_VALUE) || (apps1 < THROTTLE_MIN_VALUE)) ? THROTTLE_ERROR_VALUE : apps1;
