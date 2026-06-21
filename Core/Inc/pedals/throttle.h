@@ -11,9 +11,10 @@
  * \brief Represents throttle internal status regarding implausibility, different from return code
  */
 enum ThrottleStatus {
-    THROTTLE_STATUS_OK,                      /*!< Operations as normal*/
-    THROTTLE_STATUS_IMPLAUSIBLE_RECOVERABLE, /*!< Implausbility detected but it lasted less than 100ms, can be reverted to OK*/
-    THROTTLE_STATUS_IMPLAUSIBLE_ERROR        /*!< Implausbility detected and it exceeded 100ms, cannot be reverted to OK*/
+    THROTTLE_STATUS_OK,                         /*!< Operations as normal*/
+    THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE, /*!< Implausbility detected but it lasted less than 100ms, can be reverted to OK*/
+    THROTTLE_STATUS_IMPLAUSIBILITY_ERROR,       /*!< Implausbility detected and it exceeded 100ms, cannot be reverted to OK*/
+    THROTTLE_STATUS_CALLBACK_ERROR              /*!< Calls to the timer failed, you can't ensure you aren't implausible*/
 };
 
 /*!
@@ -21,8 +22,7 @@ enum ThrottleStatus {
  * 
  */
 enum ThrottleReturnCode {
-    THROTTLE_RC_NO_ERROR,        /*!< No new error to signal, either ok or implausibility had already been signalled*/
-    THROTTLE_RC_IMPLAUSIBILITY,  /*!< Implausibility as for the rules occurred, no new values will be read*/
+    THROTTLE_RC_NO_ERROR,        /*!< No new error to signal*/
     THROTTLE_RC_CALLBACK_FAILURE /*!< Call to external functions failed*/
 };
 
@@ -42,7 +42,6 @@ struct ThrottleHandler {
     float last_throttle_value;                    /*!< Last valid value of the throttle, used when it can't reliably read the sensors*/
     float apps_percentages[THROTTLE_APPS_NUMBER]; /*!< Contains newest value of percentages from ADC*/
     enum ThrottleStatus throttle_status;          /*!< Internal status of the throttle to check for implausibility*/
-    enum ThrottleReturnCode error_status;         /*!< Contains value of the most important type of error to be notified*/
     throttle_timer_callback start_timer;          /*!< Pointer to external function to start the timer*/
     throttle_timer_callback stop_timer;           /*!< Pointer to external function to stop and reset the timer*/
     bool is_implausibility_timeout;               /*!< Bool to set to true when implausibility timer runs out*/
@@ -53,8 +52,8 @@ struct ThrottleHandler {
  * 
  */
 struct ThrottleReturnValue {
-    float throttle_value;                   /*!< Percentage of the throttle pedal travel*/
-    enum ThrottleReturnCode throttle_error; /*!< */
+    float throttle_value;                /*!< Percentage of the throttle pedal travel*/
+    enum ThrottleStatus throttle_status; /*!< */
 };
 
 #endif //THROTTLE_H
