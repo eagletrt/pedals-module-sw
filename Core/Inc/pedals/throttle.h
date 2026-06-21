@@ -53,7 +53,7 @@ struct ThrottleHandler {
  */
 struct ThrottleReturnValue {
     float throttle_value;                /*!< Percentage of the throttle pedal travel*/
-    enum ThrottleStatus throttle_status; /*!< */
+    enum ThrottleStatus throttle_status; /*!< Internal status of throttle */
 };
 
 #endif //THROTTLE_H
