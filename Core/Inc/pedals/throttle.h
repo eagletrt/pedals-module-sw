@@ -26,6 +26,7 @@ enum ThrottleReturnCode {
     THROTTLE_RC_CALLBACK_FAILURE, /*!< Call to external functions failed*/
     THROTTLE_RC_NULL_POINTER      /*!< Pointer was null instead of pointing to function*/
 };
+
 /*!
  * \brief identifier for throttle apps's
  * 
@@ -56,15 +57,6 @@ struct ThrottleHandler {
     throttle_timer_callback start_timer;          /*!< Pointer to external function to start the timer*/
     throttle_timer_callback stop_timer;           /*!< Pointer to external function to stop and reset the timer*/
     bool is_implausibility_timeout;               /*!< Bool to set to true when implausibility timer runs out*/
-};
-
-/*!
- * \brief Structure that gets returned when throttle_api_get_travel_percentage is called
- * 
- */
-struct ThrottleReturnValue {
-    float throttle_value;                /*!< Percentage of the throttle pedal travel*/
-    enum ThrottleStatus throttle_status; /*!< Internal status of throttle */
 };
 
 #endif //THROTTLE_H

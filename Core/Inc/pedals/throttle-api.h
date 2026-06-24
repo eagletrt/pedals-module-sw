@@ -30,9 +30,16 @@ void throttle_api_update_internal_status(void);
 /*!
  * \brief Function to get the newest value of the throttle pedal travel
  * 
- * \return struct ThrottleReturnValue containing the percentage in range [0,1] and a return code specifying if the operation went ok, the external callbacks failed or it has reached implausible state
+ * \return float containing the percentage in range [0,1]
  */
-struct ThrottleReturnValue throttle_api_get_travel_percentage(void);
+float throttle_api_get_travel_percentage(void);
+
+/*!
+ * \brief Function to get the latest state of the throttle
+ * 
+ * \return enum ThrottleStatus throttle's current state
+ */
+enum ThrottleStatus throttle_api_get_status(void);
 
 /*!
  * \brief Returns last percentage from an APPS

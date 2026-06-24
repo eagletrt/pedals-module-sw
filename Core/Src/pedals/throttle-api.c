@@ -124,13 +124,12 @@ void throttle_api_update_internal_status() {
     prv_throttle_calculate_next_state(next_val);
 }
 
-struct ThrottleReturnValue throttle_api_get_travel_percentage() {
-    struct ThrottleReturnValue ret = {
-        .throttle_status = throttle_handler.throttle_status,
-        .throttle_value = throttle_handler.last_throttle_value
-    };
+float throttle_api_get_travel_percentage() {
+    return throttle_handler.throttle_status;
+}
 
-    return ret;
+enum ThrottleStatus throttle_api_get_status() {
+    return throttle_handler.throttle_status;
 }
 
 float throttle_api_get_apps(enum ThrottleId id) {
