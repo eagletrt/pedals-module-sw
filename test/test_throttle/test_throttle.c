@@ -4,14 +4,14 @@
 
 DEFINE_FFF_GLOBALS;
 
-FAKE_VALUE_FUNC(enum ThrottleReturnCode, THROTTLE_start_timer);
-FAKE_VALUE_FUNC(enum ThrottleReturnCode, THROTTLE_reset_timer);
+FAKE_VALUE_FUNC(enum ThrottleReturnCode, test_throttle_start_timer);
+FAKE_VALUE_FUNC(enum ThrottleReturnCode, test_throttle_reset_timer);
 
 extern struct ThrottleHandler throttle_handler;
 
 void setUp(void) {
-    RESET_FAKE(THROTTLE_start_timer);
-    RESET_FAKE(THROTTLE_reset_timer)
+    RESET_FAKE(test_throttle_start_timer);
+    RESET_FAKE(test_throttle_reset_timer)
     FFF_RESET_HISTORY();
     throttle_handler.is_implausibility_timeout = false;
     throttle_handler.apps_percentages[0] = 0.0F;
@@ -31,16 +31,16 @@ void setUp(void) {
 // throttle_api_get_apps_NUMBER and throttle_api_get_travel_percentage will not be tested because they're simple getters
 
 void test_throttle_api_successful_init(void) {
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
 
     TEST_ASSERT_EQUAL_MESSAGE(rc, THROTTLE_RC_OK, "Error during initialisation");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.start_timer, THROTTLE_start_timer, "Start timer was not initialised");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.stop_timer, THROTTLE_reset_timer, "Reset timer was not initialised");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.start_timer, test_throttle_start_timer, "Start timer was not initialised");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.stop_timer, test_throttle_reset_timer, "Reset timer was not initialised");
 }
 
 void test_throttle_api_init_no_first_member(void) {
 
-    enum ThrottleReturnCode rc = throttle_api_init(NULL, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(NULL, test_throttle_reset_timer);
     TEST_ASSERT_EQUAL_MESSAGE(rc, THROTTLE_RC_NULL_POINTER, "Error return value was different than expected");
     TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.start_timer, NULL, "Start timer was initialised");
     TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.stop_timer, NULL, "Reset timer was not initialised");
@@ -48,7 +48,7 @@ void test_throttle_api_init_no_first_member(void) {
 
 void test_throttle_api_init_no_second_member(void) {
 
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, NULL);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, NULL);
     TEST_ASSERT_EQUAL_MESSAGE(rc, THROTTLE_RC_NULL_POINTER, "Error return value was different than expected");
     TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.start_timer, NULL, "Start timer was initialised");
     TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.stop_timer, NULL, "Reset timer was not initialised");
@@ -56,7 +56,7 @@ void test_throttle_api_init_no_second_member(void) {
 
 // check if the implausible error state and related actions are as intended
 void test_throttle_api_update_status_to_implausible_error() {
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
 
     throttle_handler.throttle_status = THROTTLE_STATUS_OK;
     throttle_handler.last_throttle_value = 0.5f;
@@ -71,7 +71,7 @@ void test_throttle_api_update_status_to_implausible_error() {
 }
 
 void test_throttle_api_update_status_stay_in_implausible_error() {
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
 
     throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBILITY_ERROR;
     throttle_handler.last_throttle_value = 0.6f;
@@ -91,7 +91,7 @@ void test_throttle_api_update_status_all_values_valid() {
     float apps3 = 0.54F;
     //result should be 50+52+54/3=52
 
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
     throttle_handler.last_throttle_value = 0.33f;
     throttle_api_update_pedal_values(apps1, apps2, apps3);
     throttle_api_update_internal_status();
@@ -105,7 +105,7 @@ void test_throttle_api_update_status_all_values_valid_one_implausible_pair() {
     float apps3 = 0.54F;
     //result should be 50+54/2=52 -> 50-62 X - 62-54 OK - 54-50 OK -> last pair chosen
 
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
     throttle_handler.last_throttle_value = 0.33f;
     throttle_api_update_pedal_values(apps1, apps2, apps3);
     throttle_api_update_internal_status();
@@ -119,7 +119,7 @@ void test_throttle_api_update_status_all_values_valid_two_implausible_pair() {
     float apps3 = 0.81F;
     //result should be 60+64/2=62
 
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
     throttle_handler.last_throttle_value = 0.33f;
     throttle_api_update_pedal_values(apps1, apps2, apps3);
     throttle_api_update_internal_status();
@@ -133,7 +133,7 @@ void test_throttle_api_update_status_two_values_valid_one_out_of_range() {
     float apps2 = 0.97F;
     float apps3 = 1.01F; // out of range
 
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
     throttle_handler.last_throttle_value = 0.33f;
     throttle_api_update_pedal_values(apps1, apps2, apps3);
     throttle_api_update_internal_status();
@@ -151,7 +151,7 @@ void test_throttle_api_update_status_all_values_valid_all_implausible_pair() {
 
     throttle_handler.last_throttle_value = 0.15F;
 
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
     throttle_api_update_pedal_values(apps1, apps2, apps3);
     throttle_api_update_internal_status();
 
@@ -166,7 +166,7 @@ void test_throttle_api_update_status_two_values_valid_one_out_of_range_no_valid_
 
     throttle_handler.last_throttle_value = 0.15F;
 
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
     throttle_api_update_pedal_values(apps1, apps2, apps3);
     throttle_api_update_internal_status();
 
@@ -181,7 +181,7 @@ void test_throttle_api_update_status_one_value_valid() {
 
     throttle_handler.last_throttle_value = 0.15F;
 
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
     throttle_api_update_pedal_values(apps1, apps2, apps3);
     throttle_api_update_internal_status();
 
@@ -196,7 +196,7 @@ void test_throttle_api_update_status_no_value_valid() {
 
     throttle_handler.last_throttle_value = 0.15F;
 
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
     throttle_api_update_pedal_values(apps1, apps2, apps3);
     throttle_api_update_internal_status();
 
@@ -212,15 +212,15 @@ void test_throttle_api_update_status_to_recoverable_success() {
 
     throttle_handler.last_throttle_value = 0.4F;
 
-    THROTTLE_start_timer_fake.return_val = THROTTLE_RC_OK;
+    test_throttle_start_timer_fake.return_val = THROTTLE_RC_OK;
 
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
     throttle_api_update_pedal_values(apps1, apps2, apps3);
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.40f, "Value wasn't as expected");
     TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE, "Status is not IMPLAUSIBLE_RECOVERABLE");
-    TEST_ASSERT_EQUAL_MESSAGE(1, THROTTLE_start_timer_fake.call_count, "Start timer wasn't called exactly once");
+    TEST_ASSERT_EQUAL_MESSAGE(1, test_throttle_start_timer_fake.call_count, "Start timer wasn't called exactly once");
 }
 
 void test_throttle_api_update_status_to_recoverable_no_callback() {
@@ -230,14 +230,14 @@ void test_throttle_api_update_status_to_recoverable_no_callback() {
 
     throttle_handler.last_throttle_value = 0.4F;
 
-    THROTTLE_start_timer_fake.return_val = THROTTLE_RC_OK;
+    test_throttle_start_timer_fake.return_val = THROTTLE_RC_OK;
 
     throttle_api_update_pedal_values(apps1, apps2, apps3);
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.40f, "Value wasn't as expected");
     TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_CALLBACK_ERROR, "Status is not CALLBACK_ERROR");
-    TEST_ASSERT_EQUAL_MESSAGE(0, THROTTLE_start_timer_fake.call_count, "Start timer was called");
+    TEST_ASSERT_EQUAL_MESSAGE(0, test_throttle_start_timer_fake.call_count, "Start timer was called");
 }
 
 void test_throttle_api_update_status_to_recoverable_callback_failure() {
@@ -247,15 +247,15 @@ void test_throttle_api_update_status_to_recoverable_callback_failure() {
 
     throttle_handler.last_throttle_value = 0.4F;
 
-    THROTTLE_start_timer_fake.return_val = THROTTLE_RC_CALLBACK_FAILURE;
+    test_throttle_start_timer_fake.return_val = THROTTLE_RC_CALLBACK_FAILURE;
 
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
     throttle_api_update_pedal_values(apps1, apps2, apps3);
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.40f, "Value wasn't as expected");
     TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_CALLBACK_ERROR, "Status is not CALLBACK_ERROR");
-    TEST_ASSERT_EQUAL_MESSAGE(1, THROTTLE_start_timer_fake.call_count, "Start timer wasn't called exactly once");
+    TEST_ASSERT_EQUAL_MESSAGE(1, test_throttle_start_timer_fake.call_count, "Start timer wasn't called exactly once");
 }
 
 // check IMPLAUSIBLE_RECOVERABLE -> OK behaviours
@@ -267,15 +267,15 @@ void test_throttle_api_update_status_to_ok_status_success() {
     throttle_handler.last_throttle_value = 0.4F;
     throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE;
 
-    THROTTLE_reset_timer_fake.return_val = THROTTLE_RC_OK;
+    test_throttle_reset_timer_fake.return_val = THROTTLE_RC_OK;
 
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
     throttle_api_update_pedal_values(apps1, apps2, apps3);
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.53f, "Value wasn't as expected");
     TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_OK, "Status is not OK");
-    TEST_ASSERT_EQUAL_MESSAGE(1, THROTTLE_reset_timer_fake.call_count, "Reset timer wasn't called exactly once");
+    TEST_ASSERT_EQUAL_MESSAGE(1, test_throttle_reset_timer_fake.call_count, "Reset timer wasn't called exactly once");
 }
 
 void test_throttle_api_update_status_to_ok_status_no_callback() {
@@ -291,7 +291,7 @@ void test_throttle_api_update_status_to_ok_status_no_callback() {
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.4f, "Value wasn't as expected");
     TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_CALLBACK_ERROR, "Status is not CALLBACK_ERROR");
-    TEST_ASSERT_EQUAL_MESSAGE(0, THROTTLE_reset_timer_fake.call_count, "Reset timer wasn't called exactly once");
+    TEST_ASSERT_EQUAL_MESSAGE(0, test_throttle_reset_timer_fake.call_count, "Reset timer wasn't called exactly once");
 }
 
 void test_throttle_api_update_status_to_ok_status_callback_failure() {
@@ -302,15 +302,15 @@ void test_throttle_api_update_status_to_ok_status_callback_failure() {
     throttle_handler.last_throttle_value = 0.4F;
     throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE;
 
-    THROTTLE_reset_timer_fake.return_val = THROTTLE_RC_CALLBACK_FAILURE;
+    test_throttle_reset_timer_fake.return_val = THROTTLE_RC_CALLBACK_FAILURE;
 
-    enum ThrottleReturnCode rc = throttle_api_init(THROTTLE_start_timer, THROTTLE_reset_timer);
+    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
     throttle_api_update_pedal_values(apps1, apps2, apps3);
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.4f, "Value wasn't as expected");
     TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_CALLBACK_ERROR, "Status is not CALLBACK_ERROR");
-    TEST_ASSERT_EQUAL_MESSAGE(1, THROTTLE_reset_timer_fake.call_count, "Reset timer wasn't called exactly once");
+    TEST_ASSERT_EQUAL_MESSAGE(1, test_throttle_reset_timer_fake.call_count, "Reset timer wasn't called exactly once");
 }
 
 int main(int argc, char **argv) {
