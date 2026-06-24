@@ -61,7 +61,7 @@ void prv_throttle_next_state(float new_value) {
         case THROTTLE_STATUS_OK: {
             if (new_value != THROTTLE_ERROR_VALUE) {
                 throttle_handler.last_throttle_value = new_value;
-            } else if (throttle_handler.start_timer == NULL || throttle_handler.start_timer() == THROTTLE_RC_CALLBACK_FAILURE) {
+            } else if (throttle_handler.start_timer == NULL || throttle_handler.start_timer() != THROTTLE_RC_OK) {
                 throttle_handler.throttle_status = THROTTLE_STATUS_CALLBACK_ERROR;
             } else {
                 throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE;
@@ -71,7 +71,7 @@ void prv_throttle_next_state(float new_value) {
         case THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE: {
             if (new_value != THROTTLE_ERROR_VALUE) {
 
-                if (throttle_handler.stop_timer == NULL || throttle_handler.stop_timer() == THROTTLE_RC_CALLBACK_FAILURE) {
+                if (throttle_handler.stop_timer == NULL || throttle_handler.stop_timer() != THROTTLE_RC_OK) {
                     throttle_handler.throttle_status = THROTTLE_STATUS_CALLBACK_ERROR;
                 } else {
                     throttle_handler.throttle_status = THROTTLE_STATUS_OK;
@@ -90,12 +90,12 @@ void prv_throttle_next_state(float new_value) {
 
 enum ThrottleReturnCode throttle_api_init(throttle_timer_callback start_timer, throttle_timer_callback stop_timer) {
     if (start_timer == NULL || stop_timer == NULL) {
-        return THROTTLE_RC_CALLBACK_FAILURE;
+        return THROTTLE_RC_NULL_POINTER;
     }
 
     throttle_handler.start_timer = start_timer;
     throttle_handler.stop_timer = stop_timer;
-    return THROTTLE_RC_NO_ERROR;
+    return THROTTLE_RC_OK;
 }
 
 void throttle_api_update_pedal_values(float apps1, float apps2, float apps3) {
