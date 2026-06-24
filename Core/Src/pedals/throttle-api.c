@@ -12,8 +12,7 @@ EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
 
 // internal functions ---------------------------------------
 
-float prv_throttle_calculate_next_value(float apps1, float apps2, float apps3) {
-    float apps[] = { apps1, apps2, apps3 };
+float prv_throttle_calculate_next_value(float apps[THROTTLE_ID_COUNT]) {
     int valid_apps_pair_count = 0;
     int last_valid_apps_pair_index = -1; // If > 0, it represents that pair i and i+1 (circular mode) is within ruleset
 
@@ -42,14 +41,14 @@ float prv_throttle_calculate_next_value(float apps1, float apps2, float apps3) {
     //     - If zero valid pairs, you must return that values have become implausible
     float result = THROTTLE_ERROR_VALUE;
     if (valid_apps_pair_count == 3) {
-        result = (apps1 + apps2 + apps3) / (float)THROTTLE_APPS_NUMBER;
+        result = (apps[THROTTLE_ID_APPS_1] + apps[THROTTLE_ID_APPS_2] + apps[THROTTLE_ID_APPS_3]) / (float)THROTTLE_APPS_NUMBER;
     } else if (valid_apps_pair_count > 0) {
         result = (apps[last_valid_apps_pair_index] + apps[(last_valid_apps_pair_index + 1) % 3]) / (float)THROTTLE_MIN_NUMBER_VALID_APPS;
     }
     return result;
 }
 
-void prv_throttle_next_state(float new_value) {
+void prv_throttle_calculate_next_state(float new_value) {
     // regardless of the current state, if the flag is found activated you must set to IMPLAUSIBLE_ERROR and notify the user
     if (throttle_handler.is_implausibility_timeout) {
         throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBILITY_ERROR;
@@ -108,21 +107,21 @@ void throttle_api_update_internal_status() {
     constexpr float throttle_max_percentage = 1.0F;
     constexpr float throttle_min_percentage = 0.0F;
 
-    float apps1 = throttle_handler.apps_percentages[0];
-    float apps2 = throttle_handler.apps_percentages[1];
-    float apps3 = throttle_handler.apps_percentages[2];
-
     // if status is THROTTLE_STATUS_IMPLAUSIBILITY_ERROR you can't recover from the error, leave the throttle state as it is
     if (throttle_handler.throttle_status != THROTTLE_STATUS_OK && throttle_handler.throttle_status != THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE) {
         return;
     }
-    apps1 = ((apps1 > throttle_max_percentage) || (apps1 < throttle_min_percentage)) ? THROTTLE_ERROR_VALUE : apps1;
-    apps2 = ((apps2 > throttle_max_percentage) || (apps2 < throttle_min_percentage)) ? THROTTLE_ERROR_VALUE : apps2;
-    apps3 = ((apps3 > throttle_max_percentage) || (apps3 < throttle_min_percentage)) ? THROTTLE_ERROR_VALUE : apps3;
 
-    float next_val = prv_throttle_calculate_next_value(apps1, apps2, apps3);
+    float apps[THROTTLE_ID_COUNT];
 
-    prv_throttle_next_state(next_val);
+    for (int i = 0; i < THROTTLE_ID_COUNT; i++) {
+        apps[i] = throttle_handler.apps_percentages[i];
+        apps[i] = ((apps[i] > throttle_max_percentage) || (apps[i] < throttle_min_percentage)) ? THROTTLE_ERROR_VALUE : apps[i];
+    }
+
+    float next_val = prv_throttle_calculate_next_value(apps);
+
+    prv_throttle_calculate_next_state(next_val);
 }
 
 struct ThrottleReturnValue throttle_api_get_travel_percentage() {
@@ -134,16 +133,11 @@ struct ThrottleReturnValue throttle_api_get_travel_percentage() {
     return ret;
 }
 
-float throttle_api_get_apps1(void) {
-    return throttle_handler.apps_percentages[0];
-}
-
-float throttle_api_get_apps2(void) {
-    return throttle_handler.apps_percentages[1];
-}
-
-float throttle_api_get_apps3(void) {
-    return throttle_handler.apps_percentages[2];
+float throttle_api_get_apps(enum ThrottleId id) {
+    if (id >= THROTTLE_ID_COUNT) {
+        return THROTTLE_ERROR_VALUE;
+    }
+    return throttle_handler.apps_percentages[id];
 }
 
 void throttle_api_implausibility_timeout_trigger() {

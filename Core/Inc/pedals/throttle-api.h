@@ -35,25 +35,12 @@ void throttle_api_update_internal_status(void);
 struct ThrottleReturnValue throttle_api_get_travel_percentage(void);
 
 /*!
- * \brief Returns last percentage read for APPS1
+ * \brief Returns last percentage from an APPS
  * 
+ * \param id enum ThrottleId that identifies which APPS you want the value of
  * \return float percentage in range [0,1]
  */
-float throttle_api_get_apps1(void);
-
-/*!
- * \brief Returns last percentage read for APPS2
- * 
- * \return float percentage in range [0,1]
- */
-float throttle_api_get_apps2(void);
-
-/*!
- * \brief Returns last percentage read for APPS3
- * 
- * \return float percentage in range [0,1]
- */
-float throttle_api_get_apps3(void);
+float throttle_api_get_apps(enum ThrottleId id);
 
 /*!
  * \brief Function to activate when implausibility timer goes off

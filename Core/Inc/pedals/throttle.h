@@ -26,6 +26,16 @@ enum ThrottleReturnCode {
     THROTTLE_RC_CALLBACK_FAILURE, /*!< Call to external functions failed*/
     THROTTLE_RC_NULL_POINTER      /*!< Pointer was null instead of pointing to function*/
 };
+/*!
+ * \brief identifier for throttle apps's
+ * 
+ */
+enum ThrottleId {
+    THROTTLE_ID_APPS_1, /*!< First apps*/
+    THROTTLE_ID_APPS_2, /*!< Second apps*/
+    THROTTLE_ID_APPS_3, /*!< Third apps*/
+    THROTTLE_ID_COUNT   /*!< Number of APPS present*/
+};
 
 /*!
  * \brief Callback type to access timer (external) functions
