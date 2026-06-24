@@ -56,14 +56,17 @@ void test_throttle_api_init_no_second_member(void) {
 
 // check if the implausible error state and related actions are as intended
 void test_throttle_api_update_status_to_implausible_error() {
-    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
+    throttle_handler.start_timer = test_throttle_start_timer;
+    throttle_handler.stop_timer = test_throttle_reset_timer;
 
     throttle_handler.throttle_status = THROTTLE_STATUS_OK;
     throttle_handler.last_throttle_value = 0.5f;
 
     throttle_api_implausibility_timeout_trigger();
 
-    throttle_api_update_pedal_values(0.3F, 0.32F, 0.31F); // actual values don't matter, will be reset to zero
+    throttle_handler.apps_percentages[0] = 0.3F;
+    throttle_handler.apps_percentages[1] = 0.32F;
+    throttle_handler.apps_percentages[2] = 0.31F; // actual values don't matter, will be reset to zero
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.5f, "Last value was not reset");
@@ -71,12 +74,15 @@ void test_throttle_api_update_status_to_implausible_error() {
 }
 
 void test_throttle_api_update_status_stay_in_implausible_error() {
-    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
+    throttle_handler.start_timer = test_throttle_start_timer;
+    throttle_handler.stop_timer = test_throttle_reset_timer;
 
     throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBILITY_ERROR;
     throttle_handler.last_throttle_value = 0.6f;
 
-    throttle_api_update_pedal_values(0.3F, 0.32F, 0.31F); // actual values don't matter, will be reset to zero
+    throttle_handler.apps_percentages[0] = 0.3F;
+    throttle_handler.apps_percentages[1] = 0.32F;
+    throttle_handler.apps_percentages[2] = 0.31F; // actual values don't matter, will be reset to zero
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.6f, "Last value was changed, even if it shouldn't have");
@@ -91,9 +97,12 @@ void test_throttle_api_update_status_all_values_valid() {
     float apps3 = 0.54F;
     //result should be 50+52+54/3=52
 
-    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
+    throttle_handler.start_timer = test_throttle_start_timer;
+    throttle_handler.stop_timer = test_throttle_reset_timer;
     throttle_handler.last_throttle_value = 0.33f;
-    throttle_api_update_pedal_values(apps1, apps2, apps3);
+    throttle_handler.apps_percentages[0] = apps1;
+    throttle_handler.apps_percentages[1] = apps2;
+    throttle_handler.apps_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.52f, "Value wasn't as expected");
@@ -105,9 +114,12 @@ void test_throttle_api_update_status_all_values_valid_one_implausible_pair() {
     float apps3 = 0.54F;
     //result should be 50+54/2=52 -> 50-62 X - 62-54 OK - 54-50 OK -> last pair chosen
 
-    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
+    throttle_handler.start_timer = test_throttle_start_timer;
+    throttle_handler.stop_timer = test_throttle_reset_timer;
     throttle_handler.last_throttle_value = 0.33f;
-    throttle_api_update_pedal_values(apps1, apps2, apps3);
+    throttle_handler.apps_percentages[0] = apps1;
+    throttle_handler.apps_percentages[1] = apps2;
+    throttle_handler.apps_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.52f, "Value wasn't as expected");
@@ -119,9 +131,12 @@ void test_throttle_api_update_status_all_values_valid_two_implausible_pair() {
     float apps3 = 0.81F;
     //result should be 60+64/2=62
 
-    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
+    throttle_handler.start_timer = test_throttle_start_timer;
+    throttle_handler.stop_timer = test_throttle_reset_timer;
     throttle_handler.last_throttle_value = 0.33f;
-    throttle_api_update_pedal_values(apps1, apps2, apps3);
+    throttle_handler.apps_percentages[0] = apps1;
+    throttle_handler.apps_percentages[1] = apps2;
+    throttle_handler.apps_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.62f, "Value wasn't as expected");
@@ -133,9 +148,12 @@ void test_throttle_api_update_status_two_values_valid_one_out_of_range() {
     float apps2 = 0.97F;
     float apps3 = 1.01F; // out of range
 
-    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
+    throttle_handler.start_timer = test_throttle_start_timer;
+    throttle_handler.stop_timer = test_throttle_reset_timer;
     throttle_handler.last_throttle_value = 0.33f;
-    throttle_api_update_pedal_values(apps1, apps2, apps3);
+    throttle_handler.apps_percentages[0] = apps1;
+    throttle_handler.apps_percentages[1] = apps2;
+    throttle_handler.apps_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.95f, "Value wasn't as expected");
@@ -151,8 +169,11 @@ void test_throttle_api_update_status_all_values_valid_all_implausible_pair() {
 
     throttle_handler.last_throttle_value = 0.15F;
 
-    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
-    throttle_api_update_pedal_values(apps1, apps2, apps3);
+    throttle_handler.start_timer = test_throttle_start_timer;
+    throttle_handler.stop_timer = test_throttle_reset_timer;
+    throttle_handler.apps_percentages[0] = apps1;
+    throttle_handler.apps_percentages[1] = apps2;
+    throttle_handler.apps_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.15F, "Value wasn't as expected");
@@ -166,8 +187,11 @@ void test_throttle_api_update_status_two_values_valid_one_out_of_range_no_valid_
 
     throttle_handler.last_throttle_value = 0.15F;
 
-    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
-    throttle_api_update_pedal_values(apps1, apps2, apps3);
+    throttle_handler.start_timer = test_throttle_start_timer;
+    throttle_handler.stop_timer = test_throttle_reset_timer;
+    throttle_handler.apps_percentages[0] = apps1;
+    throttle_handler.apps_percentages[1] = apps2;
+    throttle_handler.apps_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.15F, "Value wasn't as expected");
@@ -181,8 +205,11 @@ void test_throttle_api_update_status_one_value_valid() {
 
     throttle_handler.last_throttle_value = 0.15F;
 
-    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
-    throttle_api_update_pedal_values(apps1, apps2, apps3);
+    throttle_handler.start_timer = test_throttle_start_timer;
+    throttle_handler.stop_timer = test_throttle_reset_timer;
+    throttle_handler.apps_percentages[0] = apps1;
+    throttle_handler.apps_percentages[1] = apps2;
+    throttle_handler.apps_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.15F, "Value wasn't as expected");
@@ -196,8 +223,11 @@ void test_throttle_api_update_status_no_value_valid() {
 
     throttle_handler.last_throttle_value = 0.15F;
 
-    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
-    throttle_api_update_pedal_values(apps1, apps2, apps3);
+    throttle_handler.start_timer = test_throttle_start_timer;
+    throttle_handler.stop_timer = test_throttle_reset_timer;
+    throttle_handler.apps_percentages[0] = apps1;
+    throttle_handler.apps_percentages[1] = apps2;
+    throttle_handler.apps_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.15F, "Value wasn't as expected");
@@ -214,8 +244,11 @@ void test_throttle_api_update_status_to_recoverable_success() {
 
     test_throttle_start_timer_fake.return_val = THROTTLE_RC_OK;
 
-    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
-    throttle_api_update_pedal_values(apps1, apps2, apps3);
+    throttle_handler.start_timer = test_throttle_start_timer;
+    throttle_handler.stop_timer = test_throttle_reset_timer;
+    throttle_handler.apps_percentages[0] = apps1;
+    throttle_handler.apps_percentages[1] = apps2;
+    throttle_handler.apps_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.40f, "Value wasn't as expected");
@@ -232,7 +265,9 @@ void test_throttle_api_update_status_to_recoverable_no_callback() {
 
     test_throttle_start_timer_fake.return_val = THROTTLE_RC_OK;
 
-    throttle_api_update_pedal_values(apps1, apps2, apps3);
+    throttle_handler.apps_percentages[0] = apps1;
+    throttle_handler.apps_percentages[1] = apps2;
+    throttle_handler.apps_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.40f, "Value wasn't as expected");
@@ -249,8 +284,11 @@ void test_throttle_api_update_status_to_recoverable_callback_failure() {
 
     test_throttle_start_timer_fake.return_val = THROTTLE_RC_CALLBACK_FAILURE;
 
-    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
-    throttle_api_update_pedal_values(apps1, apps2, apps3);
+    throttle_handler.start_timer = test_throttle_start_timer;
+    throttle_handler.stop_timer = test_throttle_reset_timer;
+    throttle_handler.apps_percentages[0] = apps1;
+    throttle_handler.apps_percentages[1] = apps2;
+    throttle_handler.apps_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.40f, "Value wasn't as expected");
@@ -269,8 +307,11 @@ void test_throttle_api_update_status_to_ok_status_success() {
 
     test_throttle_reset_timer_fake.return_val = THROTTLE_RC_OK;
 
-    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
-    throttle_api_update_pedal_values(apps1, apps2, apps3);
+    throttle_handler.start_timer = test_throttle_start_timer;
+    throttle_handler.stop_timer = test_throttle_reset_timer;
+    throttle_handler.apps_percentages[0] = apps1;
+    throttle_handler.apps_percentages[1] = apps2;
+    throttle_handler.apps_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.53f, "Value wasn't as expected");
@@ -286,7 +327,9 @@ void test_throttle_api_update_status_to_ok_status_no_callback() {
     throttle_handler.last_throttle_value = 0.4F;
     throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE;
 
-    throttle_api_update_pedal_values(apps1, apps2, apps3);
+    throttle_handler.apps_percentages[0] = apps1;
+    throttle_handler.apps_percentages[1] = apps2;
+    throttle_handler.apps_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.4f, "Value wasn't as expected");
@@ -305,7 +348,9 @@ void test_throttle_api_update_status_to_ok_status_callback_failure() {
     test_throttle_reset_timer_fake.return_val = THROTTLE_RC_CALLBACK_FAILURE;
 
     enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
-    throttle_api_update_pedal_values(apps1, apps2, apps3);
+    throttle_handler.apps_percentages[0] = apps1;
+    throttle_handler.apps_percentages[1] = apps2;
+    throttle_handler.apps_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
     TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.4f, "Value wasn't as expected");
