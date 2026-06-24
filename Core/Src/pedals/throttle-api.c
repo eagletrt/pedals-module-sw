@@ -105,8 +105,8 @@ void throttle_api_update_pedal_values(float apps1, float apps2, float apps3) {
 }
 
 void throttle_api_update_internal_status() {
-    constexpr float THROTTLE_MAX_VALUE = 1.0F;
-    constexpr float THROTTLE_MIN_VALUE = 0.0F;
+    constexpr float throttle_max_percentage = 1.0F;
+    constexpr float throttle_min_percentage = 0.0F;
 
     float apps1 = throttle_handler.apps_percentages[0];
     float apps2 = throttle_handler.apps_percentages[1];
@@ -116,9 +116,9 @@ void throttle_api_update_internal_status() {
     if (throttle_handler.throttle_status != THROTTLE_STATUS_OK && throttle_handler.throttle_status != THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE) {
         return;
     }
-    apps1 = ((apps1 > THROTTLE_MAX_VALUE) || (apps1 < THROTTLE_MIN_VALUE)) ? THROTTLE_ERROR_VALUE : apps1;
-    apps2 = ((apps2 > THROTTLE_MAX_VALUE) || (apps2 < THROTTLE_MIN_VALUE)) ? THROTTLE_ERROR_VALUE : apps2;
-    apps3 = ((apps3 > THROTTLE_MAX_VALUE) || (apps3 < THROTTLE_MIN_VALUE)) ? THROTTLE_ERROR_VALUE : apps3;
+    apps1 = ((apps1 > throttle_max_percentage) || (apps1 < throttle_min_percentage)) ? THROTTLE_ERROR_VALUE : apps1;
+    apps2 = ((apps2 > throttle_max_percentage) || (apps2 < throttle_min_percentage)) ? THROTTLE_ERROR_VALUE : apps2;
+    apps3 = ((apps3 > throttle_max_percentage) || (apps3 < throttle_min_percentage)) ? THROTTLE_ERROR_VALUE : apps3;
 
     float next_val = prv_throttle_calculate_next_value(apps1, apps2, apps3);
 
