@@ -125,7 +125,7 @@ void throttle_api_update_internal_status() {
 }
 
 float throttle_api_get_travel_percentage() {
-    return throttle_handler.throttle_status;
+    return throttle_handler.last_throttle_value;
 }
 
 enum ThrottleStatus throttle_api_get_status() {
