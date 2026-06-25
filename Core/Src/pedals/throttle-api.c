@@ -3,9 +3,9 @@
 
 EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
     .is_implausibility_timeout = false,
-    .apps_percentages = { 0.0F, 0.0F, 0.0F },
-    .last_throttle_value = 0.0F,
-    .throttle_status = THROTTLE_STATUS_OK,
+    .apps_travel_percentages = { 0.0F, 0.0F, 0.0F },
+    .travel_percentage = 0.0F,
+    .status = THROTTLE_STATUS_OK,
     .start_timer = NULL,
     .stop_timer = NULL
 };
@@ -51,19 +51,19 @@ float prv_throttle_calculate_next_value(const float apps[THROTTLE_ID_COUNT]) {
 void prv_throttle_calculate_next_state(float new_value) {
     // regardless of the current state, if the flag is found activated you must set to IMPLAUSIBLE_ERROR and notify the user
     if (throttle_handler.is_implausibility_timeout) {
-        throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBILITY_ERROR;
+        throttle_handler.status = THROTTLE_STATUS_IMPLAUSIBILITY_ERROR;
         throttle_handler.is_implausibility_timeout = false;
         return;
     }
 
-    switch (throttle_handler.throttle_status) {
+    switch (throttle_handler.status) {
         case THROTTLE_STATUS_OK: {
             if (new_value != THROTTLE_ERROR_VALUE) {
-                throttle_handler.last_throttle_value = new_value;
+                throttle_handler.travel_percentage = new_value;
             } else if (throttle_handler.start_timer == NULL || throttle_handler.start_timer() != THROTTLE_RC_OK) {
-                throttle_handler.throttle_status = THROTTLE_STATUS_CALLBACK_ERROR;
+                throttle_handler.status = THROTTLE_STATUS_CALLBACK_ERROR;
             } else {
-                throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE;
+                throttle_handler.status = THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE;
             }
             break;
         }
@@ -71,10 +71,10 @@ void prv_throttle_calculate_next_state(float new_value) {
             if (new_value != THROTTLE_ERROR_VALUE) {
 
                 if (throttle_handler.stop_timer == NULL || throttle_handler.stop_timer() != THROTTLE_RC_OK) {
-                    throttle_handler.throttle_status = THROTTLE_STATUS_CALLBACK_ERROR;
+                    throttle_handler.status = THROTTLE_STATUS_CALLBACK_ERROR;
                 } else {
-                    throttle_handler.throttle_status = THROTTLE_STATUS_OK;
-                    throttle_handler.last_throttle_value = new_value;
+                    throttle_handler.status = THROTTLE_STATUS_OK;
+                    throttle_handler.travel_percentage = new_value;
                 }
             }
             break;
@@ -98,9 +98,9 @@ enum ThrottleReturnCode throttle_api_init(throttle_timer_callback start_timer, t
 }
 
 void throttle_api_update_pedal_values(float apps1, float apps2, float apps3) {
-    throttle_handler.apps_percentages[0] = apps1;
-    throttle_handler.apps_percentages[1] = apps2;
-    throttle_handler.apps_percentages[2] = apps3;
+    throttle_handler.apps_travel_percentages[0] = apps1;
+    throttle_handler.apps_travel_percentages[1] = apps2;
+    throttle_handler.apps_travel_percentages[2] = apps3;
 }
 
 void throttle_api_update_internal_status() {
@@ -108,14 +108,14 @@ void throttle_api_update_internal_status() {
     constexpr float throttle_min_percentage = 0.0F;
 
     // if status is THROTTLE_STATUS_IMPLAUSIBILITY_ERROR you can't recover from the error, leave the throttle state as it is
-    if (throttle_handler.throttle_status != THROTTLE_STATUS_OK && throttle_handler.throttle_status != THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE) {
+    if (throttle_handler.status != THROTTLE_STATUS_OK && throttle_handler.status != THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE) {
         return;
     }
 
     float apps[THROTTLE_ID_COUNT];
 
     for (enum ThrottleId i = THROTTLE_ID_APPS_1; i < THROTTLE_ID_COUNT; i++) {
-        apps[i] = throttle_handler.apps_percentages[i];
+        apps[i] = throttle_handler.apps_travel_percentages[i];
         apps[i] = ((apps[i] > throttle_max_percentage) || (apps[i] < throttle_min_percentage)) ? THROTTLE_ERROR_VALUE : apps[i];
     }
 
@@ -125,18 +125,18 @@ void throttle_api_update_internal_status() {
 }
 
 float throttle_api_get_travel_percentage() {
-    return throttle_handler.last_throttle_value;
+    return throttle_handler.travel_percentage;
 }
 
 enum ThrottleStatus throttle_api_get_status() {
-    return throttle_handler.throttle_status;
+    return throttle_handler.status;
 }
 
 float throttle_api_get_apps(enum ThrottleId apps_id) {
     if (apps_id >= THROTTLE_ID_COUNT) {
         return THROTTLE_ERROR_VALUE;
     }
-    return throttle_handler.apps_percentages[apps_id];
+    return throttle_handler.apps_travel_percentages[apps_id];
 }
 
 void throttle_api_implausibility_timeout_trigger() {

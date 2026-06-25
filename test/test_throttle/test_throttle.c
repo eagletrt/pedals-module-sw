@@ -14,13 +14,13 @@ void setUp(void) {
     RESET_FAKE(test_throttle_reset_timer)
     FFF_RESET_HISTORY();
     throttle_handler.is_implausibility_timeout = false;
-    throttle_handler.apps_percentages[0] = 0.0F;
-    throttle_handler.apps_percentages[1] = 0.0F;
-    throttle_handler.apps_percentages[2] = 0.0F;
-    throttle_handler.last_throttle_value = 0.0f;
+    throttle_handler.apps_travel_percentages[0] = 0.0F;
+    throttle_handler.apps_travel_percentages[1] = 0.0F;
+    throttle_handler.apps_travel_percentages[2] = 0.0F;
+    throttle_handler.travel_percentage = 0.0f;
     throttle_handler.start_timer = NULL;
     throttle_handler.stop_timer = NULL;
-    throttle_handler.throttle_status = THROTTLE_STATUS_OK;
+    throttle_handler.status = THROTTLE_STATUS_OK;
 }
 
 /*void tearDown(void) {
@@ -59,34 +59,34 @@ void test_throttle_api_update_status_to_implausible_error() {
     throttle_handler.start_timer = test_throttle_start_timer;
     throttle_handler.stop_timer = test_throttle_reset_timer;
 
-    throttle_handler.throttle_status = THROTTLE_STATUS_OK;
-    throttle_handler.last_throttle_value = 0.5f;
+    throttle_handler.status = THROTTLE_STATUS_OK;
+    throttle_handler.travel_percentage = 0.5f;
 
     throttle_api_implausibility_timeout_trigger();
 
-    throttle_handler.apps_percentages[0] = 0.3F;
-    throttle_handler.apps_percentages[1] = 0.32F;
-    throttle_handler.apps_percentages[2] = 0.31F; // actual values don't matter, will be reset to zero
+    throttle_handler.apps_travel_percentages[0] = 0.3F;
+    throttle_handler.apps_travel_percentages[1] = 0.32F;
+    throttle_handler.apps_travel_percentages[2] = 0.31F; // actual values don't matter, will be reset to zero
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.5f, "Last value was not reset");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBILITY_ERROR, "Status was not set to implausibility");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.5f, "Last value was not reset");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_IMPLAUSIBILITY_ERROR, "Status was not set to implausibility");
 }
 
 void test_throttle_api_update_status_stay_in_implausible_error() {
     throttle_handler.start_timer = test_throttle_start_timer;
     throttle_handler.stop_timer = test_throttle_reset_timer;
 
-    throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBILITY_ERROR;
-    throttle_handler.last_throttle_value = 0.6f;
+    throttle_handler.status = THROTTLE_STATUS_IMPLAUSIBILITY_ERROR;
+    throttle_handler.travel_percentage = 0.6f;
 
-    throttle_handler.apps_percentages[0] = 0.3F;
-    throttle_handler.apps_percentages[1] = 0.32F;
-    throttle_handler.apps_percentages[2] = 0.31F; // actual values don't matter, will be reset to zero
+    throttle_handler.apps_travel_percentages[0] = 0.3F;
+    throttle_handler.apps_travel_percentages[1] = 0.32F;
+    throttle_handler.apps_travel_percentages[2] = 0.31F; // actual values don't matter, will be reset to zero
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.6f, "Last value was changed, even if it shouldn't have");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBILITY_ERROR, "Status was changed from implausibility");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.6f, "Last value was changed, even if it shouldn't have");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_IMPLAUSIBILITY_ERROR, "Status was changed from implausibility");
 }
 
 // check if these values are handled correctly and keep the throttle in NO_ERROR state
@@ -99,14 +99,14 @@ void test_throttle_api_update_status_all_values_valid() {
 
     throttle_handler.start_timer = test_throttle_start_timer;
     throttle_handler.stop_timer = test_throttle_reset_timer;
-    throttle_handler.last_throttle_value = 0.33f;
-    throttle_handler.apps_percentages[0] = apps1;
-    throttle_handler.apps_percentages[1] = apps2;
-    throttle_handler.apps_percentages[2] = apps3;
+    throttle_handler.travel_percentage = 0.33f;
+    throttle_handler.apps_travel_percentages[0] = apps1;
+    throttle_handler.apps_travel_percentages[1] = apps2;
+    throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.52f, "Value wasn't as expected");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.52f, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
 }
 void test_throttle_api_update_status_all_values_valid_one_implausible_pair() {
     float apps1 = 0.50F;
@@ -116,14 +116,14 @@ void test_throttle_api_update_status_all_values_valid_one_implausible_pair() {
 
     throttle_handler.start_timer = test_throttle_start_timer;
     throttle_handler.stop_timer = test_throttle_reset_timer;
-    throttle_handler.last_throttle_value = 0.33f;
-    throttle_handler.apps_percentages[0] = apps1;
-    throttle_handler.apps_percentages[1] = apps2;
-    throttle_handler.apps_percentages[2] = apps3;
+    throttle_handler.travel_percentage = 0.33f;
+    throttle_handler.apps_travel_percentages[0] = apps1;
+    throttle_handler.apps_travel_percentages[1] = apps2;
+    throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.52f, "Value wasn't as expected");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.52f, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
 }
 void test_throttle_api_update_status_all_values_valid_two_implausible_pair() {
     float apps1 = 0.60F;
@@ -133,14 +133,14 @@ void test_throttle_api_update_status_all_values_valid_two_implausible_pair() {
 
     throttle_handler.start_timer = test_throttle_start_timer;
     throttle_handler.stop_timer = test_throttle_reset_timer;
-    throttle_handler.last_throttle_value = 0.33f;
-    throttle_handler.apps_percentages[0] = apps1;
-    throttle_handler.apps_percentages[1] = apps2;
-    throttle_handler.apps_percentages[2] = apps3;
+    throttle_handler.travel_percentage = 0.33f;
+    throttle_handler.apps_travel_percentages[0] = apps1;
+    throttle_handler.apps_travel_percentages[1] = apps2;
+    throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.62f, "Value wasn't as expected");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.62f, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
 }
 
 void test_throttle_api_update_status_two_values_valid_one_out_of_range() {
@@ -150,14 +150,14 @@ void test_throttle_api_update_status_two_values_valid_one_out_of_range() {
 
     throttle_handler.start_timer = test_throttle_start_timer;
     throttle_handler.stop_timer = test_throttle_reset_timer;
-    throttle_handler.last_throttle_value = 0.33f;
-    throttle_handler.apps_percentages[0] = apps1;
-    throttle_handler.apps_percentages[1] = apps2;
-    throttle_handler.apps_percentages[2] = apps3;
+    throttle_handler.travel_percentage = 0.33f;
+    throttle_handler.apps_travel_percentages[0] = apps1;
+    throttle_handler.apps_travel_percentages[1] = apps2;
+    throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.95f, "Value wasn't as expected");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.95f, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
 }
 
 // check that this values make the throttle go into recoverable state (implausible values) (result = -1)
@@ -167,17 +167,17 @@ void test_throttle_api_update_status_all_values_valid_all_implausible_pair() {
     float apps2 = 0.54F;
     float apps3 = 0.71F;
 
-    throttle_handler.last_throttle_value = 0.15F;
+    throttle_handler.travel_percentage = 0.15F;
 
     throttle_handler.start_timer = test_throttle_start_timer;
     throttle_handler.stop_timer = test_throttle_reset_timer;
-    throttle_handler.apps_percentages[0] = apps1;
-    throttle_handler.apps_percentages[1] = apps2;
-    throttle_handler.apps_percentages[2] = apps3;
+    throttle_handler.apps_travel_percentages[0] = apps1;
+    throttle_handler.apps_travel_percentages[1] = apps2;
+    throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.15F, "Value wasn't as expected");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE, "Status isn't in IMPLAUSIBLE_RECOVERABLE");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.15F, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE, "Status isn't in IMPLAUSIBLE_RECOVERABLE");
 }
 
 void test_throttle_api_update_status_two_values_valid_one_out_of_range_no_valid_pair() {
@@ -185,17 +185,17 @@ void test_throttle_api_update_status_two_values_valid_one_out_of_range_no_valid_
     float apps2 = 0.87F;
     float apps3 = 0.99F;
 
-    throttle_handler.last_throttle_value = 0.15F;
+    throttle_handler.travel_percentage = 0.15F;
 
     throttle_handler.start_timer = test_throttle_start_timer;
     throttle_handler.stop_timer = test_throttle_reset_timer;
-    throttle_handler.apps_percentages[0] = apps1;
-    throttle_handler.apps_percentages[1] = apps2;
-    throttle_handler.apps_percentages[2] = apps3;
+    throttle_handler.apps_travel_percentages[0] = apps1;
+    throttle_handler.apps_travel_percentages[1] = apps2;
+    throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.15F, "Value wasn't as expected");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE, "Status isn't in IMPLAUSIBLE_RECOVERABLE");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.15F, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE, "Status isn't in IMPLAUSIBLE_RECOVERABLE");
 }
 
 void test_throttle_api_update_status_one_value_valid() {
@@ -203,17 +203,17 @@ void test_throttle_api_update_status_one_value_valid() {
     float apps2 = 1.87F;
     float apps3 = 0.99F;
 
-    throttle_handler.last_throttle_value = 0.15F;
+    throttle_handler.travel_percentage = 0.15F;
 
     throttle_handler.start_timer = test_throttle_start_timer;
     throttle_handler.stop_timer = test_throttle_reset_timer;
-    throttle_handler.apps_percentages[0] = apps1;
-    throttle_handler.apps_percentages[1] = apps2;
-    throttle_handler.apps_percentages[2] = apps3;
+    throttle_handler.apps_travel_percentages[0] = apps1;
+    throttle_handler.apps_travel_percentages[1] = apps2;
+    throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.15F, "Value wasn't as expected");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE, "Status isn't in IMPLAUSIBLE_RECOVERABLE");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.15F, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE, "Status isn't in IMPLAUSIBLE_RECOVERABLE");
 }
 
 void test_throttle_api_update_status_no_value_valid() {
@@ -221,17 +221,17 @@ void test_throttle_api_update_status_no_value_valid() {
     float apps2 = 1.87F;
     float apps3 = 1.99F;
 
-    throttle_handler.last_throttle_value = 0.15F;
+    throttle_handler.travel_percentage = 0.15F;
 
     throttle_handler.start_timer = test_throttle_start_timer;
     throttle_handler.stop_timer = test_throttle_reset_timer;
-    throttle_handler.apps_percentages[0] = apps1;
-    throttle_handler.apps_percentages[1] = apps2;
-    throttle_handler.apps_percentages[2] = apps3;
+    throttle_handler.apps_travel_percentages[0] = apps1;
+    throttle_handler.apps_travel_percentages[1] = apps2;
+    throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.15F, "Value wasn't as expected");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE, "Status isn't in IMPLAUSIBLE_RECOVERABLE");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.15F, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE, "Status isn't in IMPLAUSIBLE_RECOVERABLE");
 }
 
 // check OK -> IMPLAUSIBLE_RECOVERABLE behaviours
@@ -240,19 +240,19 @@ void test_throttle_api_update_status_to_recoverable_success() {
     float apps2 = 0.25F;
     float apps3 = 0.40F;
 
-    throttle_handler.last_throttle_value = 0.4F;
+    throttle_handler.travel_percentage = 0.4F;
 
     test_throttle_start_timer_fake.return_val = THROTTLE_RC_OK;
 
     throttle_handler.start_timer = test_throttle_start_timer;
     throttle_handler.stop_timer = test_throttle_reset_timer;
-    throttle_handler.apps_percentages[0] = apps1;
-    throttle_handler.apps_percentages[1] = apps2;
-    throttle_handler.apps_percentages[2] = apps3;
+    throttle_handler.apps_travel_percentages[0] = apps1;
+    throttle_handler.apps_travel_percentages[1] = apps2;
+    throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.40f, "Value wasn't as expected");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE, "Status is not IMPLAUSIBLE_RECOVERABLE");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.40f, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE, "Status is not IMPLAUSIBLE_RECOVERABLE");
     TEST_ASSERT_EQUAL_MESSAGE(1, test_throttle_start_timer_fake.call_count, "Start timer wasn't called exactly once");
 }
 
@@ -261,17 +261,17 @@ void test_throttle_api_update_status_to_recoverable_no_callback() {
     float apps2 = 0.25F;
     float apps3 = 0.40F;
 
-    throttle_handler.last_throttle_value = 0.4F;
+    throttle_handler.travel_percentage = 0.4F;
 
     test_throttle_start_timer_fake.return_val = THROTTLE_RC_OK;
 
-    throttle_handler.apps_percentages[0] = apps1;
-    throttle_handler.apps_percentages[1] = apps2;
-    throttle_handler.apps_percentages[2] = apps3;
+    throttle_handler.apps_travel_percentages[0] = apps1;
+    throttle_handler.apps_travel_percentages[1] = apps2;
+    throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.40f, "Value wasn't as expected");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_CALLBACK_ERROR, "Status is not CALLBACK_ERROR");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.40f, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_CALLBACK_ERROR, "Status is not CALLBACK_ERROR");
     TEST_ASSERT_EQUAL_MESSAGE(0, test_throttle_start_timer_fake.call_count, "Start timer was called");
 }
 
@@ -280,19 +280,19 @@ void test_throttle_api_update_status_to_recoverable_callback_failure() {
     float apps2 = 0.25F;
     float apps3 = 0.40F;
 
-    throttle_handler.last_throttle_value = 0.4F;
+    throttle_handler.travel_percentage = 0.4F;
 
     test_throttle_start_timer_fake.return_val = THROTTLE_RC_CALLBACK_FAILURE;
 
     throttle_handler.start_timer = test_throttle_start_timer;
     throttle_handler.stop_timer = test_throttle_reset_timer;
-    throttle_handler.apps_percentages[0] = apps1;
-    throttle_handler.apps_percentages[1] = apps2;
-    throttle_handler.apps_percentages[2] = apps3;
+    throttle_handler.apps_travel_percentages[0] = apps1;
+    throttle_handler.apps_travel_percentages[1] = apps2;
+    throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.40f, "Value wasn't as expected");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_CALLBACK_ERROR, "Status is not CALLBACK_ERROR");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.40f, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_CALLBACK_ERROR, "Status is not CALLBACK_ERROR");
     TEST_ASSERT_EQUAL_MESSAGE(1, test_throttle_start_timer_fake.call_count, "Start timer wasn't called exactly once");
 }
 
@@ -302,20 +302,20 @@ void test_throttle_api_update_status_to_ok_status_success() {
     float apps2 = 0.53F;
     float apps3 = 0.56F;
 
-    throttle_handler.last_throttle_value = 0.4F;
-    throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE;
+    throttle_handler.travel_percentage = 0.4F;
+    throttle_handler.status = THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE;
 
     test_throttle_reset_timer_fake.return_val = THROTTLE_RC_OK;
 
     throttle_handler.start_timer = test_throttle_start_timer;
     throttle_handler.stop_timer = test_throttle_reset_timer;
-    throttle_handler.apps_percentages[0] = apps1;
-    throttle_handler.apps_percentages[1] = apps2;
-    throttle_handler.apps_percentages[2] = apps3;
+    throttle_handler.apps_travel_percentages[0] = apps1;
+    throttle_handler.apps_travel_percentages[1] = apps2;
+    throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.53f, "Value wasn't as expected");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_OK, "Status is not OK");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.53f, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_OK, "Status is not OK");
     TEST_ASSERT_EQUAL_MESSAGE(1, test_throttle_reset_timer_fake.call_count, "Reset timer wasn't called exactly once");
 }
 
@@ -324,16 +324,16 @@ void test_throttle_api_update_status_to_ok_status_no_callback() {
     float apps2 = 0.53F;
     float apps3 = 0.56F;
 
-    throttle_handler.last_throttle_value = 0.4F;
-    throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE;
+    throttle_handler.travel_percentage = 0.4F;
+    throttle_handler.status = THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE;
 
-    throttle_handler.apps_percentages[0] = apps1;
-    throttle_handler.apps_percentages[1] = apps2;
-    throttle_handler.apps_percentages[2] = apps3;
+    throttle_handler.apps_travel_percentages[0] = apps1;
+    throttle_handler.apps_travel_percentages[1] = apps2;
+    throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.4f, "Value wasn't as expected");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_CALLBACK_ERROR, "Status is not CALLBACK_ERROR");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.4f, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_CALLBACK_ERROR, "Status is not CALLBACK_ERROR");
     TEST_ASSERT_EQUAL_MESSAGE(0, test_throttle_reset_timer_fake.call_count, "Reset timer wasn't called exactly once");
 }
 
@@ -342,19 +342,19 @@ void test_throttle_api_update_status_to_ok_status_callback_failure() {
     float apps2 = 0.53F;
     float apps3 = 0.56F;
 
-    throttle_handler.last_throttle_value = 0.4F;
-    throttle_handler.throttle_status = THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE;
+    throttle_handler.travel_percentage = 0.4F;
+    throttle_handler.status = THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE;
 
     test_throttle_reset_timer_fake.return_val = THROTTLE_RC_CALLBACK_FAILURE;
 
     enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
-    throttle_handler.apps_percentages[0] = apps1;
-    throttle_handler.apps_percentages[1] = apps2;
-    throttle_handler.apps_percentages[2] = apps3;
+    throttle_handler.apps_travel_percentages[0] = apps1;
+    throttle_handler.apps_travel_percentages[1] = apps2;
+    throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status();
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.last_throttle_value, 0.4f, "Value wasn't as expected");
-    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.throttle_status, THROTTLE_STATUS_CALLBACK_ERROR, "Status is not CALLBACK_ERROR");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.4f, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_CALLBACK_ERROR, "Status is not CALLBACK_ERROR");
     TEST_ASSERT_EQUAL_MESSAGE(1, test_throttle_reset_timer_fake.call_count, "Reset timer wasn't called exactly once");
 }
 
