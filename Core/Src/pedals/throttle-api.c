@@ -12,7 +12,7 @@ EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
 
 // internal functions ---------------------------------------
 
-float prv_throttle_calculate_next_value(float apps[THROTTLE_ID_COUNT]) {
+float prv_throttle_calculate_next_value(const float apps[THROTTLE_ID_COUNT]) {
     int valid_apps_pair_count = 0;
     int last_valid_apps_pair_index = -1; // If > 0, it represents that pair i and i+1 (circular mode) is within ruleset
 
@@ -132,7 +132,7 @@ enum ThrottleStatus throttle_api_get_status() {
     return throttle_handler.throttle_status;
 }
 
-float throttle_api_get_apps(enum ThrottleId id) {
+float throttle_api_get_apps(enum ThrottleId apps_id) {
     if (id >= THROTTLE_ID_COUNT) {
         return THROTTLE_ERROR_VALUE;
     }

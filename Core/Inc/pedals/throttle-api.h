@@ -47,7 +47,7 @@ enum ThrottleStatus throttle_api_get_status(void);
  * \param id enum ThrottleId that identifies which APPS you want the value of
  * \return float percentage in range [0,1]
  */
-float throttle_api_get_apps(enum ThrottleId id);
+float throttle_api_get_apps(enum ThrottleId apps_id);
 
 /*!
  * \brief Function to activate when implausibility timer goes off
