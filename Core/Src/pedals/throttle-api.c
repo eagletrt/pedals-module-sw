@@ -133,10 +133,10 @@ enum ThrottleStatus throttle_api_get_status() {
 }
 
 float throttle_api_get_apps(enum ThrottleId apps_id) {
-    if (id >= THROTTLE_ID_COUNT) {
+    if (apps_id >= THROTTLE_ID_COUNT) {
         return THROTTLE_ERROR_VALUE;
     }
-    return throttle_handler.apps_percentages[id];
+    return throttle_handler.apps_percentages[apps_id];
 }
 
 void throttle_api_implausibility_timeout_trigger() {
