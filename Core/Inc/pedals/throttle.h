@@ -1,7 +1,6 @@
 #ifndef THROTTLE_H
 #define THROTTLE_H
 
-#define THROTTLE_APPS_NUMBER (3)
 #define THROTTLE_MIN_NUMBER_VALID_APPS (2)
 #define THROTTLE_MAX_PERCENTAGE_DEVIATION (0.1F)
 
@@ -51,12 +50,12 @@ typedef enum ThrottleReturnCode (*throttle_timer_callback)(void);
  * 
  */
 struct ThrottleHandler {
-    float last_throttle_value;                    /*!< Last valid value of the throttle, used when it can't reliably read the sensors*/
-    float apps_percentages[THROTTLE_APPS_NUMBER]; /*!< Contains newest value of percentages from ADC*/
-    enum ThrottleStatus throttle_status;          /*!< Internal status of the throttle to check for implausibility*/
-    throttle_timer_callback start_timer;          /*!< Pointer to external function to start the timer*/
-    throttle_timer_callback stop_timer;           /*!< Pointer to external function to stop and reset the timer*/
-    bool is_implausibility_timeout;               /*!< Bool to set to true when implausibility timer runs out*/
+    float last_throttle_value;                 /*!< Last valid value of the throttle, used when it can't reliably read the sensors*/
+    float apps_percentages[THROTTLE_ID_COUNT]; /*!< Contains newest value of percentages from ADC*/
+    enum ThrottleStatus throttle_status;       /*!< Internal status of the throttle to check for implausibility*/
+    throttle_timer_callback start_timer;       /*!< Pointer to external function to start the timer*/
+    throttle_timer_callback stop_timer;        /*!< Pointer to external function to stop and reset the timer*/
+    bool is_implausibility_timeout;            /*!< Bool to set to true when implausibility timer runs out*/
 };
 
 #endif //THROTTLE_H

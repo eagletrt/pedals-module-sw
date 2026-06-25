@@ -19,7 +19,7 @@ float prv_throttle_calculate_next_value(float apps[THROTTLE_ID_COUNT]) {
     // To know what sensors to exclude we need to know if they are in range and have at least 1 other sensor within max allowed difference
     // Cases can be hardcodable but even with three there are too many combinations of values, so we decide to count the number of good pairs
     // This works because there are only three sensors to check, if more a more sofisticated approach is required
-    for (int i = 0; i < THROTTLE_APPS_NUMBER; i++) {
+    for (enum ThrottleId i = THROTTLE_ID_APPS_1; i < THROTTLE_ID_COUNT; i++) {
         // check if it's in range [0,1] as per T 11.9.2
         // We just need to care if the current sensors if invalid because only the difference between invalids would throw off the next check
         // Any other check, even if next sensor is invalid, would fail the next if
@@ -41,7 +41,7 @@ float prv_throttle_calculate_next_value(float apps[THROTTLE_ID_COUNT]) {
     //     - If zero valid pairs, you must return that values have become implausible
     float result = THROTTLE_ERROR_VALUE;
     if (valid_apps_pair_count == 3) {
-        result = (apps[THROTTLE_ID_APPS_1] + apps[THROTTLE_ID_APPS_2] + apps[THROTTLE_ID_APPS_3]) / (float)THROTTLE_APPS_NUMBER;
+        result = (apps[THROTTLE_ID_APPS_1] + apps[THROTTLE_ID_APPS_2] + apps[THROTTLE_ID_APPS_3]) / (float)THROTTLE_ID_COUNT;
     } else if (valid_apps_pair_count > 0) {
         result = (apps[last_valid_apps_pair_index] + apps[(last_valid_apps_pair_index + 1) % 3]) / (float)THROTTLE_MIN_NUMBER_VALID_APPS;
     }
@@ -114,7 +114,7 @@ void throttle_api_update_internal_status() {
 
     float apps[THROTTLE_ID_COUNT];
 
-    for (int i = 0; i < THROTTLE_ID_COUNT; i++) {
+    for (enum ThrottleId i = THROTTLE_ID_APPS_1; i < THROTTLE_ID_COUNT; i++) {
         apps[i] = throttle_handler.apps_percentages[i];
         apps[i] = ((apps[i] > throttle_max_percentage) || (apps[i] < throttle_min_percentage)) ? THROTTLE_ERROR_VALUE : apps[i];
     }
