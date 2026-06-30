@@ -100,7 +100,6 @@ state_t do_idle(state_data_t *data) {
     }
 
     if (idle_struct->get_tick() - last_throttle > 50) {
-        serial_write("Sending throttle status\n\r");
         last_throttle = idle_struct->get_tick();
         if (throttle_api_send_status() != THROTTLE_RC_OK) {
             serial_write("Error: throttle_api_send_status failed in do_idle\n\r");
@@ -109,7 +108,6 @@ state_t do_idle(state_data_t *data) {
     }
 
     if (idle_struct->get_tick() - last_brake > 100) {
-        serial_write("Sending brake status\n\r");
         last_brake = idle_struct->get_tick();
         if (brake_api_send_status() != BRAKE_RC_OK) {
             serial_write("Error: brake_api_send_status failed in do_idle\n\r");

@@ -32,12 +32,15 @@ extern "C" {
 
 /* USER CODE END Includes */
 
+extern TIM_HandleTypeDef htim1;
+
 extern TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
 
+void MX_TIM1_Init(void);
 void MX_TIM3_Init(void);
 
 /* USER CODE BEGIN Prototypes */
@@ -53,3 +56,4 @@ enum ThrottleReturnCode tim_stop_timer_throttle(void);
 #endif
 
 #endif /* __TIM_H__ */
+
