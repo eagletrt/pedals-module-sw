@@ -156,3 +156,20 @@ enum ThrottleReturnCode throttle_api_send_status() {
     }
     return THROTTLE_RC_OK;
 }
+
+enum ThrottleReturnCode throttle_api_send_apps() {
+    struct CanCommunicationFrame frame = { 0 };
+    union CanPrimaryMessages status_msg = { 0 };
+    status_msg.pedals_apps.travelfirst_pct = throttle_handler.apps_travel_percentages[0];
+    status_msg.pedals_apps.travelfirst_pct = throttle_handler.apps_travel_percentages[1];
+    status_msg.pedals_apps.travelfirst_pct = throttle_handler.apps_travel_percentages[2];
+    if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALS_APPS, &status_msg, frame.data) == -1) {
+        return THROTTLE_RC_ERROR;
+    }
+    frame.id = CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALS_APPS;
+    frame.length = can_primary_byte_size_pedals_apps;
+    if (can_communications_api_add_to_tx_buffer(&frame) != CAN_COMMUNICATION_RC_OK) {
+        return THROTTLE_RC_ERROR;
+    }
+    return THROTTLE_RC_OK;
+}

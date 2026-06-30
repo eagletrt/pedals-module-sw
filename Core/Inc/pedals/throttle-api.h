@@ -57,4 +57,6 @@ void throttle_api_implausibility_timeout_trigger(void);
 
 enum ThrottleReturnCode throttle_api_send_status(void);
 
+enum ThrottleReturnCode throttle_api_send_apps(void);
+
 #endif //THROTTLE_API_H

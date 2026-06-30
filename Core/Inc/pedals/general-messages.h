@@ -1,0 +1,9 @@
+#ifndef GENERAL_MESSAGES_H
+#define GENERAL_MESSAGES_H
+
+enum GeneralMessagesReturnCode {
+    GENERAL_MESSAGES_RC_OK,
+    GENERAL_MESSAGES_RC_ERROR
+};
+
+#endif //GENERAL_MESSAGES_H

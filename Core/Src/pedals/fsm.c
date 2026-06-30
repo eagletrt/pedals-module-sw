@@ -19,6 +19,7 @@ The finite state machine has:
 #include "brake-api.h"
 #include "throttle-api.h"
 #include "post-api.h"
+#include "general-messages-api.h"
 
 #include "usart.h"
 #include <string.h>
@@ -97,6 +98,33 @@ state_t do_idle(state_data_t *data) {
     if (idle_struct->get_tick == NULL) {
         serial_write("Error: get_tick is NULL in do_idle\n\r");
         return STATE_ERROR;
+    }
+
+    /// insert actual waiting time to send apps message
+    if (idle_struct->get_tick() - last_throttle > 50) {
+        last_throttle = idle_struct->get_tick();
+        if (throttle_api_send_apps() != THROTTLE_RC_OK) {
+            serial_write("Error: throttle_api_send_apps failed in do_idle\n\r");
+            next_state = STATE_ERROR;
+        }
+    }
+
+    /// insert actual waiting time to send version
+    if (idle_struct->get_tick() - last_throttle > 50) {
+        last_throttle = idle_struct->get_tick();
+        if (general_messages_send_pedals_version() != GENERAL_MESSAGES_RC_OK) {
+            serial_write("Error: general_messages_send_pedals_version failed in do_idle\n\r");
+            next_state = STATE_ERROR;
+        }
+    }
+
+    /// insert actual waiting time to send fsm status
+    if (idle_struct->get_tick() - last_throttle > 50) {
+        last_throttle = idle_struct->get_tick();
+        if (general_messages_send_pedals_status(next_state) != GENERAL_MESSAGES_RC_OK) {
+            serial_write("Error: general_messages_send_pedals_status failed in do_idle\n\r");
+            next_state = STATE_ERROR;
+        }
     }
 
     if (idle_struct->get_tick() - last_throttle > 50) {
