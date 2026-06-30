@@ -28,13 +28,10 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include "eagletrt-api.h"
 #include "throttle-api.h"
 #include "can-communications-router-api.h"
 #include "fsm.h"
 #include "post.h"
-
-#include <string.h>
 
 /* USER CODE END Includes */
 
@@ -62,41 +59,6 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
-#define PED_DEADZONE_PERCENT 5.0f /*< Initial portion of pedal travel to ignore */
-
-float brake_get_bar(float volt) {
-    return eagletrt_api_mapf(volt, 0.5f, 4.5f, 0.0f, 100.0f);
-}
-
-float accelerator_remove_dead_zone(float val) {
-    val = (val < PED_DEADZONE_PERCENT) ? 5.0f : val;
-    val = (val > 100.0f - PED_DEADZONE_PERCENT) ? (100.0f - PED_DEADZONE_PERCENT) : val;
-    return eagletrt_api_mapf(val, PED_DEADZONE_PERCENT, 100.0f - PED_DEADZONE_PERCENT, 0.0f, 100.0f);
-}
-
-static float accelerator_percent(float volt1, float volt2) {
-    float acc1_percent = ((volt1 - 3.41f)) / (4.75f - 3.41f);
-    float acc2_percent = ((volt2 - 1.38f)) / (2.78f - 1.38f);
-    float acc_avg = (acc1_percent + acc2_percent) / 2.0f;
-    float dead = accelerator_remove_dead_zone(acc_avg * 100.0f);
-    return dead / 100.0f;
-}
-
-char *status_throttle_to_string(enum ThrottleStatus status) {
-    switch (status) {
-        case THROTTLE_STATUS_OK:
-            return "OKAY";
-        case THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE:
-            return "RECOVERABLE";
-        case THROTTLE_STATUS_CALLBACK_ERROR:
-            return "CALLBACK FAILED";
-        case THROTTLE_STATUS_IMPLAUSIBILITY_ERROR:
-            return "IMPLAUSIBILITY";
-        default:
-    }
-    return "UNKNOWN";
-}
 
 /* USER CODE END PFP */
 
@@ -171,41 +133,9 @@ int main(void)
     };
 
     while (1) {
-
         state = run_state(state, &data);
 
         throttle_api_update_internal_status();
-
-        /*
-        if (HAL_GetTick() - tick >= 200) {
-            tick = HAL_GetTick();
-            uart_write("\033[2J\033[H");
-            for (enum AdcReading i = 0; i < ADC_READING_COUNT; i++) {
-                char buf[64];
-                snprintf(buf, sizeof(buf), "%s = %.3f V\r\n", adc_get_reading_name(i), adc_read_voltage(i));
-                uart_write(buf);
-            }
-
-            float acc = accelerator_percent(adc_read_voltage(ADC_READING_APPS_1), adc_read_voltage(ADC_READING_APPS_2));
-            char buf[64];
-            snprintf(buf, sizeof(buf), "Accelerator pedal = %.1f%%\r\n", acc * 100.0f);
-            uart_write(buf);
-
-            //uart_write("\033[2J\033[H");
-            char buffer[500];
-            throttle_api_update_internal_status();
-            float throttle_travel = throttle_api_get_travel_percentage();
-            float brake_travel = brake_api_get_pedal_travel_percentage();
-            float brake_front = brake_api_get_front_pressure();
-            float brake_rear = brake_api_get_rear_pressure();
-            snprintf(buffer, sizeof(buffer), "THROTTLE:%.2f\tBRAKE:%.2f\tFRONT:%.2f\tREAR:%.2f\n\r", throttle_travel, brake_travel, brake_front, brake_rear);
-            uart_write(buffer);
-            enum ThrottleStatus status = throttle_api_get_status();
-            snprintf(buffer, sizeof(buffer), "STATUS:%s\n\r", status_throttle_to_string(status));
-            uart_write(buffer);
-            tick = HAL_GetTick();
-        }
-        */
     }
 
   /* USER CODE END 2 */
@@ -257,15 +187,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
-/**
-  * @brief  Blocking transmit of a null-terminated string over USART1.
-  * @param  str string to send
-  * @retval None
-  */
-static void uart_write(const char *str) {
-    HAL_UART_Transmit(&huart1, (const uint8_t *)str, (uint16_t)strlen(str), HAL_MAX_DELAY);
-}
 
 /* USER CODE END 4 */
 
