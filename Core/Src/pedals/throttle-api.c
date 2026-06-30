@@ -70,7 +70,6 @@ void prv_throttle_calculate_next_state(float new_value) {
         }
         case THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE: {
             if (new_value != THROTTLE_ERROR_VALUE) {
-
                 if (throttle_handler.stop_timer == NULL || throttle_handler.stop_timer() != THROTTLE_RC_OK) {
                     throttle_handler.status = THROTTLE_STATUS_CALLBACK_ERROR;
                 } else {
@@ -85,8 +84,6 @@ void prv_throttle_calculate_next_state(float new_value) {
         } //do nothing, in IMPLAUSIBLE ERROR and CALLBACK ERROR you can't change state anymore
     }
 }
-
-// actual api ---------------------------------------
 
 enum ThrottleReturnCode throttle_api_init(throttle_timer_callback start_timer, throttle_timer_callback stop_timer) {
     if (start_timer == NULL || stop_timer == NULL) {
