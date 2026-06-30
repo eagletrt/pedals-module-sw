@@ -1,5 +1,6 @@
 #include "throttle-api.h"
-#include "eagletrt-api.h"
+#include "can-primary-api.h"
+#include "can-communications-api.h"
 
 EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
     .is_implausibility_timeout = false,
@@ -141,4 +142,20 @@ float throttle_api_get_apps(enum ThrottleId apps_id) {
 
 void throttle_api_implausibility_timeout_trigger() {
     throttle_handler.is_implausibility_timeout = true;
+}
+
+enum ThrottleReturnCode throttle_api_send_status() {
+    struct CanCommunicationFrame frame = { 0 };
+    union CanPrimaryMessages status_msg = { 0 };
+    status_msg.pedals_throttle.status = throttle_handler.status;
+    status_msg.pedals_throttle.travel_pct = throttle_handler.travel_percentage;
+    if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALS_THROTTLE, &status_msg, frame.data) == -1) {
+        return THROTTLE_RC_ERROR;
+    }
+    frame.id = CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALS_THROTTLE;
+    frame.length = can_primary_byte_size_pedals_throttle;
+    if (can_communications_api_add_to_tx_buffer(&frame) != CAN_COMMUNICATION_RC_OK) {
+        return THROTTLE_RC_ERROR;
+    }
+    return THROTTLE_RC_OK;
 }

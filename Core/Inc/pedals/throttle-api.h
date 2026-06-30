@@ -55,4 +55,6 @@ float throttle_api_get_apps(enum ThrottleId apps_id);
  */
 void throttle_api_implausibility_timeout_trigger(void);
 
+enum ThrottleReturnCode throttle_api_send_status(void);
+
 #endif //THROTTLE_API_H

@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    fdcan.h
+  * @file    tim.h
   * @brief   This file contains all the function prototypes for
-  *          the fdcan.c file
+  *          the tim.c file
   ******************************************************************************
   * @attention
   *
@@ -18,8 +18,8 @@
   */
 /* USER CODE END Header */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __FDCAN_H__
-#define __FDCAN_H__
+#ifndef __TIM_H__
+#define __TIM_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,21 +30,21 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 
-#include "can-communications.h"
-
 /* USER CODE END Includes */
 
-extern FDCAN_HandleTypeDef hfdcan1;
+extern TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
 
-void MX_FDCAN1_Init(void);
+void MX_TIM3_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
-enum CanCommunicationReturnCode fdcan_send_primary(const struct CanCommunicationFrame *frame);
+enum ThrottleReturnCode tim_start_timer_throttle(void);
+
+enum ThrottleReturnCode tim_stop_timer_throttle(void);
 
 /* USER CODE END Prototypes */
 
@@ -52,4 +52,4 @@ enum CanCommunicationReturnCode fdcan_send_primary(const struct CanCommunication
 }
 #endif
 
-#endif /* __FDCAN_H__ */
+#endif /* __TIM_H__ */

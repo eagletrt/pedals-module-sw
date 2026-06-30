@@ -1,5 +1,7 @@
 #include "brake-api.h"
-#include "eagletrt-api.h"
+#include "can-communications-api.h"
+#include "can-primary-api.h"
+#include "eagletrt.h"
 
 EAGLETRT_STATIC struct BrakeHandler brake_handler = {
     .pedal_travel = 0.0F,
@@ -32,4 +34,21 @@ float brake_api_get_front_pressure() {
 
 float brake_api_get_rear_pressure() {
     return brake_handler.rear_pressure;
+}
+
+enum BrakeReturnCode brake_api_send_status(void) {
+    struct CanCommunicationFrame frame = { 0 };
+    union CanPrimaryMessages data = { 0 };
+    data.pedals_brake.travel_pct = brake_handler.pedal_travel;
+    data.pedals_brake.pressurefront_bar = brake_handler.front_pressure;
+    data.pedals_brake.pressurerear_bar = brake_handler.rear_pressure;
+    if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALS_BRAKE, &data, frame.data) == -1) {
+        return BRAKE_RC_ERROR;
+    }
+    frame.id = CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALS_BRAKE;
+    frame.length = can_primary_byte_size_pedals_brake;
+    if (can_communications_api_add_to_tx_buffer(&frame) != CAN_COMMUNICATION_RC_OK) {
+        return BRAKE_RC_ERROR;
+    }
+    return BRAKE_RC_OK;
 }

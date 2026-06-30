@@ -1,32 +1,44 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2026 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "can-communications-router-api.h"
 #include "dma.h"
 #include "fdcan.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
+#include "eagletrt-api.h"
+#include "bots-api.h"
+#include "brake-api.h"
+#include "throttle-api.h"
 #include "fsm.h"
+#include "post.h"
+
+#include <stdio.h>
+#include <string.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,20 +66,47 @@
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 
+static void uart_write(const char *str);
+
+#define PED_DEADZONE_PERCENT 5.0f /*< Initial portion of pedal travel to ignore */
+
+float brake_get_bar(float volt) {
+    return eagletrt_api_mapf(volt, 0.5f, 4.5f, 0.0f, 100.0f);
+}
+
+float accelerator_remove_dead_zone(float val) {
+    val = (val < PED_DEADZONE_PERCENT) ? 5.0f : val;
+    val = (val > 100.0f - PED_DEADZONE_PERCENT) ? (100.0f - PED_DEADZONE_PERCENT) : val;
+    return eagletrt_api_mapf(val, PED_DEADZONE_PERCENT, 100.0f - PED_DEADZONE_PERCENT, 0.0f, 100.0f);
+}
+
+static float accelerator_percent(float volt1, float volt2) {
+    float acc1_percent = ((volt1 - 3.41f)) / (4.75f - 3.41f);
+    float acc2_percent = ((volt2 - 1.38f)) / (2.78f - 1.38f);
+    float acc_avg = (acc1_percent + acc2_percent) / 2.0f;
+    float dead = accelerator_remove_dead_zone(acc_avg * 100.0f);
+    return dead / 100.0f;
+}
+
+char *status_throttle_to_string(enum ThrottleStatus status) {
+    switch (status) {
+        case THROTTLE_STATUS_OK:
+            return "OKAY";
+        case THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE:
+            return "RECOVERABLE";
+        case THROTTLE_STATUS_CALLBACK_ERROR:
+            return "CALLBACK FAILED";
+        case THROTTLE_STATUS_IMPLAUSIBILITY_ERROR:
+            return "IMPLAUSIBILITY";
+        default:
+    }
+    return "UNKNOWN";
+}
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-static void VectorBase_Config(void) {
-    /* The constant array with vectors of the vector table is declared externally in the
-   * c-startup code.
-   */
-    extern const unsigned long g_pfnVectors[];
-
-    /* Remap the vector table to where the vector table is located for this program. */
-    SCB->VTOR = (unsigned long)&g_pfnVectors[0];
-}
 
 /* USER CODE END 0 */
 
@@ -78,7 +117,7 @@ static void VectorBase_Config(void) {
 int main(void) {
 
     /* USER CODE BEGIN 1 */
-    VectorBase_Config();
+
     /* USER CODE END 1 */
 
     /* MCU Configuration--------------------------------------------------------*/
@@ -87,7 +126,7 @@ int main(void) {
     HAL_Init();
 
     /* USER CODE BEGIN Init */
-    state_t current_state = STATE_INIT;
+
     /* USER CODE END Init */
 
     /* Configure the system clock */
@@ -100,22 +139,85 @@ int main(void) {
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_DMA_Init();
-    MX_ADC1_Init();
-    MX_FDCAN1_Init();
     MX_USART1_UART_Init();
+    MX_FDCAN1_Init();
+    MX_ADC1_Init();
+    MX_TIM3_Init();
     /* USER CODE BEGIN 2 */
+
+    adc_init();
+    HAL_TIM_Base_Start(&htim3);
+
+    HAL_FDCAN_Start(&hfdcan1);
+    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0);
+
+    // uint32_t tick = HAL_GetTick();
+
+    state_t state = STATE_INIT;
+
+    struct PostInit init_struct = {
+        .start_timer = tim_start_timer_throttle,
+        .stop_timer = tim_stop_timer_throttle,
+        .config = {
+            .send = fdcan_send_primary,
+            .on_receive = can_communications_router_api_receive_primary,
+            .cs_enter = __disable_irq,
+            .cs_exit = __enable_irq
+        }
+    };
+
+    state = run_state(state, &init_struct);
+
+    struct FsmIdleData data = {
+        .get_tick = HAL_GetTick,
+    };
+
+    while (1) {
+
+        state = run_state(state, &data);
+
+        throttle_api_update_internal_status();
+
+        /*
+        if (HAL_GetTick() - tick >= 200) {
+            tick = HAL_GetTick();
+            uart_write("\033[2J\033[H");
+            for (enum AdcReading i = 0; i < ADC_READING_COUNT; i++) {
+                char buf[64];
+                snprintf(buf, sizeof(buf), "%s = %.3f V\r\n", adc_get_reading_name(i), adc_read_voltage(i));
+                uart_write(buf);
+            }
+
+            float acc = accelerator_percent(adc_read_voltage(ADC_READING_APPS_1), adc_read_voltage(ADC_READING_APPS_2));
+            char buf[64];
+            snprintf(buf, sizeof(buf), "Accelerator pedal = %.1f%%\r\n", acc * 100.0f);
+            uart_write(buf);
+
+            //uart_write("\033[2J\033[H");
+            char buffer[500];
+            throttle_api_update_internal_status();
+            float throttle_travel = throttle_api_get_travel_percentage();
+            float brake_travel = brake_api_get_pedal_travel_percentage();
+            float brake_front = brake_api_get_front_pressure();
+            float brake_rear = brake_api_get_rear_pressure();
+            snprintf(buffer, sizeof(buffer), "THROTTLE:%.2f\tBRAKE:%.2f\tFRONT:%.2f\tREAR:%.2f\n\r", throttle_travel, brake_travel, brake_front, brake_rear);
+            uart_write(buffer);
+            enum ThrottleStatus status = throttle_api_get_status();
+            snprintf(buffer, sizeof(buffer), "STATUS:%s\n\r", status_throttle_to_string(status));
+            uart_write(buffer);
+            tick = HAL_GetTick();
+        }
+        */
+    }
 
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
-    while (1) {
-        /* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
-        /* USER CODE BEGIN 3 */
-
-        current_state = run_state(current_state, NULL);
-    }
+    /* USER CODE BEGIN 3 */
     /* USER CODE END 3 */
 }
 
@@ -127,13 +229,15 @@ void SystemClock_Config(void) {
     RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
     RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
 
-    __HAL_FLASH_SET_LATENCY(FLASH_LATENCY_0);
+    __HAL_FLASH_SET_LATENCY(FLASH_LATENCY_1);
 
     /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+    RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+    RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
+    RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
     if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
         Error_Handler();
     }
@@ -141,17 +245,26 @@ void SystemClock_Config(void) {
     /** Initializes the CPU, AHB and APB buses clocks
   */
     RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1;
-    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
     RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
     RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV1;
     RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV1;
 
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK) {
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK) {
         Error_Handler();
     }
 }
 
 /* USER CODE BEGIN 4 */
+
+/**
+  * @brief  Blocking transmit of a null-terminated string over USART1.
+  * @param  str string to send
+  * @retval None
+  */
+static void uart_write(const char *str) {
+    HAL_UART_Transmit(&huart1, (const uint8_t *)str, (uint16_t)strlen(str), HAL_MAX_DELAY);
+}
 
 /* USER CODE END 4 */
 
@@ -177,8 +290,9 @@ void Error_Handler(void) {
   */
 void assert_failed(uint8_t *file, uint32_t line) {
     /* USER CODE BEGIN 6 */
-    /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+    /* User can add his own implementation to report the file name and line
+     number, ex: printf("Wrong parameters value: file %s on line %d\r\n", file,
+     line) */
     /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

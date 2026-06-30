@@ -51,4 +51,6 @@ float brake_api_get_front_pressure();
  */
 float brake_api_get_rear_pressure();
 
+enum BrakeReturnCode brake_api_send_status(void);
+
 #endif //BRAKE_API_H

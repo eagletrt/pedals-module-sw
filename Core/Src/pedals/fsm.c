@@ -15,8 +15,18 @@ The finite state machine has:
 
 #include "fsm.h"
 #include "eagletrt-api.h"
+#include "can-communications-api.h"
+#include "brake-api.h"
+#include "throttle-api.h"
+#include "post-api.h"
+
+#include "usart.h"
+#include <string.h>
 
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!
+static void serial_write(const char *str) {
+    HAL_UART_Transmit(&huart1, (const uint8_t *)str, (uint16_t)strlen(str), HAL_MAX_DELAY);
+}
 
 // GLOBALS
 // State human-readable names
@@ -50,7 +60,14 @@ state_t do_init(state_data_t *data) {
     state_t next_state = STATE_IDLE;
     /* Your Code Here */
 
-    EAGLETRT_API_UNUSED(data);
+    struct PostInit *init_struct = (struct PostInit *)data;
+    //EAGLETRT_API_UNUSED(data);
+    if (post_api_init(init_struct) != POST_RC_OK) {
+        serial_write("Error: post_api_init failed in do_init\n\r");
+        next_state = STATE_ERROR;
+    } else {
+        serial_write("post_api_init succeeded in do_init\n\r");
+    }
 
     switch (next_state) {
         case STATE_IDLE:
@@ -63,13 +80,45 @@ state_t do_init(state_data_t *data) {
     return next_state;
 }
 
+EAGLETRT_STATIC uint32_t last_throttle = 0;
+EAGLETRT_STATIC uint32_t last_brake = 0;
+
 // Function to be executed in state idle
 // valid return states: NO_CHANGE, STATE_IDLE, STATE_FLASH, STATE_ERROR
 state_t do_idle(state_data_t *data) {
     state_t next_state = NO_CHANGE;
     /* Your Code Here */
 
-    EAGLETRT_API_UNUSED(data);
+    if (data == NULL) {
+        serial_write("Error: data is NULL in do_idle\n\r");
+        return STATE_ERROR;
+    }
+    struct FsmIdleData *idle_struct = (struct FsmIdleData *)data;
+    if (idle_struct->get_tick == NULL) {
+        serial_write("Error: get_tick is NULL in do_idle\n\r");
+        return STATE_ERROR;
+    }
+
+    if (idle_struct->get_tick() - last_throttle > 50) {
+        serial_write("Sending throttle status\n\r");
+        last_throttle = idle_struct->get_tick();
+        if (throttle_api_send_status() != THROTTLE_RC_OK) {
+            serial_write("Error: throttle_api_send_status failed in do_idle\n\r");
+            next_state = STATE_ERROR;
+        }
+    }
+
+    if (idle_struct->get_tick() - last_brake > 100) {
+        serial_write("Sending brake status\n\r");
+        last_brake = idle_struct->get_tick();
+        if (brake_api_send_status() != BRAKE_RC_OK) {
+            serial_write("Error: brake_api_send_status failed in do_idle\n\r");
+            next_state = STATE_ERROR;
+        }
+    }
+
+    can_communications_api_process_tx();
+    can_communications_api_process_rx();
 
     switch (next_state) {
         case NO_CHANGE:
@@ -91,6 +140,7 @@ state_t do_error(state_data_t *data) {
     /* Your Code Here */
 
     EAGLETRT_API_UNUSED(data);
+    serial_write("Error state reached. Please reset the system.\n\r");
 
     switch (next_state) {
         case NO_CHANGE:

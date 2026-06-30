@@ -1,6 +1,11 @@
 #ifndef BRAKE_H
 #define BRAKE_H
 
+enum BrakeReturnCode {
+    BRAKE_RC_OK,
+    BRAKE_RC_ERROR,
+};
+
 /*!
  * \brief Structure to collect all the newest read values from the sensors
  */
