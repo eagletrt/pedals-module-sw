@@ -2,6 +2,7 @@
 #define BRAKE_API_H
 
 #include "brake.h"
+#include <stdint.h>
 
 /*!
  * \brief Function to call when ADC finished its conversion of the pedal travel percentage
@@ -51,6 +52,6 @@ float brake_api_get_front_pressure();
  */
 float brake_api_get_rear_pressure();
 
-enum BrakeReturnCode brake_api_send_status(void);
+enum BrakeReturnCode brake_api_send_status(uint32_t tick);
 
 #endif //BRAKE_API_H

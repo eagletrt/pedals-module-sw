@@ -2,6 +2,7 @@
 #define THROTTLE_API_H
 
 #include "throttle.h"
+#include <stdint.h>
 
 /*!
  * \brief function to initialise the external callbacks related to the timer
@@ -55,8 +56,8 @@ float throttle_api_get_apps(enum ThrottleId apps_id);
  */
 void throttle_api_implausibility_timeout_trigger(void);
 
-enum ThrottleReturnCode throttle_api_send_status(void);
+enum ThrottleReturnCode throttle_api_send_status(uint32_t tick);
 
-enum ThrottleReturnCode throttle_api_send_apps(void);
+enum ThrottleReturnCode throttle_api_send_apps(uint32_t tick);
 
 #endif //THROTTLE_API_H

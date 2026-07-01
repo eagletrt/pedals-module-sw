@@ -6,6 +6,9 @@
 
 #define THROTTLE_ERROR_VALUE (-1.0F)
 
+#define THROTTLE_STATUS_CAN_PERIOD_MS 50
+#define THROTTLE_APPS_CAN_PERIOD_MS 500
+
 /*!
  * \brief Represents throttle internal status regarding implausibility, different from return code
  */
@@ -23,7 +26,7 @@ enum ThrottleStatus {
 enum ThrottleReturnCode {
     THROTTLE_RC_OK,               /*!< No new error to signal*/
     THROTTLE_RC_CALLBACK_FAILURE, /*!< Call to external functions failed*/
-    THROTTLE_RC_NULL_POINTER,      /*!< Pointer was null instead of pointing to function*/
+    THROTTLE_RC_NULL_POINTER,     /*!< Pointer was null instead of pointing to function*/
     THROTTLE_RC_ERROR
 };
 

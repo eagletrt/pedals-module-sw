@@ -5,8 +5,8 @@
 #include "fsm.h"
 
 // insert actual values for version
-enum GeneralMessagesReturnCode general_messages_send_pedals_version(void);
+enum GeneralMessagesReturnCode general_messages_send_pedals_version(uint32_t tick);
 
-enum GeneralMessagesReturnCode general_messages_send_pedals_status(state_t fsm_state);
+enum GeneralMessagesReturnCode general_messages_send_pedals_status(uint32_t tick, state_t fsm_state);
 
 #endif //GENERAL_MESSAGES_API_H

@@ -1,6 +1,8 @@
 #ifndef BRAKE_H
 #define BRAKE_H
 
+#define BRAKE_CAN_PERIOD_MS 100
+
 enum BrakeReturnCode {
     BRAKE_RC_OK,
     BRAKE_RC_ERROR,

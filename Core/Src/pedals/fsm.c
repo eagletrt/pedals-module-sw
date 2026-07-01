@@ -81,12 +81,6 @@ state_t do_init(state_data_t *data) {
     return next_state;
 }
 
-EAGLETRT_STATIC uint32_t last_throttle = 0;
-EAGLETRT_STATIC uint32_t last_brake = 0;
-EAGLETRT_STATIC uint32_t last_apps = 0;
-EAGLETRT_STATIC uint32_t last_status = 0;
-EAGLETRT_STATIC uint32_t last_version = 0;
-
 // Function to be executed in state idle
 // valid return states: NO_CHANGE, STATE_IDLE, STATE_FLASH, STATE_ERROR
 state_t do_idle(state_data_t *data) {
@@ -98,52 +92,38 @@ state_t do_idle(state_data_t *data) {
         return STATE_ERROR;
     }
     struct FsmIdleData *idle_struct = (struct FsmIdleData *)data;
+    uint32_t current_tick = idle_struct->get_tick();
     if (idle_struct->get_tick == NULL) {
         serial_write("Error: get_tick is NULL in do_idle\n\r");
         return STATE_ERROR;
     }
 
     /// insert actual waiting time to send apps message
-    if (idle_struct->get_tick() - last_throttle > 50) {
-        last_apps = idle_struct->get_tick();
-        if (throttle_api_send_apps() != THROTTLE_RC_OK) {
-            serial_write("Error: throttle_api_send_apps failed in do_idle\n\r");
-            next_state = STATE_ERROR;
-        }
+    if (throttle_api_send_apps(current_tick) != THROTTLE_RC_OK) {
+        serial_write("Error: throttle_api_send_apps failed in do_idle\n\r");
+        next_state = STATE_ERROR;
     }
 
     /// insert actual waiting time to send version
-    if (idle_struct->get_tick() - last_throttle > 50) {
-        last_version = idle_struct->get_tick();
-        if (general_messages_send_pedals_version() != GENERAL_MESSAGES_RC_OK) {
-            serial_write("Error: general_messages_send_pedals_version failed in do_idle\n\r");
-            next_state = STATE_ERROR;
-        }
+    if (general_messages_send_pedals_version(current_tick) != GENERAL_MESSAGES_RC_OK) {
+        serial_write("Error: general_messages_send_pedals_version failed in do_idle\n\r");
+        next_state = STATE_ERROR;
     }
 
     /// insert actual waiting time to send fsm status
-    if (idle_struct->get_tick() - last_throttle > 50) {
-        last_status = idle_struct->get_tick();
-        if (general_messages_send_pedals_status(next_state) != GENERAL_MESSAGES_RC_OK) {
-            serial_write("Error: general_messages_send_pedals_status failed in do_idle\n\r");
-            next_state = STATE_ERROR;
-        }
+    if (general_messages_send_pedals_status(current_tick, next_state) != GENERAL_MESSAGES_RC_OK) {
+        serial_write("Error: general_messages_send_pedals_status failed in do_idle\n\r");
+        next_state = STATE_ERROR;
     }
 
-    if (idle_struct->get_tick() - last_throttle > 50) {
-        last_throttle = idle_struct->get_tick();
-        if (throttle_api_send_status() != THROTTLE_RC_OK) {
-            serial_write("Error: throttle_api_send_status failed in do_idle\n\r");
-            next_state = STATE_ERROR;
-        }
+    if (throttle_api_send_status(current_tick) != THROTTLE_RC_OK) {
+        serial_write("Error: throttle_api_send_status failed in do_idle\n\r");
+        next_state = STATE_ERROR;
     }
 
-    if (idle_struct->get_tick() - last_brake > 100) {
-        last_brake = idle_struct->get_tick();
-        if (brake_api_send_status() != BRAKE_RC_OK) {
-            serial_write("Error: brake_api_send_status failed in do_idle\n\r");
-            next_state = STATE_ERROR;
-        }
+    if (brake_api_send_status(current_tick) != BRAKE_RC_OK) {
+        serial_write("Error: brake_api_send_status failed in do_idle\n\r");
+        next_state = STATE_ERROR;
     }
 
     can_communications_api_process_tx();

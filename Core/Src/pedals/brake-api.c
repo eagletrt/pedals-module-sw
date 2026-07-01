@@ -9,6 +9,8 @@ EAGLETRT_STATIC struct BrakeHandler brake_handler = {
     .rear_pressure = 0.0F
 };
 
+EAGLETRT_STATIC uint32_t brake_last_tick = 0;
+
 void brake_api_update_pedal_travel_percentage(float percentage) {
     if (percentage < 0.0F || percentage > 1.0F) {
         percentage = -1.0F;
@@ -36,7 +38,12 @@ float brake_api_get_rear_pressure() {
     return brake_handler.rear_pressure;
 }
 
-enum BrakeReturnCode brake_api_send_status(void) {
+enum BrakeReturnCode brake_api_send_status(uint32_t tick) {
+    if (tick - brake_last_tick < BRAKE_CAN_PERIOD_MS) {
+        return BRAKE_RC_OK;
+    } else {
+        brake_last_tick = tick;
+    }
     struct CanCommunicationFrame frame = { 0 };
     union CanPrimaryMessages data = { 0 };
     data.pedals_brake.travel_pct = brake_handler.pedal_travel;
