@@ -83,6 +83,9 @@ state_t do_init(state_data_t *data) {
 
 EAGLETRT_STATIC uint32_t last_throttle = 0;
 EAGLETRT_STATIC uint32_t last_brake = 0;
+EAGLETRT_STATIC uint32_t last_apps = 0;
+EAGLETRT_STATIC uint32_t last_status = 0;
+EAGLETRT_STATIC uint32_t last_version = 0;
 
 // Function to be executed in state idle
 // valid return states: NO_CHANGE, STATE_IDLE, STATE_FLASH, STATE_ERROR
@@ -102,7 +105,7 @@ state_t do_idle(state_data_t *data) {
 
     /// insert actual waiting time to send apps message
     if (idle_struct->get_tick() - last_throttle > 50) {
-        last_throttle = idle_struct->get_tick();
+        last_apps = idle_struct->get_tick();
         if (throttle_api_send_apps() != THROTTLE_RC_OK) {
             serial_write("Error: throttle_api_send_apps failed in do_idle\n\r");
             next_state = STATE_ERROR;
@@ -111,7 +114,7 @@ state_t do_idle(state_data_t *data) {
 
     /// insert actual waiting time to send version
     if (idle_struct->get_tick() - last_throttle > 50) {
-        last_throttle = idle_struct->get_tick();
+        last_version = idle_struct->get_tick();
         if (general_messages_send_pedals_version() != GENERAL_MESSAGES_RC_OK) {
             serial_write("Error: general_messages_send_pedals_version failed in do_idle\n\r");
             next_state = STATE_ERROR;
@@ -120,7 +123,7 @@ state_t do_idle(state_data_t *data) {
 
     /// insert actual waiting time to send fsm status
     if (idle_struct->get_tick() - last_throttle > 50) {
-        last_throttle = idle_struct->get_tick();
+        last_status = idle_struct->get_tick();
         if (general_messages_send_pedals_status(next_state) != GENERAL_MESSAGES_RC_OK) {
             serial_write("Error: general_messages_send_pedals_status failed in do_idle\n\r");
             next_state = STATE_ERROR;
