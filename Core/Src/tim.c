@@ -43,9 +43,9 @@ void MX_TIM1_Init(void) {
 
     /* USER CODE END TIM1_Init 1 */
     htim1.Instance = TIM1;
-    htim1.Init.Prescaler = 47999;
+    htim1.Init.Prescaler = 4799;
     htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-    htim1.Init.Period = 4999;
+    htim1.Init.Period = 999;
     htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     htim1.Init.RepetitionCounter = 0;
     htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -165,6 +165,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 }
 
 enum ThrottleReturnCode tim_start_timer_throttle(void) {
+    __HAL_TIM_SET_COUNTER(&htim1, 0);
+    __HAL_TIM_CLEAR_FLAG(&htim1, TIM_FLAG_UPDATE);
     if (HAL_TIM_Base_Start_IT(&htim1) != HAL_OK) {
         return THROTTLE_RC_ERROR;
     }

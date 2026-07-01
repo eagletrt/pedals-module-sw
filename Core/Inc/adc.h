@@ -69,4 +69,3 @@ float adc_read_voltage(enum AdcReading reading);
 #endif
 
 #endif /* __ADC_H__ */
-

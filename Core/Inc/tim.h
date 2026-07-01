@@ -56,4 +56,3 @@ enum ThrottleReturnCode tim_stop_timer_throttle(void);
 #endif
 
 #endif /* __TIM_H__ */
-

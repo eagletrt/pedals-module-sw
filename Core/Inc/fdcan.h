@@ -53,4 +53,3 @@ enum CanCommunicationReturnCode fdcan_send_primary(const struct CanCommunication
 #endif
 
 #endif /* __FDCAN_H__ */
-
