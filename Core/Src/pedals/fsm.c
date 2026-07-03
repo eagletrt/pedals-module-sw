@@ -62,7 +62,6 @@ state_t do_init(state_data_t *data) {
     /* Your Code Here */
 
     struct PostInit *init_struct = (struct PostInit *)data;
-    //EAGLETRT_API_UNUSED(data);
     if (post_api_init(init_struct) != POST_RC_OK) {
         serial_write("Error: post_api_init failed in do_init\n\r");
         next_state = STATE_ERROR;
@@ -121,10 +120,12 @@ state_t do_idle(state_data_t *data) {
         next_state = STATE_ERROR;
     }
 
+    /*
     if (brake_api_send_status(current_tick) != BRAKE_RC_OK) {
         serial_write("Error: brake_api_send_status failed in do_idle\n\r");
         next_state = STATE_ERROR;
     }
+    */
 
     can_communications_api_process_tx();
     can_communications_api_process_rx();

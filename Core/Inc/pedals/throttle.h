@@ -6,8 +6,8 @@
 
 #define THROTTLE_ERROR_VALUE (-1.0F)
 
-#define THROTTLE_STATUS_CAN_PERIOD_MS 50
-#define THROTTLE_APPS_CAN_PERIOD_MS 150
+#define THROTTLE_STATUS_CAN_PERIOD_MS (50)
+#define THROTTLE_APPS_CAN_PERIOD_MS (150)
 
 /*!
  * \brief Represents throttle internal status regarding implausibility, different from return code
