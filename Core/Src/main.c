@@ -32,6 +32,7 @@
 #include "can-communications-router-api.h"
 #include "fsm.h"
 #include "post.h"
+#include <string.h>
 
 /* USER CODE END Includes */
 
@@ -59,7 +60,9 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
+static void serial_write(const char *str) {
+    HAL_UART_Transmit(&huart1, (const uint8_t *)str, (uint16_t)strlen(str), HAL_MAX_DELAY);
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -126,12 +129,13 @@ int main(void) {
 
     struct FsmIdleData data = {
         .get_tick = HAL_GetTick,
+        .write_on_serial = serial_write,
     };
 
     while (1) {
         state = run_state(state, &data);
 
-        throttle_api_update_internal_status();
+        throttle_api_update_internal_status(); // dentro FSM
     }
 
     /* USER CODE END 2 */

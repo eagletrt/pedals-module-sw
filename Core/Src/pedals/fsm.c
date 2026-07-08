@@ -21,13 +21,7 @@ The finite state machine has:
 #include "post-api.h"
 #include "general-messages-api.h"
 
-#include "usart.h"
-#include <string.h>
-
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!
-static void serial_write(const char *str) {
-    HAL_UART_Transmit(&huart1, (const uint8_t *)str, (uint16_t)strlen(str), HAL_MAX_DELAY);
-}
 
 // GLOBALS
 // State human-readable names
@@ -63,10 +57,10 @@ state_t do_init(state_data_t *data) {
 
     struct PostInit *init_struct = (struct PostInit *)data;
     if (post_api_init(init_struct) != POST_RC_OK) {
-        serial_write("Error: post_api_init failed in do_init\n\r");
+        //serial_write("Error: post_api_init failed in do_init\n\r");
         next_state = STATE_ERROR;
     } else {
-        serial_write("post_api_init succeeded in do_init\n\r");
+        //serial_write("post_api_init succeeded in do_init\n\r");
     }
 
     switch (next_state) {
@@ -87,45 +81,46 @@ state_t do_idle(state_data_t *data) {
     /* Your Code Here */
 
     if (data == NULL) {
-        serial_write("Error: data is NULL in do_idle\n\r");
+        //serial_write("Error: data is NULL in do_idle\n\r");
         return STATE_ERROR;
     }
     struct FsmIdleData *idle_struct = (struct FsmIdleData *)data;
-    uint32_t current_tick = idle_struct->get_tick();
-    if (idle_struct->get_tick == NULL) {
-        serial_write("Error: get_tick is NULL in do_idle\n\r");
+    if (idle_struct->get_tick == NULL || idle_struct->write_on_serial == NULL) {
+        //idle_struct->write_on_serial("Error: functions from main are NULL in do_idle\n\r");
         return STATE_ERROR;
     }
+    uint32_t current_tick = idle_struct->get_tick();
 
     /// insert actual waiting time to send apps message
     if (throttle_api_send_apps(current_tick) != THROTTLE_RC_OK) {
-        serial_write("Error: throttle_api_send_apps failed in do_idle\n\r");
+        idle_struct->write_on_serial("Error: throttle_api_send_apps failed in do_idle\n\r");
         next_state = STATE_ERROR;
     }
 
     /// insert actual waiting time to send version
     if (general_messages_send_pedals_version(current_tick) != GENERAL_MESSAGES_RC_OK) {
-        serial_write("Error: general_messages_send_pedals_version failed in do_idle\n\r");
+        idle_struct->write_on_serial("Error: general_messages_send_pedals_version failed in do_idle\n\r");
         next_state = STATE_ERROR;
     }
 
     /// insert actual waiting time to send fsm status
     if (general_messages_send_pedals_status(current_tick, next_state) != GENERAL_MESSAGES_RC_OK) {
-        serial_write("Error: general_messages_send_pedals_status failed in do_idle\n\r");
+        idle_struct->write_on_serial("Error: general_messages_send_pedals_status failed in do_idle\n\r");
         next_state = STATE_ERROR;
     }
 
     if (throttle_api_send_status(current_tick) != THROTTLE_RC_OK) {
-        serial_write("Error: throttle_api_send_status failed in do_idle\n\r");
+        idle_struct->write_on_serial("Error: throttle_api_send_status failed in do_idle\n\r");
         next_state = STATE_ERROR;
     }
 
     /*
     if (brake_api_send_status(current_tick) != BRAKE_RC_OK) {
-        serial_write("Error: brake_api_send_status failed in do_idle\n\r");
+        idle_struct->write_on_serial("Error: brake_api_send_status failed in do_idle\n\r");
         next_state = STATE_ERROR;
     }
     */
+    //togli commento
 
     can_communications_api_process_tx();
     can_communications_api_process_rx();
@@ -150,7 +145,7 @@ state_t do_error(state_data_t *data) {
     /* Your Code Here */
 
     EAGLETRT_API_UNUSED(data);
-    serial_write("Error state reached. Please reset the system.\n\r");
+    //serial_write("Error state reached. Please reset the system.\n\r");
 
     switch (next_state) {
         case NO_CHANGE:

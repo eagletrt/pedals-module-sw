@@ -234,14 +234,14 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *adcHandle) {
 
 /* USER CODE BEGIN 1 */
 
-#define SENSE_5V_V_DIVIDER(read) ((read) * 3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)))
-#define BSPS_FRONT_V_DIVIDER(read) ((read) * 3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)) * 1.005f) // last value is a calibration value referring to resistance
-#define BSPS_REAR_V_DIVIDER(read) ((read) * 3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)) * 1.006f)  // same as above
-#define BOTS_V_DIVIDER(read) ((read) * 3.3f / 4095.0f / (47.0f / (330.0f + 47.0f)))
-#define BPPS_V_DIVIDER(read) ((read) * 3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)))
-#define APPS_3_V_DIVIDER(read) ((read) * 3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)))
-#define APPS_2_V_DIVIDER(read) ((read) * 3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)))
-#define APPS_1_V_DIVIDER(read) ((read) * 3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)))
+#define SENSE_5V_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)))
+#define BSPS_FRONT_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)) * 1.005f) // last value is a calibration value referring to resistance
+#define BSPS_REAR_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)) * 1.006f)  // same as above
+#define BOTS_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (47.0f / (330.0f + 47.0f)))
+#define BPPS_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)))
+#define APPS_3_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)))
+#define APPS_2_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)))
+#define APPS_1_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)))
 
 void adc_init(void) {
     HAL_ADCEx_Calibration_Start(&hadc1);
@@ -272,9 +272,10 @@ char *adc_get_reading_name(enum AdcReading reading) {
 }
 
 uint16_t adc_read_raw(enum AdcReading reading) {
-    if (reading < 0 || reading >= ADC_READING_COUNT) {
+    /*if (reading < 0 || reading >= ADC_READING_COUNT) {
         return 0;
-    }
+    }*/
+    //the compiler gives warning for this if check
     return adc_values[reading];
 }
 
@@ -308,6 +309,9 @@ EAGLETRT_STATIC float throttle_remove_dead_zone(float val) {
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+    if (hadc->Instance != ADC1) {
+        return;
+    }
     memcpy(adc_values, adc_buffer, sizeof(adc_values));
     float apps1 = APPS_1_V_DIVIDER(adc_values[ADC_READING_APPS_1]);
     float apps2 = APPS_2_V_DIVIDER(adc_values[ADC_READING_APPS_2]);

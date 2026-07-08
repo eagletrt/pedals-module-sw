@@ -22,8 +22,6 @@
 
 /* USER CODE BEGIN 0 */
 
-#include "throttle-api.h"
-
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim1;
