@@ -1,3 +1,4 @@
+#include "eagletrt_test_compat.h"
 #include "unity.h"
 #include "brake-api.h"
 

@@ -1,3 +1,4 @@
+#include "eagletrt_test_compat.h"
 #include "unity.h"
 #include "bots-api.h"
 
@@ -12,24 +13,23 @@ void setUp(void) {
 }*/
 
 void test_bots_not_activated() {
-	bool res = bots_is_triggered();
+    bool res = bots_is_triggered();
 
-	TEST_ASSERT_FALSE(res);
-	TEST_ASSERT_FALSE(bots_is_trigger_activated);
+    TEST_ASSERT_FALSE(res);
+    TEST_ASSERT_FALSE(bots_is_trigger_activated);
 }
 
 void test_bots_activated() {
-	bots_trigger();
-	bool res = bots_is_triggered();
+    bots_trigger();
+    bool res = bots_is_triggered();
 
-	TEST_ASSERT_TRUE(res);
-	TEST_ASSERT_FALSE(bots_is_trigger_activated);
+    TEST_ASSERT_TRUE(res);
+    TEST_ASSERT_FALSE(bots_is_trigger_activated);
 }
 
-
-int main( int argc, char **argv) {
+int main(int argc, char **argv) {
     UNITY_BEGIN();
-	RUN_TEST(test_bots_activated);
-	RUN_TEST(test_bots_not_activated);
+    RUN_TEST(test_bots_activated);
+    RUN_TEST(test_bots_not_activated);
     UNITY_END();
 }
