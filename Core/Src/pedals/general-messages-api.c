@@ -8,9 +8,8 @@ EAGLETRT_STATIC uint32_t gen_mess_last_status_tick = 0;
 enum GeneralMessagesReturnCode general_messages_api_send_pedals_version(uint32_t tick) {
     if (tick - gen_mess_last_version_tick < GENERAL_MESSAGES_VERSION_CAN_PERIOD_MS) {
         return GENERAL_MESSAGES_RC_OK;
-    } else {
-        gen_mess_last_version_tick = tick;
     }
+    gen_mess_last_version_tick = tick;
     struct CanCommunicationFrame frame = { 0 };
     union CanPrimaryMessages status_msg = { 0 };
     status_msg.pedals_version.buildtime_s = 0;
@@ -29,9 +28,8 @@ enum GeneralMessagesReturnCode general_messages_api_send_pedals_version(uint32_t
 enum GeneralMessagesReturnCode general_messages_api_send_pedals_status(uint32_t tick, state_t fsm_state) {
     if (tick - gen_mess_last_status_tick < GENERAL_MESSAGES_STATUS_CAN_PERIOD_MS) {
         return GENERAL_MESSAGES_RC_OK;
-    } else {
-        gen_mess_last_status_tick = tick;
     }
+    gen_mess_last_status_tick = tick;
     struct CanCommunicationFrame frame = { 0 };
     union CanPrimaryMessages status_msg = { 0 };
     status_msg.pedals_status.name = fsm_state;

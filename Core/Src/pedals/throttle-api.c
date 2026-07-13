@@ -146,9 +146,8 @@ void throttle_api_implausibility_timeout_trigger() {
 enum ThrottleReturnCode throttle_api_send_status(uint32_t tick) {
     if (tick - throttle_last_status_tick < THROTTLE_STATUS_CAN_PERIOD_MS) {
         return THROTTLE_RC_OK;
-    } else {
-        throttle_last_status_tick = tick;
     }
+    throttle_last_status_tick = tick;
     struct CanCommunicationFrame frame = { 0 };
     union CanPrimaryMessages status_msg = { 0 };
     status_msg.pedals_throttle.status = throttle_handler.status;
@@ -167,9 +166,8 @@ enum ThrottleReturnCode throttle_api_send_status(uint32_t tick) {
 enum ThrottleReturnCode throttle_api_send_apps(uint32_t tick) {
     if (tick - throttle_last_apps_tick < THROTTLE_APPS_CAN_PERIOD_MS) {
         return THROTTLE_RC_OK;
-    } else {
-        throttle_last_apps_tick = tick;
     }
+    throttle_last_apps_tick = tick;
     struct CanCommunicationFrame frame = { 0 };
     union CanPrimaryMessages status_msg = { 0 };
     status_msg.pedals_apps.travelfirst_pct = throttle_handler.apps_travel_percentages[0];

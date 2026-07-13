@@ -41,9 +41,8 @@ float brake_api_get_rear_pressure() {
 enum BrakeReturnCode brake_api_send_status(uint32_t tick) {
     if (tick - brake_last_tick < BRAKE_CAN_PERIOD_MS) {
         return BRAKE_RC_OK;
-    } else {
-        brake_last_tick = tick;
     }
+    brake_last_tick = tick;
     struct CanCommunicationFrame frame = { 0 };
     union CanPrimaryMessages data = { 0 };
     data.pedals_brake.travel_pct = brake_handler.pedal_travel;
