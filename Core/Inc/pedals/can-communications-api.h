@@ -38,7 +38,7 @@
  *     range or already initialized.
  * \retval CAN_COMMUNICATION_RC_ERROR if PAL or the arena fail to set up.
  */
-enum CanCommunicationReturnCode can_communications_api_init(const struct CanCommunicationsNetworkConfig config);
+enum CanCommunicationReturnCode can_communications_api_init(struct CanCommunicationsNetworkConfig config);
 
 /*!
  * \brief Push a frame into the TX queue.
@@ -56,7 +56,7 @@ enum CanCommunicationReturnCode can_communications_api_init(const struct CanComm
  * \retval CAN_COMMUNICATION_RC_QUEUE_FULL if the TX queue is saturated.
  * \retval CAN_COMMUNICATION_RC_ERROR on a PAL-internal failure.
  */
-enum CanCommunicationReturnCode can_communications_api_add_to_tx_buffer( const struct CanCommunicationFrame *frame);
+enum CanCommunicationReturnCode can_communications_api_add_to_tx_buffer(const struct CanCommunicationFrame *frame);
 
 /*!
  * \brief Push a frame into the RX queue.
@@ -90,7 +90,7 @@ enum CanCommunicationReturnCode can_communications_api_add_to_rx_buffer(const st
  *     callback reported failure.
  * \retval CAN_COMMUNICATION_RC_ERROR on a PAL-internal failure.
  */
-enum CanCommunicationReturnCode can_communications_api_process_tx();
+enum CanCommunicationReturnCode can_communications_api_process_tx(void);
 
 /*!
  * \brief Drain the entire RX queue, dispatching each frame via the user
@@ -107,6 +107,6 @@ enum CanCommunicationReturnCode can_communications_api_process_tx();
  *     on_receive callback reported failure.
  * \retval CAN_COMMUNICATION_RC_ERROR on a PAL-internal failure.
  */
-enum CanCommunicationReturnCode can_communications_api_process_rx();
+enum CanCommunicationReturnCode can_communications_api_process_rx(void);
 
 #endif // CAN_COMMUNICATIONS_API_H
