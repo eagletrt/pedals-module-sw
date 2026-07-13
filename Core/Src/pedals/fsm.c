@@ -98,14 +98,14 @@ state_t do_idle(state_data_t *data) {
     }
 
     /// insert actual waiting time to send version
-    if (general_messages_send_pedals_version(current_tick) != GENERAL_MESSAGES_RC_OK) {
-        idle_struct->write_on_serial("Error: general_messages_send_pedals_version failed in do_idle\n\r");
+    if (general_messages_api_send_pedals_version(current_tick) != GENERAL_MESSAGES_RC_OK) {
+        idle_struct->write_on_serial("Error: general_messages_api_send_pedals_version failed in do_idle\n\r");
         next_state = STATE_ERROR;
     }
 
     /// insert actual waiting time to send fsm status
-    if (general_messages_send_pedals_status(current_tick, next_state) != GENERAL_MESSAGES_RC_OK) {
-        idle_struct->write_on_serial("Error: general_messages_send_pedals_status failed in do_idle\n\r");
+    if (general_messages_api_send_pedals_status(current_tick, next_state) != GENERAL_MESSAGES_RC_OK) {
+        idle_struct->write_on_serial("Error: general_messages_api_send_pedals_status failed in do_idle\n\r");
         next_state = STATE_ERROR;
     }
 
