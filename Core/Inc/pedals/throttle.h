@@ -27,7 +27,7 @@ enum ThrottleReturnCode {
     THROTTLE_RC_OK,               /*!< No new error to signal*/
     THROTTLE_RC_CALLBACK_FAILURE, /*!< Call to external functions failed*/
     THROTTLE_RC_NULL_POINTER,     /*!< Pointer was null instead of pointing to function*/
-    THROTTLE_RC_ERROR
+    THROTTLE_RC_ERROR             /*!< Generic error */
 };
 
 /*!

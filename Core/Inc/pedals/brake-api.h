@@ -52,6 +52,12 @@ float brake_api_get_front_pressure();
  */
 float brake_api_get_rear_pressure();
 
+/*!
+ * \brief Send brake status (travel percentage, front and rear brake pressure) to CAN at a certain rate
+ * 
+ * \param tick current tick, used to check if it waited enough time before sending
+ * \return enum BrakeReturnCode if it was able to send the message or not
+ */
 enum BrakeReturnCode brake_api_send_status(uint32_t tick);
 
 #endif //BRAKE_API_H

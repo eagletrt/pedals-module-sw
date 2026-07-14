@@ -56,8 +56,20 @@ float throttle_api_get_apps(enum ThrottleId apps_id);
  */
 void throttle_api_implausibility_timeout_trigger(void);
 
+/*!
+ * \brief Sends throttle status (combined percentage and throttle FSM state) to CAN at a certain rate
+ * 
+ * \param tick current tick, used to check if it waited enough time before sending
+ * \return enum ThrottleReturnCode if it was able to send the message or not
+ */
 enum ThrottleReturnCode throttle_api_send_status(uint32_t tick);
 
+/*!
+ * \brief Sends raw APPS percentages to CAN at a certain rate
+ * 
+ * \param tick current tick, used to check if it waited enough time before sending
+ * \return enum ThrottleReturnCode if it was able to send the message or not
+ */
 enum ThrottleReturnCode throttle_api_send_apps(uint32_t tick);
 
 #endif //THROTTLE_API_H
