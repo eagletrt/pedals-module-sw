@@ -57,10 +57,7 @@ state_t do_init(state_data_t *data) {
 
     struct PostInit *init_struct = (struct PostInit *)data;
     if (post_api_init(init_struct) != POST_RC_OK) {
-        //serial_write("Error: post_api_init failed in do_init\n\r");
         next_state = STATE_ERROR;
-    } else {
-        //serial_write("post_api_init succeeded in do_init\n\r");
     }
 
     switch (next_state) {
@@ -81,46 +78,33 @@ state_t do_idle(state_data_t *data) {
     /* Your Code Here */
 
     if (data == NULL) {
-        //serial_write("Error: data is NULL in do_idle\n\r");
         return STATE_ERROR;
     }
     struct FsmIdleData *idle_struct = (struct FsmIdleData *)data;
-    if (idle_struct->get_tick == NULL || idle_struct->write_on_serial == NULL) {
-        //idle_struct->write_on_serial("Error: functions from main are NULL in do_idle\n\r");
+    if (idle_struct->get_tick == NULL) {
         return STATE_ERROR;
     }
     uint32_t current_tick = idle_struct->get_tick();
 
-    /// insert actual waiting time to send apps message
     if (throttle_api_send_apps(current_tick) != THROTTLE_RC_OK) {
-        idle_struct->write_on_serial("Error: throttle_api_send_apps failed in do_idle\n\r");
         next_state = STATE_ERROR;
     }
 
-    /// insert actual waiting time to send version
     if (general_messages_api_send_pedals_version(current_tick) != GENERAL_MESSAGES_RC_OK) {
-        idle_struct->write_on_serial("Error: general_messages_api_send_pedals_version failed in do_idle\n\r");
         next_state = STATE_ERROR;
     }
 
-    /// insert actual waiting time to send fsm status
     if (general_messages_api_send_pedals_status(current_tick, next_state) != GENERAL_MESSAGES_RC_OK) {
-        idle_struct->write_on_serial("Error: general_messages_api_send_pedals_status failed in do_idle\n\r");
         next_state = STATE_ERROR;
     }
 
     if (throttle_api_send_status(current_tick) != THROTTLE_RC_OK) {
-        idle_struct->write_on_serial("Error: throttle_api_send_status failed in do_idle\n\r");
         next_state = STATE_ERROR;
     }
 
-    /*
     if (brake_api_send_status(current_tick) != BRAKE_RC_OK) {
-        idle_struct->write_on_serial("Error: brake_api_send_status failed in do_idle\n\r");
         next_state = STATE_ERROR;
     }
-    */
-    //togli commento
 
     can_communications_api_process_tx();
     can_communications_api_process_rx();
