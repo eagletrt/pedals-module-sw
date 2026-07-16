@@ -63,6 +63,17 @@ void SystemClock_Config(void);
 /*static void serial_write(const char *str) {
     HAL_UART_Transmit(&huart1, (const uint8_t *)str, (uint16_t)strlen(str), HAL_MAX_DELAY);
 }*/
+
+// bootloader code
+static void VectorBase_Config(void) {
+    /* The constant array with vectors of the vector table is declared externally in the
+   * c-startup code.
+   */
+    extern const unsigned long g_pfnVectors[];
+
+    /* Remap the vector table to where the vector table is located for this program. */
+    SCB->VTOR = (unsigned long)&g_pfnVectors[0];
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -77,7 +88,7 @@ void SystemClock_Config(void);
 int main(void) {
 
     /* USER CODE BEGIN 1 */
-
+    VectorBase_Config(); // bootloader code
     /* USER CODE END 1 */
 
     /* MCU Configuration--------------------------------------------------------*/
