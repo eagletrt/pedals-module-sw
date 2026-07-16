@@ -8,11 +8,11 @@ EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
     .travel_percentage = 0.0F,
     .status = THROTTLE_STATUS_OK,
     .start_timer = NULL,
-    .stop_timer = NULL
+    .stop_timer = NULL,
+    .last_status_tick = 0,
+    .last_apps_tick = 0,
+    .last_update_tick = 0,
 };
-EAGLETRT_STATIC uint32_t throttle_last_status_tick = 0;
-EAGLETRT_STATIC uint32_t throttle_last_apps_tick = 0;
-EAGLETRT_STATIC uint32_t throttle_last_update_tick = 0;
 
 // internal functions ---------------------------------------
 
@@ -108,10 +108,10 @@ void throttle_api_update_internal_status(uint32_t tick) {
     constexpr float throttle_max_percentage = 1.0F;
     constexpr float throttle_min_percentage = 0.0F;
 
-    if (tick < throttle_last_update_tick + THROTTLE_UPDATE_PEDIOD_MS) {
+    if (tick - throttle_handler.last_update_tick < THROTTLE_UPDATE_PEDIOD_MS) {
         return;
     }
-    throttle_last_update_tick = tick;
+    throttle_handler.last_update_tick = tick;
 
     // if status is THROTTLE_STATUS_IMPLAUSIBILITY_ERROR you can't recover from the error, leave the throttle state as it is
     if (throttle_handler.status != THROTTLE_STATUS_OK && throttle_handler.status != THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE) {
@@ -150,10 +150,10 @@ void throttle_api_implausibility_timeout_trigger() {
 }
 
 enum ThrottleReturnCode throttle_api_send_status(uint32_t tick) {
-    if (tick - throttle_last_status_tick < THROTTLE_STATUS_CAN_PERIOD_MS) {
+    if (tick - throttle_handler.last_status_tick < THROTTLE_STATUS_CAN_PERIOD_MS) {
         return THROTTLE_RC_OK;
     }
-    throttle_last_status_tick = tick;
+    throttle_handler.last_status_tick = tick;
     struct CanCommunicationFrame frame = { 0 };
     union CanPrimaryMessages status_msg = { 0 };
     status_msg.pedals_throttle.status = throttle_handler.status;
@@ -170,10 +170,10 @@ enum ThrottleReturnCode throttle_api_send_status(uint32_t tick) {
 }
 
 enum ThrottleReturnCode throttle_api_send_apps(uint32_t tick) {
-    if (tick - throttle_last_apps_tick < THROTTLE_APPS_CAN_PERIOD_MS) {
+    if (tick - throttle_handler.last_apps_tick < THROTTLE_APPS_CAN_PERIOD_MS) {
         return THROTTLE_RC_OK;
     }
-    throttle_last_apps_tick = tick;
+    throttle_handler.last_apps_tick = tick;
     struct CanCommunicationFrame frame = { 0 };
     union CanPrimaryMessages status_msg = { 0 };
     status_msg.pedals_apps.travelfirst_pct = throttle_handler.apps_travel_percentages[0];

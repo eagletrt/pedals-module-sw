@@ -1,6 +1,8 @@
 #ifndef THROTTLE_H
 #define THROTTLE_H
 
+#include <stdint.h>
+
 #define THROTTLE_MIN_NUMBER_VALID_APPS (2)
 #define THROTTLE_MAX_PERCENTAGE_DEVIATION (0.1F)
 
@@ -61,6 +63,9 @@ struct ThrottleHandler {
     throttle_timer_callback start_timer;              /*!< Pointer to external function to start the timer*/
     throttle_timer_callback stop_timer;               /*!< Pointer to external function to stop and reset the timer*/
     bool is_implausibility_timeout;                   /*!< Bool to set to true when implausibility timer runs out*/
+    uint32_t last_status_tick;                        /*!< Last tick in which a message for throttle status was sent*/
+    uint32_t last_apps_tick;                          /*!< Last tick in which a message for throttle apps was sent*/
+    uint32_t last_update_tick;                        /*!< Last tick in which the throttle updated using apps values*/
 };
 
 #endif //THROTTLE_H

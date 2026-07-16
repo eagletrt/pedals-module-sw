@@ -2,7 +2,6 @@
 #define BRAKE_API_H
 
 #include "brake.h"
-#include <stdint.h>
 
 /*!
  * \brief Function to call when ADC finished its conversion of the pedal travel percentage

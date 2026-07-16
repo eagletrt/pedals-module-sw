@@ -2,14 +2,16 @@
 #include "can-primary-api.h"
 #include "can-communications-api.h"
 
-EAGLETRT_STATIC uint32_t gen_mess_last_version_tick = 0;
-EAGLETRT_STATIC uint32_t gen_mess_last_status_tick = 0;
+EAGLETRT_STATIC struct GeneralMessagesHandler general_messages_handler = {
+    .last_version_tick = 0,
+    .last_status_tick = 0
+};
 
 enum GeneralMessagesReturnCode general_messages_api_send_pedals_version(uint32_t tick) {
-    if (tick - gen_mess_last_version_tick < GENERAL_MESSAGES_VERSION_CAN_PERIOD_MS) {
+    if (tick - general_messages_handler.last_version_tick < GENERAL_MESSAGES_VERSION_CAN_PERIOD_MS) {
         return GENERAL_MESSAGES_RC_OK;
     }
-    gen_mess_last_version_tick = tick;
+    general_messages_handler.last_version_tick = tick;
     struct CanCommunicationFrame frame = { 0 };
     union CanPrimaryMessages status_msg = { 0 };
     status_msg.pedals_version.buildtime_s = 0;
@@ -26,10 +28,10 @@ enum GeneralMessagesReturnCode general_messages_api_send_pedals_version(uint32_t
 }
 
 enum GeneralMessagesReturnCode general_messages_api_send_pedals_status(uint32_t tick, state_t fsm_state) {
-    if (tick - gen_mess_last_status_tick < GENERAL_MESSAGES_STATUS_CAN_PERIOD_MS) {
+    if (tick - general_messages_handler.last_status_tick < GENERAL_MESSAGES_STATUS_CAN_PERIOD_MS) {
         return GENERAL_MESSAGES_RC_OK;
     }
-    gen_mess_last_status_tick = tick;
+    general_messages_handler.last_status_tick = tick;
     struct CanCommunicationFrame frame = { 0 };
     union CanPrimaryMessages status_msg = { 0 };
     status_msg.pedals_status.name = fsm_state;

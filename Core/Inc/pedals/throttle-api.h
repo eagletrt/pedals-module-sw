@@ -2,7 +2,6 @@
 #define THROTTLE_API_H
 
 #include "throttle.h"
-#include <stdint.h>
 
 /*!
  * \brief function to initialise the external callbacks related to the timer
