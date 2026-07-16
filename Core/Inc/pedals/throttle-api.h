@@ -25,8 +25,9 @@ void throttle_api_update_pedal_values(float apps1, float apps2, float apps3);
 /*!
  * \brief Updates the combined throttle pedal travel percentage and its status as a consequence 
  * 
+ * \param tick current tick, used to check if it waited enough time before next update
  */
-void throttle_api_update_internal_status(void);
+void throttle_api_update_internal_status(uint32_t tick);
 
 /*!
  * \brief Function to get the newest value of the throttle pedal travel

@@ -86,6 +86,8 @@ state_t do_idle(state_data_t *data) {
     }
     uint32_t current_tick = idle_struct->get_tick();
 
+    throttle_api_update_internal_status(current_tick);
+
     if (throttle_api_send_apps(current_tick) != THROTTLE_RC_OK) {
         next_state = STATE_ERROR;
     }
@@ -129,7 +131,6 @@ state_t do_error(state_data_t *data) {
     /* Your Code Here */
 
     EAGLETRT_API_UNUSED(data);
-    //serial_write("Error state reached. Please reset the system.\n\r");
 
     switch (next_state) {
         case NO_CHANGE:

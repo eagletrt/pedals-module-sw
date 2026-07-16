@@ -133,8 +133,6 @@ int main(void) {
 
     while (1) {
         state = run_state(state, &data);
-
-        throttle_api_update_internal_status(); // dentro FSM
     }
 
     /* USER CODE END 2 */

@@ -12,6 +12,7 @@ EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
 };
 EAGLETRT_STATIC uint32_t throttle_last_status_tick = 0;
 EAGLETRT_STATIC uint32_t throttle_last_apps_tick = 0;
+EAGLETRT_STATIC uint32_t throttle_last_update_tick = 0;
 
 // internal functions ---------------------------------------
 
@@ -103,9 +104,14 @@ void throttle_api_update_pedal_values(float apps1, float apps2, float apps3) {
     throttle_handler.apps_travel_percentages[2] = apps3;
 }
 
-void throttle_api_update_internal_status() {
+void throttle_api_update_internal_status(uint32_t tick) {
     constexpr float throttle_max_percentage = 1.0F;
     constexpr float throttle_min_percentage = 0.0F;
+
+    if (tick < throttle_last_update_tick + THROTTLE_UPDATE_PEDIOD_MS) {
+        return;
+    }
+    throttle_last_update_tick = tick;
 
     // if status is THROTTLE_STATUS_IMPLAUSIBILITY_ERROR you can't recover from the error, leave the throttle state as it is
     if (throttle_handler.status != THROTTLE_STATUS_OK && throttle_handler.status != THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE) {
