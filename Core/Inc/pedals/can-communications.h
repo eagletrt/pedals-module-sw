@@ -62,19 +62,6 @@ enum CanCommunicationReturnCode {
 };
 
 /*!
- * \brief Available CAN networks on the steering wheel.
- *
- * \details The enum doubles as an index into the per-network handler
- *     arrays, so do not reorder existing entries — only append before
- *     CAN_COMMUNICATION_NETWORK_COUNT.
- */
-enum CanCommunicationNetwork {
-    CAN_COMMUNICATION_NETWORK_PRIMARY,   /*!< Primary CAN bus (FDCAN1) */
-    CAN_COMMUNICATION_NETWORK_SECONDARY, /*!< Secondary CAN bus (FDCAN2) */
-    CAN_COMMUNICATION_NETWORK_COUNT,
-};
-
-/*!
  * \brief A single CAN frame in or out of the module.
  *
  * \details The data array carries the raw bus payload; \c length tells the
