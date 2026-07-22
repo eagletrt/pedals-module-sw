@@ -1,7 +1,7 @@
 #include "bots-api.h"
 #include "eagletrt-api.h"
 
-EAGLETRT_STATIC bool bots_is_trigger_activated = false;
+EAGLETRT_STATIC bool bots_is_trigger_activated;
 
 void bots_trigger(void) {
     bots_is_trigger_activated = true;

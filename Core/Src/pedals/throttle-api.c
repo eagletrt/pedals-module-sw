@@ -2,17 +2,7 @@
 #include "can-primary-api.h"
 #include "can-communications-api.h"
 
-EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
-    .is_implausibility_timeout = false,
-    .apps_travel_percentages = { 0.0F, 0.0F, 0.0F },
-    .travel_percentage = 0.0F,
-    .status = THROTTLE_STATUS_OK,
-    .start_timer = NULL,
-    .stop_timer = NULL,
-    .last_status_tick = 0,
-    .last_apps_tick = 0,
-    .last_update_tick = 0,
-};
+EAGLETRT_STATIC struct ThrottleHandler throttle_handler;
 
 // internal functions ---------------------------------------
 
@@ -92,6 +82,8 @@ enum ThrottleReturnCode throttle_api_init(throttle_timer_callback start_timer, t
     if (start_timer == NULL || stop_timer == NULL) {
         return THROTTLE_RC_NULL_POINTER;
     }
+
+    memset(&throttle_handler, 0, sizeof(throttle_handler));
 
     throttle_handler.start_timer = start_timer;
     throttle_handler.stop_timer = stop_timer;

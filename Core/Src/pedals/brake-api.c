@@ -3,12 +3,7 @@
 #include "can-primary-api.h"
 #include "eagletrt.h"
 
-EAGLETRT_STATIC struct BrakeHandler brake_handler = {
-    .pedal_travel = 0.0F,
-    .front_pressure = 0.0F,
-    .rear_pressure = 0.0F,
-    .last_tick = 0
-};
+EAGLETRT_STATIC struct BrakeHandler brake_handler;
 
 void brake_api_update_pedal_travel_percentage(float percentage) {
     if (percentage < 0.0F || percentage > 1.0F) {
