@@ -43,10 +43,11 @@ enum BrakeReturnCode brake_api_send_status(uint32_t tick) {
     }
     brake_handler.last_tick = tick;
     struct CanCommunicationFrame frame = { 0 };
-    union CanPrimaryMessages data = { 0 };
-    data.pedals_brake.travel_pct = brake_handler.pedal_travel;
-    data.pedals_brake.pressurefront_bar = brake_handler.front_pressure;
-    data.pedals_brake.pressurerear_bar = brake_handler.rear_pressure;
+    union CanPrimaryMessages data = {
+        .pedals_brake.travel_pct = brake_handler.pedal_travel,
+        .pedals_brake.pressurefront_bar = brake_handler.front_pressure,
+        .pedals_brake.pressurerear_bar = brake_handler.rear_pressure
+    };
     if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALS_BRAKE, &data, frame.data) == -1) {
         return BRAKE_RC_ERROR;
     }

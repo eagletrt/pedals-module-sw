@@ -155,9 +155,10 @@ enum ThrottleReturnCode throttle_api_send_status(uint32_t tick) {
     }
     throttle_handler.last_status_tick = tick;
     struct CanCommunicationFrame frame = { 0 };
-    union CanPrimaryMessages status_msg = { 0 };
-    status_msg.pedals_throttle.status = throttle_handler.status;
-    status_msg.pedals_throttle.travel_pct = throttle_handler.travel_percentage;
+    union CanPrimaryMessages status_msg = {
+        .pedals_throttle.status = throttle_handler.status,
+        .pedals_throttle.travel_pct = throttle_handler.travel_percentage
+    };
     if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALS_THROTTLE, &status_msg, frame.data) == -1) {
         return THROTTLE_RC_ERROR;
     }
@@ -175,10 +176,11 @@ enum ThrottleReturnCode throttle_api_send_apps(uint32_t tick) {
     }
     throttle_handler.last_apps_tick = tick;
     struct CanCommunicationFrame frame = { 0 };
-    union CanPrimaryMessages status_msg = { 0 };
-    status_msg.pedals_apps.travelfirst_pct = throttle_handler.apps_travel_percentages[0];
-    status_msg.pedals_apps.travelsecond_pct = throttle_handler.apps_travel_percentages[1];
-    status_msg.pedals_apps.travelthird_pct = throttle_handler.apps_travel_percentages[2];
+    union CanPrimaryMessages status_msg = {
+        .pedals_apps.travelfirst_pct = throttle_handler.apps_travel_percentages[0],
+        .pedals_apps.travelsecond_pct = throttle_handler.apps_travel_percentages[1],
+        .pedals_apps.travelthird_pct = throttle_handler.apps_travel_percentages[2]
+    };
     if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALS_APPS, &status_msg, frame.data) == -1) {
         return THROTTLE_RC_ERROR;
     }
