@@ -1,6 +1,6 @@
 #include "unity.h"
 #include "fff.h"
-#include "throttle-api.h" // instead of h to use static variable
+#include "throttle-api.h"
 
 DEFINE_FFF_GLOBALS;
 
@@ -348,7 +348,8 @@ void test_throttle_api_update_status_to_ok_status_callback_failure() {
 
     test_throttle_reset_timer_fake.return_val = THROTTLE_RC_CALLBACK_FAILURE;
 
-    enum ThrottleReturnCode rc = throttle_api_init(test_throttle_start_timer, test_throttle_reset_timer);
+    throttle_handler.start_timer = test_throttle_start_timer;
+    throttle_handler.stop_timer = test_throttle_reset_timer;
     throttle_handler.apps_travel_percentages[0] = apps1;
     throttle_handler.apps_travel_percentages[1] = apps2;
     throttle_handler.apps_travel_percentages[2] = apps3;

@@ -1,5 +1,5 @@
 #include "unity.h"
-#include "bots-api.h" // instead of h to use static var
+#include "bots-api.h"
 
 extern bool bots_is_trigger_activated;
 

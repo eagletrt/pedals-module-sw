@@ -1,5 +1,5 @@
 #include "unity.h"
-#include "brake-api.h" // instead of h to use static variable
+#include "brake-api.h"
 
 /*void setUp(void) {}*/
 
