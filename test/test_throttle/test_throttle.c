@@ -1,7 +1,6 @@
-#include "eagletrt_test_compat.h"
 #include "unity.h"
 #include "fff.h"
-#include "throttle-api.h"
+#include "throttle-api.h" // instead of h to use static variable
 
 DEFINE_FFF_GLOBALS;
 

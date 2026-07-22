@@ -1,6 +1,5 @@
-#include "eagletrt_test_compat.h"
 #include "unity.h"
-#include "brake-api.h"
+#include "brake-api.h" // instead of h to use static variable
 
 /*void setUp(void) {}*/
 

@@ -1,6 +1,5 @@
-#include "eagletrt_test_compat.h"
 #include "unity.h"
-#include "bots-api.h"
+#include "bots-api.h" // instead of h to use static var
 
 extern bool bots_is_trigger_activated;
 
