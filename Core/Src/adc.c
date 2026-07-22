@@ -272,10 +272,9 @@ char *adc_get_reading_name(enum AdcReading reading) {
 }
 
 uint16_t adc_read_raw(enum AdcReading reading) {
-    /*if (reading < 0 || reading >= ADC_READING_COUNT) {
+    if (reading >= ADC_READING_COUNT) {
         return 0;
-    }*/
-    //the compiler gives warning for this if check
+    }
     return adc_values[reading];
 }
 
