@@ -125,6 +125,41 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef *fdcanHandle) {
 
 /* USER CODE BEGIN 1 */
 
+enum CanCommunicationReturnCode prv_fdcan_set_header_length(FDCAN_TxHeaderTypeDef *header, uint8_t length) {
+    switch (length) {
+        case 0:
+            header->DataLength = FDCAN_DLC_BYTES_0;
+            break;
+        case 1:
+            header->DataLength = FDCAN_DLC_BYTES_1;
+            break;
+        case 2:
+            header->DataLength = FDCAN_DLC_BYTES_2;
+            break;
+        case 3:
+            header->DataLength = FDCAN_DLC_BYTES_3;
+            break;
+        case 4:
+            header->DataLength = FDCAN_DLC_BYTES_4;
+            break;
+        case 5:
+            header->DataLength = FDCAN_DLC_BYTES_5;
+            break;
+        case 6:
+            header->DataLength = FDCAN_DLC_BYTES_6;
+            break;
+        case 7:
+            header->DataLength = FDCAN_DLC_BYTES_7;
+            break;
+        case 8:
+            header->DataLength = FDCAN_DLC_BYTES_8;
+            break;
+        default:
+            return CAN_COMMUNICATION_RC_INVALID_LENGTH;
+    }
+    return CAN_COMMUNICATION_RC_OK;
+}
+
 enum CanCommunicationReturnCode fdcan_send_primary(const struct CanCommunicationFrame *frame) {
     FDCAN_TxHeaderTypeDef header = {
         .Identifier = frame->id,
@@ -136,38 +171,7 @@ enum CanCommunicationReturnCode fdcan_send_primary(const struct CanCommunication
         .TxEventFifoControl = FDCAN_STORE_TX_EVENTS,
         .MessageMarker = 0
     };
-
-    switch (frame->length) {
-        case 0:
-            header.DataLength = FDCAN_DLC_BYTES_0;
-            break;
-        case 1:
-            header.DataLength = FDCAN_DLC_BYTES_1;
-            break;
-        case 2:
-            header.DataLength = FDCAN_DLC_BYTES_2;
-            break;
-        case 3:
-            header.DataLength = FDCAN_DLC_BYTES_3;
-            break;
-        case 4:
-            header.DataLength = FDCAN_DLC_BYTES_4;
-            break;
-        case 5:
-            header.DataLength = FDCAN_DLC_BYTES_5;
-            break;
-        case 6:
-            header.DataLength = FDCAN_DLC_BYTES_6;
-            break;
-        case 7:
-            header.DataLength = FDCAN_DLC_BYTES_7;
-            break;
-        case 8:
-            header.DataLength = FDCAN_DLC_BYTES_8;
-            break;
-        default:
-            return CAN_COMMUNICATION_RC_INVALID_LENGTH;
-    }
+    prv_fdcan_set_header_length(&header, frame->length);
 
     if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &header, frame->data) != HAL_OK) {
         return CAN_COMMUNICATION_RC_TRANSMISSION_ERROR;
