@@ -29,7 +29,7 @@ typedef void state_data_t;
 typedef uint32_t (*fsm_get_tick_callback)(void);
 typedef void (*fsm_serial_write_callback)(const char *str);
 
-struct FsmIdleData {
+struct FsmData {
     fsm_get_tick_callback get_tick;
 };
 

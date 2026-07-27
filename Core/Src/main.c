@@ -138,7 +138,7 @@ int main(void) {
 
     state = run_state(state, &init_struct);
 
-    struct FsmIdleData data = {
+    struct FsmData data = {
         .get_tick = HAL_GetTick,
     };
 

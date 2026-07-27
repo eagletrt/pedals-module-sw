@@ -80,7 +80,7 @@ state_t do_idle(state_data_t *data) {
     if (data == NULL) {
         return STATE_ERROR;
     }
-    struct FsmIdleData *idle_struct = (struct FsmIdleData *)data;
+    struct FsmData *idle_struct = (struct FsmData *)data;
     if (idle_struct->get_tick == NULL) {
         return STATE_ERROR;
     }
