@@ -27,8 +27,10 @@
 #include "throttle-api.h"
 #include "eagletrt-api.h"
 
-uint16_t adc_buffer[8];
-uint16_t adc_values[8];
+#define ADC_BUFFER_SIZE (8U)
+
+uint16_t adc_buffer[ADC_BUFFER_SIZE];
+uint16_t adc_values[ADC_BUFFER_SIZE];
 
 #define PED_DEADZONE_PERCENT 0.05f /*< Initial portion of pedal travel to ignore */
 
@@ -245,7 +247,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *adcHandle) {
 
 void adc_init(void) {
     HAL_ADCEx_Calibration_Start(&hadc1);
-    HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adc_buffer, sizeof(adc_buffer) / sizeof(adc_buffer[0]));
+    HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adc_buffer, ADC_BUFFER_SIZE);
 }
 
 char *adc_get_reading_name(enum AdcReading reading) {
