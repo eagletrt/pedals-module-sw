@@ -155,7 +155,7 @@ enum CanCommunicationReturnCode fdcan_send_primary(const struct CanCommunication
         .MessageMarker = 0
     };
 
-    header.DataLength = prv_fdcan_set_header_length(frame->length);
+    header.DataLength = prv_fdcan_get_header_length(frame->length);
 
     if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &header, frame->data) != HAL_OK) {
         return CAN_COMMUNICATION_RC_TRANSMISSION_ERROR;
