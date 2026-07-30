@@ -26,8 +26,9 @@
 #include "brake-api.h"
 #include "throttle-api.h"
 #include "eagletrt-api.h"
+#include "adc_conversion.h"
 
-#define ADC_BUFFER_SIZE (8U)
+constexpr int ADC_BUFFER_SIZE = 8U;
 
 uint16_t adc_buffer[ADC_BUFFER_SIZE];
 uint16_t adc_values[ADC_BUFFER_SIZE];
@@ -314,19 +315,23 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
         return;
     }
     memcpy(adc_values, adc_buffer, sizeof(adc_values));
-    float apps1 = APPS_1_V_DIVIDER(adc_values[ADC_READING_APPS_1]);
-    float apps2 = APPS_2_V_DIVIDER(adc_values[ADC_READING_APPS_2]);
-    float bpps = BPPS_V_DIVIDER(adc_values[ADC_READING_BPPS]);
-    float front = BSPS_FRONT_V_DIVIDER(adc_values[ADC_READING_BSPS_FRONT]);
-    float rear = BSPS_REAR_V_DIVIDER(adc_values[ADC_READING_BSPS_REAR]);
-    //float bots = BOTS_V_DIVIDER(adc_values[ADC_READING_BOTS]);
 
-    apps1 = eagletrt_api_normalize(apps1, 3.41f, 4.75f);
-    apps2 = eagletrt_api_normalize(apps2, 1.38f, 2.78f);
+    float apps1 = ADC_CONV_APPS_1_RAW2VOLT(adc_values[ADC_READING_APPS_1]);
+    float apps2 = ADC_CONV_APPS_2_RAW2VOLT(adc_values[ADC_READING_APPS_2]);
+    float bpps = ADC_CONV_BPPS_RAW2VOLT(adc_values[ADC_READING_BPPS]);
+    float front = ADC_CONV_BSPS_FRONT_RAW2VOLT(adc_values[ADC_READING_BSPS_FRONT]);
+    float rear = ADC_CONV_BSPS_REAR_RAW2VOLT(adc_values[ADC_READING_BSPS_REAR]);
+    float bots = ADC_CONV_BOTS_RAW2VOLT(adc_values[ADC_READING_BOTS]);
+
+    apps1 = ADC_CONV_APPS1_NORMALIZE(apps1);
+    apps2 = ADC_CONV_APPS2_NORMALIZE(apps2);
+    bpps = ADC_CONV_BPPS_NORMALIZE(bpps);
+    front = ADC_CONV_BSPS_VOLT2BAR(front);
+    rear = ADC_CONV_BSPS_VOLT2BAR(rear);
     throttle_api_update_pedal_values(throttle_remove_dead_zone(apps1), throttle_remove_dead_zone(apps2), -1.0f);
-    brake_api_update_pedal_travel_percentage(((bpps - 2.6f) / (3.7f - 2.6f)));
-    brake_api_update_front_pressure(eagletrt_api_mapf(front, 0.5f, 4.5f, 0.0f, 100.0f));
-    brake_api_update_rear_pressure(eagletrt_api_mapf(rear, 0.5f, 4.5f, 0.0f, 100.0f));
+    brake_api_update_pedal_travel_percentage(bpps);
+    brake_api_update_front_pressure(front);
+    brake_api_update_rear_pressure(rear);
 }
 
 /* USER CODE END 1 */
