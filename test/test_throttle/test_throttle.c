@@ -1,6 +1,7 @@
 #include "unity.h"
 #include "fff.h"
 #include "throttle-api.h"
+#include "eagletrt-api.h"
 
 DEFINE_FFF_GLOBALS;
 
@@ -27,6 +28,12 @@ void setUp(void) {
 /*void tearDown(void) {
     // clean stuff up here
 }*/
+
+float test_throttle_remove_deadzone(float percentage) {
+    percentage = EAGLETRT_API_CLAMP(percentage, 0.05, 0.95);
+    percentage = eagletrt_api_normalize(percentage, 0.05, 0.95);
+    return percentage;
+}
 
 // throttle_api_implausibility_timeout_trigger and throttle_api_update_pedal_values will not be tested because they're simple setters
 // throttle_api_get_apps_NUMBER and throttle_api_get_travel_percentage will not be tested because they're simple getters
@@ -106,7 +113,7 @@ void test_throttle_api_update_status_all_values_valid() {
     throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status(5);
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.52f, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, test_throttle_remove_deadzone(0.52f), "Value wasn't as expected");
     TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
 }
 void test_throttle_api_update_status_all_values_valid_one_implausible_pair() {
@@ -123,7 +130,7 @@ void test_throttle_api_update_status_all_values_valid_one_implausible_pair() {
     throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status(5);
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.52f, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, test_throttle_remove_deadzone(0.52f), "Value wasn't as expected");
     TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
 }
 void test_throttle_api_update_status_all_values_valid_two_implausible_pair() {
@@ -140,7 +147,7 @@ void test_throttle_api_update_status_all_values_valid_two_implausible_pair() {
     throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status(5);
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.62f, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, test_throttle_remove_deadzone(0.62f), "Value wasn't as expected");
     TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
 }
 
@@ -157,7 +164,7 @@ void test_throttle_api_update_status_two_values_valid_one_out_of_range() {
     throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status(5);
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.95f, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, test_throttle_remove_deadzone(0.95f), "Value wasn't as expected");
     TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_OK, "Status was changed from NO_ERROR");
 }
 
@@ -315,7 +322,7 @@ void test_throttle_api_update_status_to_ok_status_success() {
     throttle_handler.apps_travel_percentages[2] = apps3;
     throttle_api_update_internal_status(5);
 
-    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, 0.53f, "Value wasn't as expected");
+    TEST_ASSERT_EQUAL_FLOAT_MESSAGE(throttle_handler.travel_percentage, test_throttle_remove_deadzone(0.53f), "Value wasn't as expected");
     TEST_ASSERT_EQUAL_MESSAGE(throttle_handler.status, THROTTLE_STATUS_OK, "Status is not OK");
     TEST_ASSERT_EQUAL_MESSAGE(1, test_throttle_reset_timer_fake.call_count, "Reset timer wasn't called exactly once");
 }
