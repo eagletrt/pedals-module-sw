@@ -36,6 +36,8 @@ state_func_t *const state_table[NUM_STATES] = {
 };
 // No transition functions
 
+EAGLETRT_STATIC uint32_t fsm_last_module_update_tick = 0;
+
 /*  ____  _        _       
  * / ___|| |_ __ _| |_ ___ 
  * \___ \| __/ _` | __/ _ \
@@ -81,10 +83,15 @@ state_t do_idle(state_data_t *data) {
         return STATE_ERROR;
     }
     struct FsmData *idle_struct = (struct FsmData *)data;
-    if (idle_struct->get_tick == NULL) {
+    if (idle_struct->get_tick == NULL || idle_struct->update_module == NULL) {
         return STATE_ERROR;
     }
     uint32_t current_tick = idle_struct->get_tick();
+
+    if (current_tick - fsm_last_module_update_tick >= FSM_MODULES_UPDATE_PERIOD_MS) {
+        fsm_last_module_update_tick = current_tick;
+        idle_struct->update_module();
+    }
 
     throttle_api_update_internal_status(current_tick);
 

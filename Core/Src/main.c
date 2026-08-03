@@ -140,6 +140,7 @@ int main(void) {
 
     struct FsmData data = {
         .get_tick = HAL_GetTick,
+        .update_module = adc_update_modules,
     };
 
     while (1) {

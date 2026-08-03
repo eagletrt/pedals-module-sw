@@ -32,6 +32,7 @@ constexpr int ADC_BUFFER_SIZE = 8U;
 
 uint16_t adc_buffer[ADC_BUFFER_SIZE];
 uint16_t adc_values[ADC_BUFFER_SIZE];
+float adc_voltages[ADC_BUFFER_SIZE];
 
 /* USER CODE END 0 */
 
@@ -308,18 +309,23 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
     }
     memcpy(adc_values, adc_buffer, sizeof(adc_values));
 
-    float apps1 = ADC_CONV_APPS_1_RAW2VOLT(adc_values[ADC_READING_APPS_1]);
-    float apps2 = ADC_CONV_APPS_2_RAW2VOLT(adc_values[ADC_READING_APPS_2]);
-    float bpps = ADC_CONV_BPPS_RAW2VOLT(adc_values[ADC_READING_BPPS]);
-    float front = ADC_CONV_BSPS_FRONT_RAW2VOLT(adc_values[ADC_READING_BSPS_FRONT]);
-    float rear = ADC_CONV_BSPS_REAR_RAW2VOLT(adc_values[ADC_READING_BSPS_REAR]);
-    //float bots = ADC_CONV_BOTS_RAW2VOLT(adc_values[ADC_READING_BOTS]);
+    //// as for now, we haven't tested apps3 and bots
+    adc_voltages[ADC_READING_APPS_1] = ADC_CONV_APPS_1_RAW2VOLT(adc_values[ADC_READING_APPS_1]);
+    adc_voltages[ADC_READING_APPS_2] = ADC_CONV_APPS_2_RAW2VOLT(adc_values[ADC_READING_APPS_2]);
+    adc_voltages[ADC_READING_BPPS] = ADC_CONV_BPPS_RAW2VOLT(adc_values[ADC_READING_BPPS]);
+    adc_voltages[ADC_READING_BSPS_FRONT] = ADC_CONV_BSPS_FRONT_RAW2VOLT(adc_values[ADC_READING_BSPS_FRONT]);
+    adc_voltages[ADC_READING_BSPS_REAR] = ADC_CONV_BSPS_REAR_RAW2VOLT(adc_values[ADC_READING_BSPS_REAR]);
+}
 
-    apps1 = ADC_CONV_APPS1_NORMALIZE(apps1);
-    apps2 = ADC_CONV_APPS2_NORMALIZE(apps2);
-    bpps = ADC_CONV_BPPS_NORMALIZE(bpps);
-    front = ADC_CONV_BSPS_VOLT2BAR(front);
-    rear = ADC_CONV_BSPS_VOLT2BAR(rear);
+void adc_update_modules() {
+    float apps1 = ADC_CONV_APPS1_NORMALIZE(adc_voltages[ADC_READING_APPS_1]);
+    float apps2 = ADC_CONV_APPS2_NORMALIZE(adc_voltages[ADC_READING_APPS_2]);
+    float bpps = ADC_CONV_BPPS_NORMALIZE(adc_voltages[ADC_READING_BPPS]);
+    float front = ADC_CONV_BSPS_VOLT2BAR(adc_voltages[ADC_READING_BSPS_FRONT]);
+    float rear = ADC_CONV_BSPS_VOLT2BAR(adc_voltages[ADC_READING_BSPS_REAR]);
+
+    // as for now, we haven't tested apps3 and bots
+    // sense 5v may be used in the future
     throttle_api_update_pedal_values(apps1, apps2, -1.0f);
     brake_api_update_pedal_travel_percentage(bpps);
     brake_api_update_front_pressure(front);

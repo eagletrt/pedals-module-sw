@@ -62,6 +62,8 @@ char *adc_get_reading_name(enum AdcReading reading);
 
 float adc_read_voltage(enum AdcReading reading);
 
+void adc_update_modules();
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
