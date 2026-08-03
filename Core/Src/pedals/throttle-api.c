@@ -5,6 +5,14 @@
 EAGLETRT_STATIC struct ThrottleHandler throttle_handler;
 
 // internal functions ---------------------------------------
+float prv_throttle_remove_deadzone(float percentage) {
+    constexpr float throttle_deadzone_lower_percentage = 0.05F;
+    constexpr float throttle_deadzone_higher_percentage = 1.0F - throttle_deadzone_lower_percentage;
+
+    percentage = EAGLETRT_API_CLAMP(percentage, throttle_deadzone_lower_percentage, throttle_deadzone_higher_percentage);
+    percentage = eagletrt_api_normalize(percentage, throttle_deadzone_lower_percentage, throttle_deadzone_higher_percentage);
+    return percentage;
+}
 
 float prv_throttle_calculate_next_value(const float apps[THROTTLE_ID_COUNT]) {
     int valid_apps_pair_count = 0;
@@ -36,8 +44,10 @@ float prv_throttle_calculate_next_value(const float apps[THROTTLE_ID_COUNT]) {
     float result = THROTTLE_ERROR_VALUE;
     if (valid_apps_pair_count == 3) {
         result = (apps[THROTTLE_ID_APPS_1] + apps[THROTTLE_ID_APPS_2] + apps[THROTTLE_ID_APPS_3]) / (float)THROTTLE_ID_COUNT;
+        result = prv_throttle_remove_deadzone(result);
     } else if (valid_apps_pair_count > 0) {
         result = (apps[last_valid_apps_pair_index] + apps[(last_valid_apps_pair_index + 1) % 3]) / (float)THROTTLE_MIN_NUMBER_VALID_APPS;
+        result = prv_throttle_remove_deadzone(result);
     }
     return result;
 }
