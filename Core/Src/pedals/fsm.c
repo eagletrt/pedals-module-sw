@@ -19,7 +19,7 @@ The finite state machine has:
 #include "brake-api.h"
 #include "throttle-api.h"
 #include "post-api.h"
-#include "general-messages-api.h"
+#include "identity-api.h"
 
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!
 
@@ -99,11 +99,11 @@ state_t do_idle(state_data_t *data) {
         next_state = STATE_ERROR;
     }
 
-    if (general_messages_api_send_pedals_version(current_tick) != GENERAL_MESSAGES_RC_OK) {
+    if (identity_api_send_pedals_version(current_tick) != IDENTITY_RC_OK) {
         next_state = STATE_ERROR;
     }
 
-    if (general_messages_api_send_pedals_status(current_tick, next_state) != GENERAL_MESSAGES_RC_OK) {
+    if (identity_api_send_pedals_status(current_tick, next_state) != IDENTITY_RC_OK) {
         next_state = STATE_ERROR;
     }
 
