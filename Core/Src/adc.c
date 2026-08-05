@@ -25,6 +25,7 @@
 #include <string.h>
 #include "brake-api.h"
 #include "throttle-api.h"
+#include "bots-api.h"
 #include "eagletrt-api.h"
 #include "adc_conversion.h"
 
@@ -236,15 +237,6 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *adcHandle) {
 
 /* USER CODE BEGIN 1 */
 
-#define SENSE_5V_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)))
-#define BSPS_FRONT_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)) * 1.005f) // last value is a calibration value referring to resistance
-#define BSPS_REAR_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)) * 1.006f)  // same as above
-#define BOTS_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (47.0f / (330.0f + 47.0f)))
-#define BPPS_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)))
-#define APPS_3_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)))
-#define APPS_2_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)))
-#define APPS_1_V_DIVIDER(read) ((read)*3.3f / 4095.0f / (18.0f / (11.8f + 18.0f)))
-
 void adc_init(void) {
     HAL_ADCEx_Calibration_Start(&hadc1);
     HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adc_buffer, ADC_BUFFER_SIZE);
@@ -281,26 +273,10 @@ uint16_t adc_read_raw(enum AdcReading reading) {
 }
 
 float adc_read_voltage(enum AdcReading reading) {
-    switch (reading) {
-        case ADC_READING_SENSE_5V:
-            return SENSE_5V_V_DIVIDER(adc_values[reading]);
-        case ADC_READING_BSPS_FRONT:
-            return BSPS_FRONT_V_DIVIDER(adc_values[reading]);
-        case ADC_READING_BSPS_REAR:
-            return BSPS_REAR_V_DIVIDER(adc_values[reading]);
-        case ADC_READING_BOTS:
-            return BOTS_V_DIVIDER(adc_values[reading]);
-        case ADC_READING_BPPS:
-            return BPPS_V_DIVIDER(adc_values[reading]);
-        case ADC_READING_APPS_3:
-            return APPS_3_V_DIVIDER(adc_values[reading]);
-        case ADC_READING_APPS_2:
-            return APPS_2_V_DIVIDER(adc_values[reading]);
-        case ADC_READING_APPS_1:
-            return APPS_1_V_DIVIDER(adc_values[reading]);
-        default:
-            return 0.0f;
+    if (reading >= ADC_READING_COUNT) {
+        return 0;
     }
+    return adc_voltages[reading];
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
@@ -309,24 +285,39 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
     }
     memcpy(adc_values, adc_buffer, sizeof(adc_values));
 
-    //// as for now, we haven't tested apps3 and bots
+    //// as for now, we haven't tested apps3, bots and sense5v
+    adc_voltages[ADC_READING_SENSE_5V] = ADC_CONV_SENSE_5V_RAW2VOLT(adc_values[ADC_READING_SENSE_5V]);
     adc_voltages[ADC_READING_APPS_1] = ADC_CONV_APPS_1_RAW2VOLT(adc_values[ADC_READING_APPS_1]);
     adc_voltages[ADC_READING_APPS_2] = ADC_CONV_APPS_2_RAW2VOLT(adc_values[ADC_READING_APPS_2]);
+    adc_voltages[ADC_READING_APPS_3] = ADC_CONV_APPS_3_RAW2VOLT(adc_values[ADC_READING_APPS_3]);
     adc_voltages[ADC_READING_BPPS] = ADC_CONV_BPPS_RAW2VOLT(adc_values[ADC_READING_BPPS]);
     adc_voltages[ADC_READING_BSPS_FRONT] = ADC_CONV_BSPS_FRONT_RAW2VOLT(adc_values[ADC_READING_BSPS_FRONT]);
     adc_voltages[ADC_READING_BSPS_REAR] = ADC_CONV_BSPS_REAR_RAW2VOLT(adc_values[ADC_READING_BSPS_REAR]);
+    adc_voltages[ADC_READING_BOTS] = ADC_CONV_BOTS_RAW2VOLT(adc_values[ADC_READING_BOTS]);
 }
 
 void adc_update_modules() {
+    constexpr float min_high_bots_value = 0.0f;
+    constexpr float error_value = -1.0f;
+
     float apps1 = ADC_CONV_APPS1_NORMALIZE(adc_voltages[ADC_READING_APPS_1]);
     float apps2 = ADC_CONV_APPS2_NORMALIZE(adc_voltages[ADC_READING_APPS_2]);
+    float apps3 = ADC_CONV_APPS3_NORMALIZE(adc_voltages[ADC_READING_APPS_3]);
     float bpps = ADC_CONV_BPPS_NORMALIZE(adc_voltages[ADC_READING_BPPS]);
-    float front = ADC_CONV_BSPS_VOLT2BAR(adc_voltages[ADC_READING_BSPS_FRONT]);
-    float rear = ADC_CONV_BSPS_VOLT2BAR(adc_voltages[ADC_READING_BSPS_REAR]);
+    float front = error_value;
+    if (adc_voltages[ADC_READING_BSPS_FRONT] <= ADC_CONV_BSPS_HIGHER_LIMIT && adc_voltages[ADC_READING_BSPS_FRONT] >= ADC_CONV_BSPS_LOWER_LIMIT) {
+        front = ADC_CONV_BSPS_VOLT2BAR(adc_voltages[ADC_READING_BSPS_FRONT]);
+    }
+    float rear = error_value;
+    if (adc_voltages[ADC_READING_BSPS_REAR] <= ADC_CONV_BSPS_HIGHER_LIMIT && adc_voltages[ADC_READING_BSPS_REAR] >= ADC_CONV_BSPS_LOWER_LIMIT) {
+        rear = ADC_CONV_BSPS_VOLT2BAR(adc_voltages[ADC_READING_BSPS_REAR]);
+    }
 
-    // as for now, we haven't tested apps3 and bots
-    // sense 5v may be used in the future
-    throttle_api_update_pedal_values(apps1, apps2, -1.0f);
+    if (adc_voltages[ADC_READING_BOTS] < min_high_bots_value) {
+        bots_trigger();
+    }
+
+    throttle_api_update_pedal_values(apps1, apps2, apps3);
     brake_api_update_pedal_travel_percentage(bpps);
     brake_api_update_front_pressure(front);
     brake_api_update_rear_pressure(rear);
