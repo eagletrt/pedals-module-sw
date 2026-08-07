@@ -3,9 +3,6 @@
 
 #include <stdint.h>
 
-#define IDENTITY_STATUS_CAN_PERIOD_MS (500)
-#define IDENTITY_VERSION_CAN_PERIOD_MS (1000)
-
 /*!
  * \brief Operation status for the module's functions
  * 

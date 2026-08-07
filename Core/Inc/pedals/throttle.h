@@ -8,8 +8,6 @@
 
 #define THROTTLE_ERROR_VALUE (-1.0F)
 
-#define THROTTLE_STATUS_CAN_PERIOD_MS (50)
-#define THROTTLE_APPS_CAN_PERIOD_MS (150)
 #define THROTTLE_UPDATE_PEDIOD_MS (5)
 
 /*!
@@ -64,7 +62,6 @@ struct ThrottleHandler {
     throttle_timer_callback stop_timer;               /*!< Pointer to external function to stop and reset the timer*/
     bool is_implausibility_timeout;                   /*!< Bool to set to true when implausibility timer runs out*/
     uint32_t last_status_tick;                        /*!< Last tick in which a message for throttle status was sent*/
-    uint32_t last_apps_tick;                          /*!< Last tick in which a message for throttle apps was sent*/
     uint32_t last_update_tick;                        /*!< Last tick in which the throttle updated using apps values*/
 };
 

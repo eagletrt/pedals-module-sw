@@ -12,7 +12,7 @@ enum IdentityReturnCode identity_api_send_pedals_version(uint32_t tick) {
     constexpr uint16_t minor_version = 1;
     constexpr uint16_t patch_version = 0;
 
-    if (tick - identity_handler.last_version_tick < IDENTITY_VERSION_CAN_PERIOD_MS) {
+    if (tick - identity_handler.last_version_tick < can_primary_cycle_time_pedalsversion) {
         return IDENTITY_RC_OK;
     }
     identity_handler.last_version_tick = tick;
@@ -40,7 +40,7 @@ enum IdentityReturnCode identity_api_send_pedals_version_info(uint32_t tick) {
     constexpr uint32_t tmp_commithash = 0;
     constexpr bool tmp_dirty = 0;
 
-    if (tick - identity_handler.last_version_info_tick < IDENTITY_VERSION_CAN_PERIOD_MS) {
+    if (tick - identity_handler.last_version_info_tick < can_primary_cycle_time_pedalsversioninfo) {
         return IDENTITY_RC_OK;
     }
     identity_handler.last_version_info_tick = tick;
@@ -64,7 +64,7 @@ enum IdentityReturnCode identity_api_send_pedals_version_info(uint32_t tick) {
 }
 
 enum IdentityReturnCode identity_api_send_pedals_fsm(uint32_t tick, state_t fsm_state) {
-    if (tick - identity_handler.last_status_tick < IDENTITY_STATUS_CAN_PERIOD_MS) {
+    if (tick - identity_handler.last_status_tick < can_primary_cycle_time_pedalsfsm) {
         return IDENTITY_RC_OK;
     }
     identity_handler.last_status_tick = tick;
@@ -86,7 +86,7 @@ enum IdentityReturnCode identity_api_send_pedals_fsm(uint32_t tick, state_t fsm_
 }
 
 enum IdentityReturnCode identity_api_send_libcan_version(uint32_t tick) {
-    if (tick - identity_handler.last_libcan_version_tick < IDENTITY_VERSION_CAN_PERIOD_MS) {
+    if (tick - identity_handler.last_libcan_version_tick < can_primary_cycle_time_pedalslibcanversion) {
         return IDENTITY_RC_OK;
     }
     identity_handler.last_libcan_version_tick = tick;
@@ -113,7 +113,7 @@ enum IdentityReturnCode identity_api_send_libcan_version_info(uint32_t tick) {
     constexpr uint32_t tmp_commithash = 0;
     constexpr bool tmp_dirty = 0;
 
-    if (tick - identity_handler.last_libcan_version_info_tick < IDENTITY_VERSION_CAN_PERIOD_MS) {
+    if (tick - identity_handler.last_libcan_version_info_tick < can_primary_cycle_time_pedalslibcanversioninfo) {
         return IDENTITY_RC_OK;
     }
     identity_handler.last_libcan_version_info_tick = tick;

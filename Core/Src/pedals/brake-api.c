@@ -35,7 +35,7 @@ float brake_api_get_rear_pressure() {
 enum BrakeReturnCode brake_api_send_status(uint32_t tick) {
     constexpr float tmp_botsvoltage = 0.0f;
 
-    if (tick - brake_handler.last_tick < BRAKE_CAN_PERIOD_MS) {
+    if (tick - brake_handler.last_tick < can_primary_cycle_time_pedalsbrake) {
         return BRAKE_RC_OK;
     }
     brake_handler.last_tick = tick;

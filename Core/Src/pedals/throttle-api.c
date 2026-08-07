@@ -152,7 +152,7 @@ void throttle_api_implausibility_timeout_trigger() {
 }
 
 enum ThrottleReturnCode throttle_api_send_status(uint32_t tick) {
-    if (tick - throttle_handler.last_status_tick < THROTTLE_STATUS_CAN_PERIOD_MS) {
+    if (tick - throttle_handler.last_status_tick < can_primary_cycle_time_pedalsthrottle) {
         return THROTTLE_RC_OK;
     }
     throttle_handler.last_status_tick = tick;
