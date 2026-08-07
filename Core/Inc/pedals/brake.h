@@ -16,6 +16,7 @@ struct BrakeHandler {
     float front_pressure; /*!< Newest front brake pressure value */
     float rear_pressure;  /*!< Newest rear brake pressure value */
     uint32_t last_tick;   /*!< Last tick in which a message for brake was sent*/
+    float bots_voltage;   /*!< Newest value of BOTS voltage*/
 };
 
 #endif //BRAKE_H
