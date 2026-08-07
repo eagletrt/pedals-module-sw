@@ -156,7 +156,11 @@ enum ThrottleReturnCode throttle_api_send_status(uint32_t tick) {
         return THROTTLE_RC_OK;
     }
     throttle_handler.last_status_tick = tick;
-    struct CanCommunicationFrame frame = { 0 };
+
+    struct CanCommunicationFrame frame = {
+        .id = CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSTHROTTLE,
+        .length = can_primary_byte_size_pedalsthrottle,
+    };
     union CanPrimaryMessages status_msg = {
         .pedalsthrottle.apps1 = throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_1],
         .pedalsthrottle.apps2 = throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_2],
@@ -167,8 +171,6 @@ enum ThrottleReturnCode throttle_api_send_status(uint32_t tick) {
     if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSTHROTTLE, &status_msg, frame.data) == -1) {
         return THROTTLE_RC_ERROR;
     }
-    frame.id = CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSTHROTTLE;
-    frame.length = can_primary_byte_size_pedalsthrottle;
     if (can_communications_api_add_to_tx_buffer(&frame) != CAN_COMMUNICATION_RC_OK) {
         return THROTTLE_RC_ERROR;
     }

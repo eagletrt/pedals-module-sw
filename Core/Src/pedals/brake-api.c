@@ -33,24 +33,28 @@ float brake_api_get_rear_pressure() {
 }
 
 enum BrakeReturnCode brake_api_send_status(uint32_t tick) {
+    constexpr float tmp_botsvoltage = 0.0f;
+
     if (tick - brake_handler.last_tick < BRAKE_CAN_PERIOD_MS) {
         return BRAKE_RC_OK;
     }
     brake_handler.last_tick = tick;
-    struct CanCommunicationFrame frame = { 0 };
+
+    struct CanCommunicationFrame frame = {
+        .id = CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSBRAKE,
+        .length = can_primary_byte_size_pedalsbrake
+    };
     union CanPrimaryMessages data = {
         .pedalsbrake.pressurefl = brake_handler.front_pressure,
         .pedalsbrake.pressurefr = brake_handler.front_pressure,
         .pedalsbrake.pressurerl = brake_handler.rear_pressure,
         .pedalsbrake.pressurerr = brake_handler.rear_pressure,
         .pedalsbrake.travel = brake_handler.pedal_travel,
-        .pedalsbrake.botsvoltage = 0.0f, //hardcoded value for now
+        .pedalsbrake.botsvoltage = tmp_botsvoltage,
     };
     if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSBRAKE, &data, frame.data) == -1) {
         return BRAKE_RC_ERROR;
     }
-    frame.id = CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSBRAKE;
-    frame.length = can_primary_byte_size_pedalsbrake;
     if (can_communications_api_add_to_tx_buffer(&frame) != CAN_COMMUNICATION_RC_OK) {
         return BRAKE_RC_ERROR;
     }
