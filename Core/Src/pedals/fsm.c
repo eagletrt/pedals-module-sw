@@ -95,11 +95,19 @@ state_t do_idle(state_data_t *data) {
 
     throttle_api_update_internal_status(current_tick);
 
-    if (throttle_api_send_apps(current_tick) != THROTTLE_RC_OK) {
+    if (identity_api_send_pedals_version(current_tick) != IDENTITY_RC_OK) {
         next_state = STATE_ERROR;
     }
 
-    if (identity_api_send_pedals_version(current_tick) != IDENTITY_RC_OK) {
+    if (identity_api_send_pedals_version_info(current_tick) != IDENTITY_RC_OK) {
+        next_state = STATE_ERROR;
+    }
+
+    if (identity_api_send_libcan_version(current_tick) != IDENTITY_RC_OK) {
+        next_state = STATE_ERROR;
+    }
+
+    if (identity_api_send_libcan_version_info(current_tick) != IDENTITY_RC_OK) {
         next_state = STATE_ERROR;
     }
 
