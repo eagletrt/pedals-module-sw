@@ -158,36 +158,17 @@ enum ThrottleReturnCode throttle_api_send_status(uint32_t tick) {
     throttle_handler.last_status_tick = tick;
     struct CanCommunicationFrame frame = { 0 };
     union CanPrimaryMessages status_msg = {
-        .pedals_throttle.status = throttle_handler.status,
-        .pedals_throttle.travel_pct = throttle_handler.travel_percentage
+        .pedalsthrottle.apps1 = throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_1],
+        .pedalsthrottle.apps2 = throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_2],
+        .pedalsthrottle.apps3 = throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_3],
+        .pedalsthrottle.travel = throttle_handler.travel_percentage,
+        .pedalsthrottle.plausibility = throttle_handler.status,
     };
-    if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALS_THROTTLE, &status_msg, frame.data) == -1) {
+    if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSTHROTTLE, &status_msg, frame.data) == -1) {
         return THROTTLE_RC_ERROR;
     }
-    frame.id = CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALS_THROTTLE;
-    frame.length = can_primary_byte_size_pedals_throttle;
-    if (can_communications_api_add_to_tx_buffer(&frame) != CAN_COMMUNICATION_RC_OK) {
-        return THROTTLE_RC_ERROR;
-    }
-    return THROTTLE_RC_OK;
-}
-
-enum ThrottleReturnCode throttle_api_send_apps(uint32_t tick) {
-    if (tick - throttle_handler.last_apps_tick < THROTTLE_APPS_CAN_PERIOD_MS) {
-        return THROTTLE_RC_OK;
-    }
-    throttle_handler.last_apps_tick = tick;
-    struct CanCommunicationFrame frame = { 0 };
-    union CanPrimaryMessages status_msg = {
-        .pedals_apps.travelfirst_pct = throttle_handler.apps_travel_percentages[0],
-        .pedals_apps.travelsecond_pct = throttle_handler.apps_travel_percentages[1],
-        .pedals_apps.travelthird_pct = throttle_handler.apps_travel_percentages[2]
-    };
-    if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALS_APPS, &status_msg, frame.data) == -1) {
-        return THROTTLE_RC_ERROR;
-    }
-    frame.id = CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALS_APPS;
-    frame.length = can_primary_byte_size_pedals_apps;
+    frame.id = CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSTHROTTLE;
+    frame.length = can_primary_byte_size_pedalsthrottle;
     if (can_communications_api_add_to_tx_buffer(&frame) != CAN_COMMUNICATION_RC_OK) {
         return THROTTLE_RC_ERROR;
     }

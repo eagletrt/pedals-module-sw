@@ -103,7 +103,7 @@ state_t do_idle(state_data_t *data) {
         next_state = STATE_ERROR;
     }
 
-    if (identity_api_send_pedals_status(current_tick, next_state) != IDENTITY_RC_OK) {
+    if (identity_api_send_pedals_fsm(current_tick, next_state) != IDENTITY_RC_OK) {
         next_state = STATE_ERROR;
     }
 
