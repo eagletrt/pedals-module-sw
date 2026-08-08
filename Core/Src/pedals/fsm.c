@@ -95,33 +95,19 @@ state_t do_idle(state_data_t *data) {
 
     throttle_api_update_internal_status(current_tick);
 
-    if (identity_api_send_pedals_version(current_tick) != IDENTITY_RC_OK) {
-        next_state = STATE_ERROR;
-    }
+    EAGLETRT_API_UNUSED(identity_api_send_pedals_version(current_tick));
 
-    if (identity_api_send_pedals_version_info(current_tick) != IDENTITY_RC_OK) {
-        next_state = STATE_ERROR;
-    }
+    EAGLETRT_API_UNUSED(identity_api_send_pedals_version_info(current_tick));
 
-    if (identity_api_send_libcan_version(current_tick) != IDENTITY_RC_OK) {
-        next_state = STATE_ERROR;
-    }
+    EAGLETRT_API_UNUSED(identity_api_send_libcan_version(current_tick));
 
-    if (identity_api_send_libcan_version_info(current_tick) != IDENTITY_RC_OK) {
-        next_state = STATE_ERROR;
-    }
+    EAGLETRT_API_UNUSED(identity_api_send_libcan_version_info(current_tick));
 
-    if (identity_api_send_pedals_fsm(current_tick, next_state) != IDENTITY_RC_OK) {
-        next_state = STATE_ERROR;
-    }
+    EAGLETRT_API_UNUSED(identity_api_send_pedals_fsm(current_tick, next_state));
 
-    if (throttle_api_send_status(current_tick) != THROTTLE_RC_OK) {
-        next_state = STATE_ERROR;
-    }
+    EAGLETRT_API_UNUSED(throttle_api_send_status(current_tick));
 
-    if (brake_api_send_status(current_tick) != BRAKE_RC_OK) {
-        next_state = STATE_ERROR;
-    }
+    EAGLETRT_API_UNUSED(brake_api_send_status(current_tick));
 
     can_communications_api_process_tx();
     can_communications_api_process_rx();
