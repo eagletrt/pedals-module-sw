@@ -15,6 +15,6 @@ enum PostReturnCode post_api_init(struct PostInit *init) {
     if (can_communications_api_init(init->config) != CAN_COMMUNICATION_RC_OK) {
         return POST_RC_ERROR;
     }
-    
+
     return POST_RC_OK;
 }
