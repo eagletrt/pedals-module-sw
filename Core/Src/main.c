@@ -28,11 +28,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include "throttle-api.h"
 #include "can-communications-router-api.h"
 #include "fsm.h"
 #include "post.h"
-#include <string.h>
 
 /* USER CODE END Includes */
 
@@ -121,8 +119,6 @@ int main(void) {
     HAL_TIM_Base_Start(&htim3);
 
     HAL_FDCAN_Start(&hfdcan1);
-    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
-    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0);
 
     state_t state = STATE_INIT;
 
@@ -137,6 +133,9 @@ int main(void) {
     };
 
     state = run_state(state, &init_struct);
+
+    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0);
 
     struct FsmData data = {
         .get_tick = HAL_GetTick,

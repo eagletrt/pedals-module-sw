@@ -4,7 +4,10 @@
 
 EAGLETRT_STATIC struct IdentityHandler identity_handler = {
     .last_version_tick = 0,
-    .last_status_tick = 0
+    .last_status_tick = 0,
+    .last_version_info_tick = 0,
+    .last_libcan_version_info_tick = 0,
+    .last_libcan_version_tick = 0
 };
 
 enum IdentityReturnCode identity_api_send_pedals_version(uint32_t tick) {

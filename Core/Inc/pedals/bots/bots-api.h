@@ -4,10 +4,11 @@
 #include "stdbool.h"
 
 /*!
- * \brief Function to activate when BOTS is triggered
- * 
+ * \brief Set the voltage value for BOTS. If the voltage is below a certain threshold, it will trigger an error message
+ *
+ * \param voltage The voltage value to set for BOTS
  */
-void bots_trigger(void);
+void bots_set_voltage(float voltage);
 
 /*!
  * \brief Get bool to see if BOTS was triggered and, consequently, send an error message. It consumes true values, see below

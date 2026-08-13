@@ -297,7 +297,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 }
 
 void adc_update_modules() {
-    constexpr float min_high_bots_value = 0.0f;
     constexpr float error_value = -1.0f;
 
     float apps1 = ADC_CONV_APPS1_NORMALIZE(adc_voltages[ADC_READING_APPS_1]);
@@ -313,15 +312,12 @@ void adc_update_modules() {
         rear = ADC_CONV_BSPS_VOLT2BAR(adc_voltages[ADC_READING_BSPS_REAR]);
     }
 
-    if (adc_voltages[ADC_READING_BOTS] < min_high_bots_value) {
-        bots_trigger();
-    }
-
     throttle_api_update_pedal_values(apps1, apps2, apps3);
     brake_api_update_pedal_travel_percentage(bpps);
     brake_api_update_front_pressure(front);
     brake_api_update_rear_pressure(rear);
     brake_api_update_bots_voltage(adc_voltages[ADC_READING_BOTS]);
+    bots_set_voltage(adc_voltages[ADC_READING_BOTS]);
 }
 
 /* USER CODE END 1 */

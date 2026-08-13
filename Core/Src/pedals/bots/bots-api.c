@@ -1,17 +1,14 @@
 #include "bots-api.h"
-#include "eagletrt-api.h"
+#include "eagletrt.h"
 
-EAGLETRT_STATIC bool bots_is_trigger_activated;
+constexpr float bots_threshold_voltage_triggered = 0.5F;
+EAGLETRT_STATIC float bots_voltage = 0.0F;
 
-void bots_trigger(void) {
-    bots_is_trigger_activated = true;
+void bots_set_voltage(float voltage) {
+    bots_voltage = voltage;
+
 }
 
 bool bots_is_triggered(void) {
-    if (bots_is_trigger_activated) {
-        bots_is_trigger_activated = false;
-        return true;
-    }
-
-    return false;
+    return bots_voltage < bots_threshold_voltage_triggered;
 }
