@@ -24,9 +24,9 @@
 
 #include <string.h>
 #include "brake-api.h"
+#include "eagletrt-api.h"
 #include "throttle-api.h"
 #include "bots-api.h"
-#include "eagletrt-api.h"
 #include "adc_conversion.h"
 
 constexpr int ADC_BUFFER_SIZE = 8U;
@@ -297,20 +297,12 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 }
 
 void adc_update_modules() {
-    constexpr float error_value = -1.0f;
-
     float apps1 = ADC_CONV_APPS1_NORMALIZE(adc_voltages[ADC_READING_APPS_1]);
     float apps2 = ADC_CONV_APPS2_NORMALIZE(adc_voltages[ADC_READING_APPS_2]);
     float apps3 = ADC_CONV_APPS3_NORMALIZE(adc_voltages[ADC_READING_APPS_3]);
     float bpps = ADC_CONV_BPPS_NORMALIZE(adc_voltages[ADC_READING_BPPS]);
-    float front = error_value;
-    if (adc_voltages[ADC_READING_BSPS_FRONT] <= ADC_CONV_BSPS_HIGHER_LIMIT && adc_voltages[ADC_READING_BSPS_FRONT] >= ADC_CONV_BSPS_LOWER_LIMIT) {
-        front = ADC_CONV_BSPS_VOLT2BAR(adc_voltages[ADC_READING_BSPS_FRONT]);
-    }
-    float rear = error_value;
-    if (adc_voltages[ADC_READING_BSPS_REAR] <= ADC_CONV_BSPS_HIGHER_LIMIT && adc_voltages[ADC_READING_BSPS_REAR] >= ADC_CONV_BSPS_LOWER_LIMIT) {
-        rear = ADC_CONV_BSPS_VOLT2BAR(adc_voltages[ADC_READING_BSPS_REAR]);
-    }
+    float front = eagletrt_api_mapf(adc_voltages[ADC_READING_BSPS_FRONT], 0.5, 4.5, 0.0, 100.0);
+    float rear = eagletrt_api_mapf(adc_voltages[ADC_READING_BSPS_FRONT], 0.5, 4.5, 0.0, 100.0);
 
     throttle_api_update_pedal_values(apps1, apps2, apps3);
     brake_api_update_pedal_travel_percentage(bpps);

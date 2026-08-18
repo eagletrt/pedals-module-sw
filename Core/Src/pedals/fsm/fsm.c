@@ -88,6 +88,8 @@ state_t do_idle(state_data_t *data) {
     }
     uint32_t current_tick = idle_struct->get_tick();
 
+    can_communications_api_process_rx();
+
     if (current_tick - fsm_last_module_update_tick >= FSM_MODULES_UPDATE_PERIOD_MS) {
         fsm_last_module_update_tick = current_tick;
         idle_struct->update_module();
@@ -110,7 +112,6 @@ state_t do_idle(state_data_t *data) {
     EAGLETRT_API_UNUSED(brake_api_send_status(current_tick));
 
     can_communications_api_process_tx();
-    can_communications_api_process_rx();
 
     switch (next_state) {
         case NO_CHANGE:

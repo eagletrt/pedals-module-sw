@@ -142,17 +142,16 @@ int main(void) {
         .update_module = adc_update_modules,
     };
 
-    while (1) {
-        state = run_state(state, &data);
-    }
-
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
-    /* USER CODE END WHILE */
+    while (1) {
+        state = run_state(state, &data);
+        /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+        /* USER CODE BEGIN 3 */
+    }
     /* USER CODE END 3 */
 }
 
