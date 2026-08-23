@@ -1,6 +1,7 @@
 #include "brake-api.h"
 #include "can-communications-api.h"
 #include "can-primary-api.h"
+#include "bots-api.h"
 #include "eagletrt.h"
 
 EAGLETRT_STATIC struct BrakeHandler brake_handler;
@@ -18,10 +19,6 @@ void brake_api_update_front_pressure(float pressure) {
 
 void brake_api_update_rear_pressure(float pressure) {
     brake_handler.front_pressure = pressure;
-}
-
-void brake_api_update_bots_voltage(float voltage) {
-    brake_handler.bots_voltage = voltage;
 }
 
 float brake_api_get_pedal_travel_percentage() {
@@ -52,7 +49,7 @@ enum BrakeReturnCode brake_api_send_status(uint32_t tick) {
         .pedalsbrake.pressurerl = brake_handler.rear_pressure,
         .pedalsbrake.pressurerr = brake_handler.rear_pressure,
         .pedalsbrake.travel = brake_handler.pedal_travel,
-        .pedalsbrake.botsvoltage = brake_handler.bots_voltage,
+        .pedalsbrake.botsvoltage = bots_get_voltage(),
     };
     if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSBRAKE, &data, frame.data) == -1) {
         return BRAKE_RC_ERROR;

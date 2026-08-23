@@ -31,14 +31,6 @@ void brake_api_update_front_pressure(float pressure);
 void brake_api_update_rear_pressure(float pressure);
 
 /*!
- * \brief Function to call when ADC finished its conversion of the bots voltage
- *
- * \param pressure it represents the value in volts.
- * 
- */
-void brake_api_update_bots_voltage(float voltage);
-
-/*!
  * \brief Returns value of the last read brake pedal travel percentage
  *
  * \return float either in range [0,1] or -1 if the original signal is out of range

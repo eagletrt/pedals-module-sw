@@ -6,7 +6,10 @@ EAGLETRT_STATIC float bots_voltage = 0.0F;
 
 void bots_set_voltage(float voltage) {
     bots_voltage = voltage;
+}
 
+float bots_get_voltage(void) {
+    return bots_voltage;
 }
 
 bool bots_is_triggered(void) {

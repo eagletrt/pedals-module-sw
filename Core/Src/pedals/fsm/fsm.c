@@ -182,8 +182,9 @@ state_t do_flash(state_data_t *data) {
 
 state_t run_state(state_t cur_state, state_data_t *data) {
     state_t new_state = state_table[cur_state](data);
-    if (new_state == NO_CHANGE)
+    if (new_state == NO_CHANGE) {
         new_state = cur_state;
+    }
 
     return new_state;
 }

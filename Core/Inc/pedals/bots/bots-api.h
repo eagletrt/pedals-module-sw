@@ -11,6 +11,13 @@
 void bots_set_voltage(float voltage);
 
 /*!
+ * \brief Get the current voltage value for BOTS
+ *
+ * \return The current voltage value for BOTS
+ */
+float bots_get_voltage(void);
+
+/*!
  * \brief Get bool to see if BOTS was triggered and, consequently, send an error message. It consumes true values, see below
  * 
  * \retval true if bots_set_triggered was called. After returning true, successive calls will return false until bots_set_triggered is called again

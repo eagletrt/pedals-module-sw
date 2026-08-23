@@ -308,7 +308,6 @@ void adc_update_modules() {
     brake_api_update_pedal_travel_percentage(bpps);
     brake_api_update_front_pressure(front);
     brake_api_update_rear_pressure(rear);
-    brake_api_update_bots_voltage(adc_voltages[ADC_READING_BOTS]);
     bots_set_voltage(adc_voltages[ADC_READING_BOTS]);
 }
 
