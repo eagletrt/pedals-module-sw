@@ -31,6 +31,9 @@
 #include "can-communications-router-api.h"
 #include "fsm.h"
 #include "post.h"
+#include "eagletrt-api.h"
+#include "logger-api.h"
+#include "arena-allocator-api.h"
 
 /* USER CODE END Includes */
 
@@ -41,7 +44,11 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+//TODO: Would be better to move the defines into a configuration file (e.g. ecu-config.h)
+#define LOGGER_ENABLED (true)           /*!< Logger status: true to enable active logging, false to mute entirely. */
+#define LOGGER_RX_CAPACITY (1U)         /*!< Receive queue depth. Set to 1 because the logger is transmit-only but needs to be > 0 because of arena allocator. */
+#define LOGGER_TX_CAPACITY (10U)        /*!< Maximum number of log message packets allowed to sit in the outbound transmission queue. */
+#define LOGGER_UART_MAX_MSG_SIZE (128U) /*!< Maximum allocation allowed for an individual log string. */
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -52,6 +59,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+
+EAGLETRT_STATIC struct ArenaAllocatorHandler arena_allocator_handler;
+EAGLETRT_STATIC struct PalHandler logger_pal_handler;
 
 /* USER CODE END PV */
 
@@ -72,6 +82,24 @@ static void VectorBase_Config(void) {
     /* Remap the vector table to where the vector table is located for this program. */
     SCB->VTOR = (unsigned long)&g_pfnVectors[0];
 }
+
+/*!
+ * \brief Initializes the low-level memory allocation and logging framework.
+ */
+EAGLETRT_STATIC void prv_main_init_logging_configuration() {
+    arena_allocator_api_init(&arena_allocator_handler);
+
+    EAGLETRT_API_UNUSED(pal_api_init(&logger_pal_handler,
+                                     LOGGER_RX_CAPACITY,
+                                     LOGGER_TX_CAPACITY,
+                                     LOGGER_UART_MAX_MSG_SIZE,
+                                     NULL,
+                                     usart_logger_transmit,
+                                     NULL,
+                                     NULL,
+                                     &arena_allocator_handler));
+}
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -114,6 +142,9 @@ int main(void) {
     MX_TIM3_Init();
     MX_TIM1_Init();
     /* USER CODE BEGIN 2 */
+
+    prv_main_init_logging_configuration();
+    EAGLETRT_API_UNUSED(logger_api_init(&logger_pal_handler, LOGGER_ENABLED));
 
     adc_init();
     HAL_TIM_Base_Start(&htim3);

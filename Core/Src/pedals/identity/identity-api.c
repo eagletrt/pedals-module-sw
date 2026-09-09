@@ -1,6 +1,8 @@
 #include "identity-api.h"
 #include "can-primary-api.h"
 #include "can-communications-api.h"
+#include "logger-api.h"
+#include "logger.h"
 
 EAGLETRT_STATIC struct IdentityHandler identity_handler = {
     .last_version_tick = 0,
@@ -29,12 +31,16 @@ enum IdentityReturnCode identity_api_send_pedals_version(uint32_t tick) {
         .pedalsversion.minor = minor_version,
         .pedalsversion.patch = patch_version,
     };
+
+    //logger_api_log(LOGGER_LEVEL_DEBUG, "Identity: Sending Pedals Version: %d.%d.%d", major_version, minor_version, patch_version);
+
     if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSVERSION, &status_msg, frame.data) == -1) {
         return IDENTITY_RC_ERROR;
     }
     if (can_communications_api_add_to_tx_buffer(&frame) != CAN_COMMUNICATION_RC_OK) {
         return IDENTITY_RC_ERROR;
     }
+
     return IDENTITY_RC_OK;
 }
 
@@ -57,6 +63,9 @@ enum IdentityReturnCode identity_api_send_pedals_version_info(uint32_t tick) {
         .pedalsversioninfo.commithash = tmp_commithash,
         .pedalsversioninfo.dirty = tmp_dirty,
     };
+
+    //logger_api_log(LOGGER_LEVEL_DEBUG, "Identity: Sending Pedals Version Info: buildtime=%u, commithash=%u, dirty=%d", tmp_buildtime, tmp_commithash, tmp_dirty);
+
     if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSVERSIONINFO, &status_msg, frame.data) == -1) {
         return IDENTITY_RC_ERROR;
     }
@@ -79,6 +88,9 @@ enum IdentityReturnCode identity_api_send_pedals_fsm(uint32_t tick, state_t fsm_
     union CanPrimaryMessages status_msg = {
         .pedalsfsm.status = fsm_state,
     };
+
+    //logger_api_log(LOGGER_LEVEL_DEBUG, "Identity: Sending Pedals FSM: %d", fsm_state);
+
     if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSFSM, &status_msg, frame.data) == -1) {
         return IDENTITY_RC_ERROR;
     }
@@ -103,6 +115,9 @@ enum IdentityReturnCode identity_api_send_libcan_version(uint32_t tick) {
         .pedalslibcanversion.minor = can_version_minor,
         .pedalslibcanversion.patch = can_version_patch,
     };
+
+    //logger_api_log(LOGGER_LEVEL_DEBUG, "Identity: Sending Libcan Version: %d.%d.%d", can_version_major, can_version_minor, can_version_patch);
+
     if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSLIBCANVERSION, &status_msg, frame.data) == -1) {
         return IDENTITY_RC_ERROR;
     }

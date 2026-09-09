@@ -3,6 +3,7 @@
 
 #include "identity.h"
 #include "fsm.h"
+#include "logger-api.h"
 
 /*!
  * \brief Sends pedal's version to CAN at a certain rate

@@ -1,6 +1,8 @@
 #include "throttle-api.h"
 #include "can-primary-api.h"
 #include "can-communications-api.h"
+#include "logger-api.h"
+#include "logger.h"
 
 EAGLETRT_STATIC struct ThrottleHandler throttle_handler;
 
@@ -124,6 +126,9 @@ void throttle_api_update_internal_status(uint32_t tick) {
 
     for (enum ThrottleId i = THROTTLE_ID_APPS_1; i < THROTTLE_ID_COUNT; i++) {
         apps[i] = throttle_handler.apps_travel_percentages[i];
+
+        // THIS MUST BE REMOVED ONCE THE FORWARD AND BACK STOPS ARE FIXED, FOR NOW IT'S A TEMPORARY FIX TO AVOID THE THROTTLE TO GO INTO IMPLAUSIBILITY ERROR
+        apps[i] = EAGLETRT_API_CLAMP(apps[i], throttle_min_percentage, throttle_max_percentage);
         apps[i] = ((apps[i] > throttle_max_percentage) || (apps[i] < throttle_min_percentage)) ? THROTTLE_ERROR_VALUE : apps[i];
     }
 
@@ -168,6 +173,13 @@ enum ThrottleReturnCode throttle_api_send_status(uint32_t tick) {
         .pedalsthrottle.travel = throttle_handler.travel_percentage,
         .pedalsthrottle.plausibility = throttle_handler.status,
     };
+
+    //logger_api_log(LOGGER_LEVEL_DEBUG, "Throttle: Sending Status: apps1:%f, apps2=%f, apps3=%f, travel=%f, plausibility=%d", throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_1], throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_2], throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_3], throttle_handler.travel_percentage, throttle_handler.status);
+
+    logger_api_log(LOGGER_LEVEL_EMPTY, "\n>apps1_converted:%f\n>apps2_converted:%f\n>apps3_converted:%f\n>travel:%f\n>plausibility:%d", throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_1], throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_2], throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_3], throttle_handler.travel_percentage, throttle_handler.status);
+
+    //logger_api_log(LOGGER_LEVEL_EMPTY, "\n>travel:%f\n>plausibility:%d", throttle_handler.travel_percentage, throttle_handler.status);
+
     if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSTHROTTLE, &status_msg, frame.data) == -1) {
         return THROTTLE_RC_ERROR;
     }
