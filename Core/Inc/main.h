@@ -57,19 +57,14 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define DBG_RX_Pin GPIO_PIN_7
-#define DBG_RX_GPIO_Port GPIOB
-#define USER_LED_Pin GPIO_PIN_0
-#define USER_LED_GPIO_Port GPIOA
 #define SENSE_5V_Pin GPIO_PIN_1
 #define SENSE_5V_GPIO_Port GPIOA
-#define BSPS_F_Pin GPIO_PIN_2
-#define BSPS_F_GPIO_Port GPIOA
-#define BSPS_R_Pin GPIO_PIN_3
-#define BSPS_R_GPIO_Port GPIOA
+#define BSPS_FRONT_Pin GPIO_PIN_2
+#define BSPS_FRONT_GPIO_Port GPIOA
+#define BSPS_REAR_Pin GPIO_PIN_3
+#define BSPS_REAR_GPIO_Port GPIOA
 #define BOTS_Pin GPIO_PIN_4
 #define BOTS_GPIO_Port GPIOA
-#define BOTS_EXTI_IRQn EXTI4_15_IRQn
 #define BPPS_Pin GPIO_PIN_5
 #define BPPS_GPIO_Port GPIOA
 #define APPS_3_Pin GPIO_PIN_6
@@ -78,8 +73,6 @@ void Error_Handler(void);
 #define APPS_2_GPIO_Port GPIOA
 #define APPS_1_Pin GPIO_PIN_8
 #define APPS_1_GPIO_Port GPIOA
-#define DBG_TX_Pin GPIO_PIN_6
-#define DBG_TX_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

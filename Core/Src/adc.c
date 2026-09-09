@@ -22,6 +22,21 @@
 
 /* USER CODE BEGIN 0 */
 
+#include <string.h>
+#include "brake-api.h"
+#include "eagletrt-api.h"
+#include "logger-api.h"
+#include "logger.h"
+#include "throttle-api.h"
+#include "bots-api.h"
+#include "adc_conversion.h"
+
+constexpr int ADC_BUFFER_SIZE = 8U;
+
+uint16_t adc_buffer[ADC_BUFFER_SIZE];
+uint16_t adc_values[ADC_BUFFER_SIZE];
+float adc_voltages[ADC_BUFFER_SIZE];
+
 /* USER CODE END 0 */
 
 ADC_HandleTypeDef hadc1;
@@ -43,20 +58,22 @@ void MX_ADC1_Init(void) {
     /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
     hadc1.Instance = ADC1;
-    hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV1;
+    hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
     hadc1.Init.Resolution = ADC_RESOLUTION_12B;
     hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-    hadc1.Init.ScanConvMode = ADC_SCAN_SEQ_FIXED;
-    hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
+    hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
+    hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
     hadc1.Init.LowPowerAutoWait = DISABLE;
     hadc1.Init.LowPowerAutoPowerOff = DISABLE;
-    hadc1.Init.ContinuousConvMode = ENABLE;
-    hadc1.Init.NbrOfConversion = 1;
-    hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-    hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+    hadc1.Init.ContinuousConvMode = DISABLE;
+    hadc1.Init.NbrOfConversion = 8;
+    hadc1.Init.DiscontinuousConvMode = DISABLE;
+    hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T3_TRGO;
+    hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
     hadc1.Init.DMAContinuousRequests = ENABLE;
     hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
-    hadc1.Init.SamplingTimeCommon1 = ADC_SAMPLETIME_1CYCLE_5;
+    hadc1.Init.SamplingTimeCommon1 = ADC_SAMPLETIME_12CYCLES_5;
+    hadc1.Init.SamplingTimeCommon2 = ADC_SAMPLETIME_12CYCLES_5;
     hadc1.Init.OversamplingMode = DISABLE;
     hadc1.Init.TriggerFrequencyMode = ADC_TRIGGER_FREQ_HIGH;
     if (HAL_ADC_Init(&hadc1) != HAL_OK) {
@@ -66,7 +83,8 @@ void MX_ADC1_Init(void) {
     /** Configure Regular Channel
   */
     sConfig.Channel = ADC_CHANNEL_1;
-    sConfig.Rank = ADC_RANK_CHANNEL_NUMBER;
+    sConfig.Rank = ADC_REGULAR_RANK_1;
+    sConfig.SamplingTime = ADC_SAMPLINGTIME_COMMON_1;
     if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
         Error_Handler();
     }
@@ -74,6 +92,7 @@ void MX_ADC1_Init(void) {
     /** Configure Regular Channel
   */
     sConfig.Channel = ADC_CHANNEL_2;
+    sConfig.Rank = ADC_REGULAR_RANK_2;
     if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
         Error_Handler();
     }
@@ -81,6 +100,15 @@ void MX_ADC1_Init(void) {
     /** Configure Regular Channel
   */
     sConfig.Channel = ADC_CHANNEL_3;
+    sConfig.Rank = ADC_REGULAR_RANK_3;
+    if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
+        Error_Handler();
+    }
+
+    /** Configure Regular Channel
+  */
+    sConfig.Channel = ADC_CHANNEL_4;
+    sConfig.Rank = ADC_REGULAR_RANK_4;
     if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
         Error_Handler();
     }
@@ -88,6 +116,7 @@ void MX_ADC1_Init(void) {
     /** Configure Regular Channel
   */
     sConfig.Channel = ADC_CHANNEL_5;
+    sConfig.Rank = ADC_REGULAR_RANK_5;
     if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
         Error_Handler();
     }
@@ -95,6 +124,7 @@ void MX_ADC1_Init(void) {
     /** Configure Regular Channel
   */
     sConfig.Channel = ADC_CHANNEL_6;
+    sConfig.Rank = ADC_REGULAR_RANK_6;
     if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
         Error_Handler();
     }
@@ -102,6 +132,7 @@ void MX_ADC1_Init(void) {
     /** Configure Regular Channel
   */
     sConfig.Channel = ADC_CHANNEL_7;
+    sConfig.Rank = ADC_REGULAR_RANK_7;
     if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
         Error_Handler();
     }
@@ -109,6 +140,7 @@ void MX_ADC1_Init(void) {
     /** Configure Regular Channel
   */
     sConfig.Channel = ADC_CHANNEL_8;
+    sConfig.Rank = ADC_REGULAR_RANK_8;
     if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
         Error_Handler();
     }
@@ -142,12 +174,13 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef *adcHandle) {
     PA1     ------> ADC1_IN1
     PA2     ------> ADC1_IN2
     PA3     ------> ADC1_IN3
+    PA4     ------> ADC1_IN4
     PA5     ------> ADC1_IN5
     PA6     ------> ADC1_IN6
     PA7     ------> ADC1_IN7
     PA8     ------> ADC1_IN8
     */
-        GPIO_InitStruct.Pin = SENSE_5V_Pin | BSPS_F_Pin | BSPS_R_Pin | BPPS_Pin | APPS_3_Pin | APPS_2_Pin | APPS_1_Pin;
+        GPIO_InitStruct.Pin = SENSE_5V_Pin | BSPS_FRONT_Pin | BSPS_REAR_Pin | BOTS_Pin | BPPS_Pin | APPS_3_Pin | APPS_2_Pin | APPS_1_Pin;
         GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -188,12 +221,13 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *adcHandle) {
     PA1     ------> ADC1_IN1
     PA2     ------> ADC1_IN2
     PA3     ------> ADC1_IN3
+    PA4     ------> ADC1_IN4
     PA5     ------> ADC1_IN5
     PA6     ------> ADC1_IN6
     PA7     ------> ADC1_IN7
     PA8     ------> ADC1_IN8
     */
-        HAL_GPIO_DeInit(GPIOA, SENSE_5V_Pin | BSPS_F_Pin | BSPS_R_Pin | BPPS_Pin | APPS_3_Pin | APPS_2_Pin | APPS_1_Pin);
+        HAL_GPIO_DeInit(GPIOA, SENSE_5V_Pin | BSPS_FRONT_Pin | BSPS_REAR_Pin | BOTS_Pin | BPPS_Pin | APPS_3_Pin | APPS_2_Pin | APPS_1_Pin);
 
         /* ADC1 DMA DeInit */
         HAL_DMA_DeInit(adcHandle->DMA_Handle);
@@ -204,5 +238,81 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef *adcHandle) {
 }
 
 /* USER CODE BEGIN 1 */
+
+void adc_init(void) {
+    HAL_ADCEx_Calibration_Start(&hadc1);
+    HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adc_buffer, ADC_BUFFER_SIZE);
+}
+
+char *adc_get_reading_name(enum AdcReading reading) {
+    switch (reading) {
+        case ADC_READING_SENSE_5V:
+            return "SENSE_5V";
+        case ADC_READING_BSPS_FRONT:
+            return "BSPS_FRONT";
+        case ADC_READING_BSPS_REAR:
+            return "BSPS_REAR";
+        case ADC_READING_BOTS:
+            return "BOTS";
+        case ADC_READING_BPPS:
+            return "BPPS";
+        case ADC_READING_APPS_3:
+            return "APPS_3";
+        case ADC_READING_APPS_2:
+            return "APPS_2";
+        case ADC_READING_APPS_1:
+            return "APPS_1";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+uint16_t adc_read_raw(enum AdcReading reading) {
+    if (reading >= ADC_READING_COUNT) {
+        return 0;
+    }
+    return adc_values[reading];
+}
+
+float adc_read_voltage(enum AdcReading reading) {
+    if (reading >= ADC_READING_COUNT) {
+        return 0;
+    }
+    return adc_voltages[reading];
+}
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+    if (hadc->Instance != ADC1) {
+        return;
+    }
+    memcpy(adc_values, adc_buffer, sizeof(adc_values));
+
+    //// as for now, we haven't tested apps3, bots and sense5v
+    adc_voltages[ADC_READING_SENSE_5V] = ADC_CONV_SENSE_5V_RAW2VOLT(adc_values[ADC_READING_SENSE_5V]);
+    adc_voltages[ADC_READING_APPS_1] = ADC_CONV_APPS_1_RAW2VOLT(adc_values[ADC_READING_APPS_1]);
+    adc_voltages[ADC_READING_APPS_2] = ADC_CONV_APPS_2_RAW2VOLT(adc_values[ADC_READING_APPS_2]);
+    adc_voltages[ADC_READING_APPS_3] = ADC_CONV_APPS_3_RAW2VOLT(adc_values[ADC_READING_APPS_3]);
+    adc_voltages[ADC_READING_BPPS] = ADC_CONV_BPPS_RAW2VOLT(adc_values[ADC_READING_BPPS]);
+    adc_voltages[ADC_READING_BSPS_FRONT] = ADC_CONV_BSPS_FRONT_RAW2VOLT(adc_values[ADC_READING_BSPS_FRONT]);
+    adc_voltages[ADC_READING_BSPS_REAR] = ADC_CONV_BSPS_REAR_RAW2VOLT(adc_values[ADC_READING_BSPS_REAR]);
+    adc_voltages[ADC_READING_BOTS] = ADC_CONV_BOTS_RAW2VOLT(adc_values[ADC_READING_BOTS]);
+}
+
+void adc_update_modules() {
+    float apps1 = ADC_CONV_APPS1_NORMALIZE(adc_voltages[ADC_READING_APPS_1]);
+    float apps2 = ADC_CONV_APPS2_NORMALIZE(adc_voltages[ADC_READING_APPS_2]);
+    float apps3 = ADC_CONV_APPS3_NORMALIZE(adc_voltages[ADC_READING_APPS_3]);
+    float bpps = ADC_CONV_BPPS_NORMALIZE(adc_voltages[ADC_READING_BPPS]);
+    float front = eagletrt_api_mapf(adc_voltages[ADC_READING_BSPS_FRONT], 0.5, 4.5, 0.0, 100.0);
+    float rear = eagletrt_api_mapf(adc_voltages[ADC_READING_BSPS_REAR], 0.5, 4.5, 0.0, 100.0);
+
+    logger_api_log(LOGGER_LEVEL_EMPTY, "\n>apps1_raw:%f\n>apps2_raw:%f\n>apps3_raw:%f\n>bpps_raw:%f\n>front_raw:%f\n>rear_raw:%f\n>bots_raw:%f", adc_voltages[ADC_READING_APPS_1], adc_voltages[ADC_READING_APPS_2], adc_voltages[ADC_READING_APPS_3], adc_voltages[ADC_READING_BPPS], adc_voltages[ADC_READING_BSPS_FRONT], adc_voltages[ADC_READING_BSPS_REAR], adc_voltages[ADC_READING_BOTS]);
+
+    throttle_api_update_pedal_values(apps1, apps2, apps3);
+    brake_api_update_pedal_travel_percentage(bpps);
+    brake_api_update_front_pressure(front);
+    brake_api_update_rear_pressure(rear);
+    bots_set_voltage(adc_voltages[ADC_READING_BOTS]);
+}
 
 /* USER CODE END 1 */

@@ -90,13 +90,16 @@ void HAL_UART_MspInit(UART_HandleTypeDef *uartHandle) {
     PB7     ------> USART1_RX
     PB6     ------> USART1_TX
     */
-        GPIO_InitStruct.Pin = DBG_RX_Pin | DBG_TX_Pin;
+        GPIO_InitStruct.Pin = GPIO_PIN_7 | GPIO_PIN_6;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Pull = GPIO_NOPULL;
         GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
         GPIO_InitStruct.Alternate = GPIO_AF0_USART1;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+        /* USART1 interrupt Init */
+        HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(USART1_IRQn);
         /* USER CODE BEGIN USART1_MspInit 1 */
 
         /* USER CODE END USART1_MspInit 1 */
@@ -116,8 +119,10 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *uartHandle) {
     PB7     ------> USART1_RX
     PB6     ------> USART1_TX
     */
-        HAL_GPIO_DeInit(GPIOB, DBG_RX_Pin | DBG_TX_Pin);
+        HAL_GPIO_DeInit(GPIOB, GPIO_PIN_7 | GPIO_PIN_6);
 
+        /* USART1 interrupt Deinit */
+        HAL_NVIC_DisableIRQ(USART1_IRQn);
         /* USER CODE BEGIN USART1_MspDeInit 1 */
 
         /* USER CODE END USART1_MspDeInit 1 */
@@ -125,5 +130,22 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *uartHandle) {
 }
 
 /* USER CODE BEGIN 1 */
+enum PalReturnCode usart_logger_transmit(const struct PalMessage *message) {
+    if (message == NULL) {
+        return PAL_RC_NULL_POINTER;
+    }
 
+    if (message->size == 0U) {
+        return PAL_RC_OK;
+    }
+
+    // Execute blocking transmission over the USART
+    HAL_StatusTypeDef status = HAL_UART_Transmit(&huart1, (uint8_t *)message->payload, (uint16_t)message->size, 100);
+
+    if (status != HAL_OK) {
+        return PAL_RC_IO_ERROR;
+    }
+
+    return PAL_RC_OK;
+}
 /* USER CODE END 1 */

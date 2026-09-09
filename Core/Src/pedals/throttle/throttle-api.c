@@ -1,16 +1,20 @@
 #include "throttle-api.h"
-#include "eagletrt-api.h"
+#include "can-primary-api.h"
+#include "can-communications-api.h"
+#include "logger-api.h"
+#include "logger.h"
 
-EAGLETRT_STATIC struct ThrottleHandler throttle_handler = {
-    .is_implausibility_timeout = false,
-    .apps_travel_percentages = { 0.0F, 0.0F, 0.0F },
-    .travel_percentage = 0.0F,
-    .status = THROTTLE_STATUS_OK,
-    .start_timer = NULL,
-    .stop_timer = NULL
-};
+EAGLETRT_STATIC struct ThrottleHandler throttle_handler;
 
 // internal functions ---------------------------------------
+float prv_throttle_remove_deadzone(float percentage) {
+    constexpr float throttle_deadzone_lower_percentage = 0.05F;
+    constexpr float throttle_deadzone_higher_percentage = 1.0F - throttle_deadzone_lower_percentage;
+
+    percentage = EAGLETRT_API_CLAMP(percentage, throttle_deadzone_lower_percentage, throttle_deadzone_higher_percentage);
+    percentage = eagletrt_api_normalize(percentage, throttle_deadzone_lower_percentage, throttle_deadzone_higher_percentage);
+    return percentage;
+}
 
 float prv_throttle_calculate_next_value(const float apps[THROTTLE_ID_COUNT]) {
     int valid_apps_pair_count = 0;
@@ -42,8 +46,10 @@ float prv_throttle_calculate_next_value(const float apps[THROTTLE_ID_COUNT]) {
     float result = THROTTLE_ERROR_VALUE;
     if (valid_apps_pair_count == 3) {
         result = (apps[THROTTLE_ID_APPS_1] + apps[THROTTLE_ID_APPS_2] + apps[THROTTLE_ID_APPS_3]) / (float)THROTTLE_ID_COUNT;
+        result = prv_throttle_remove_deadzone(result);
     } else if (valid_apps_pair_count > 0) {
         result = (apps[last_valid_apps_pair_index] + apps[(last_valid_apps_pair_index + 1) % 3]) / (float)THROTTLE_MIN_NUMBER_VALID_APPS;
+        result = prv_throttle_remove_deadzone(result);
     }
     return result;
 }
@@ -69,7 +75,6 @@ void prv_throttle_calculate_next_state(float new_value) {
         }
         case THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE: {
             if (new_value != THROTTLE_ERROR_VALUE) {
-
                 if (throttle_handler.stop_timer == NULL || throttle_handler.stop_timer() != THROTTLE_RC_OK) {
                     throttle_handler.status = THROTTLE_STATUS_CALLBACK_ERROR;
                 } else {
@@ -85,12 +90,12 @@ void prv_throttle_calculate_next_state(float new_value) {
     }
 }
 
-// actual api ---------------------------------------
-
 enum ThrottleReturnCode throttle_api_init(throttle_timer_callback start_timer, throttle_timer_callback stop_timer) {
     if (start_timer == NULL || stop_timer == NULL) {
         return THROTTLE_RC_NULL_POINTER;
     }
+
+    memset(&throttle_handler, 0, sizeof(throttle_handler));
 
     throttle_handler.start_timer = start_timer;
     throttle_handler.stop_timer = stop_timer;
@@ -103,9 +108,14 @@ void throttle_api_update_pedal_values(float apps1, float apps2, float apps3) {
     throttle_handler.apps_travel_percentages[2] = apps3;
 }
 
-void throttle_api_update_internal_status() {
+void throttle_api_update_internal_status(uint32_t tick) {
     constexpr float throttle_max_percentage = 1.0F;
     constexpr float throttle_min_percentage = 0.0F;
+
+    if (tick - throttle_handler.last_update_tick < THROTTLE_UPDATE_PEDIOD_MS) {
+        return;
+    }
+    throttle_handler.last_update_tick = tick;
 
     // if status is THROTTLE_STATUS_IMPLAUSIBILITY_ERROR you can't recover from the error, leave the throttle state as it is
     if (throttle_handler.status != THROTTLE_STATUS_OK && throttle_handler.status != THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE) {
@@ -116,6 +126,9 @@ void throttle_api_update_internal_status() {
 
     for (enum ThrottleId i = THROTTLE_ID_APPS_1; i < THROTTLE_ID_COUNT; i++) {
         apps[i] = throttle_handler.apps_travel_percentages[i];
+
+        // THIS MUST BE REMOVED ONCE THE FORWARD AND BACK STOPS ARE FIXED, FOR NOW IT'S A TEMPORARY FIX TO AVOID THE THROTTLE TO GO INTO IMPLAUSIBILITY ERROR
+        apps[i] = EAGLETRT_API_CLAMP(apps[i], throttle_min_percentage, throttle_max_percentage);
         apps[i] = ((apps[i] > throttle_max_percentage) || (apps[i] < throttle_min_percentage)) ? THROTTLE_ERROR_VALUE : apps[i];
     }
 
@@ -141,4 +154,37 @@ float throttle_api_get_apps(enum ThrottleId apps_id) {
 
 void throttle_api_implausibility_timeout_trigger() {
     throttle_handler.is_implausibility_timeout = true;
+}
+
+enum ThrottleReturnCode throttle_api_send_status(uint32_t tick) {
+    if (tick - throttle_handler.last_status_tick < can_primary_cycle_time_pedalsthrottle) {
+        return THROTTLE_RC_OK;
+    }
+    throttle_handler.last_status_tick = tick;
+
+    struct CanCommunicationFrame frame = {
+        .id = CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSTHROTTLE,
+        .length = can_primary_byte_size_pedalsthrottle,
+    };
+    union CanPrimaryMessages status_msg = {
+        .pedalsthrottle.apps1 = throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_1],
+        .pedalsthrottle.apps2 = throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_2],
+        .pedalsthrottle.apps3 = throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_3],
+        .pedalsthrottle.travel = throttle_handler.travel_percentage,
+        .pedalsthrottle.plausibility = throttle_handler.status,
+    };
+
+    //logger_api_log(LOGGER_LEVEL_DEBUG, "Throttle: Sending Status: apps1:%f, apps2=%f, apps3=%f, travel=%f, plausibility=%d", throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_1], throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_2], throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_3], throttle_handler.travel_percentage, throttle_handler.status);
+
+    logger_api_log(LOGGER_LEVEL_EMPTY, "\n>apps1_converted:%f\n>apps2_converted:%f\n>apps3_converted:%f\n>travel:%f\n>plausibility:%d", throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_1], throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_2], throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_3], throttle_handler.travel_percentage, throttle_handler.status);
+
+    //logger_api_log(LOGGER_LEVEL_EMPTY, "\n>travel:%f\n>plausibility:%d", throttle_handler.travel_percentage, throttle_handler.status);
+
+    if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSTHROTTLE, &status_msg, frame.data) == -1) {
+        return THROTTLE_RC_ERROR;
+    }
+    if (can_communications_api_add_to_tx_buffer(&frame) != CAN_COMMUNICATION_RC_OK) {
+        return THROTTLE_RC_ERROR;
+    }
+    return THROTTLE_RC_OK;
 }

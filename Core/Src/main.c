@@ -1,32 +1,40 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2026 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
 #include "dma.h"
 #include "fdcan.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
+#include "can-communications-router-api.h"
 #include "fsm.h"
+#include "post.h"
+#include "eagletrt-api.h"
+#include "logger-api.h"
+#include "arena-allocator-api.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -36,7 +44,11 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+//TODO: Would be better to move the defines into a configuration file (e.g. ecu-config.h)
+#define LOGGER_ENABLED (true)           /*!< Logger status: true to enable active logging, false to mute entirely. */
+#define LOGGER_RX_CAPACITY (1U)         /*!< Receive queue depth. Set to 1 because the logger is transmit-only but needs to be > 0 because of arena allocator. */
+#define LOGGER_TX_CAPACITY (10U)        /*!< Maximum number of log message packets allowed to sit in the outbound transmission queue. */
+#define LOGGER_UART_MAX_MSG_SIZE (128U) /*!< Maximum allocation allowed for an individual log string. */
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -48,17 +60,19 @@
 
 /* USER CODE BEGIN PV */
 
+EAGLETRT_STATIC struct ArenaAllocatorHandler arena_allocator_handler;
+EAGLETRT_STATIC struct PalHandler logger_pal_handler;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
+/*static void serial_write(const char *str) {
+    HAL_UART_Transmit(&huart1, (const uint8_t *)str, (uint16_t)strlen(str), HAL_MAX_DELAY);
+}*/
 
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
-
+// bootloader code
 static void VectorBase_Config(void) {
     /* The constant array with vectors of the vector table is declared externally in the
    * c-startup code.
@@ -69,6 +83,28 @@ static void VectorBase_Config(void) {
     SCB->VTOR = (unsigned long)&g_pfnVectors[0];
 }
 
+/*!
+ * \brief Initializes the low-level memory allocation and logging framework.
+ */
+EAGLETRT_STATIC void prv_main_init_logging_configuration() {
+    arena_allocator_api_init(&arena_allocator_handler);
+
+    EAGLETRT_API_UNUSED(pal_api_init(&logger_pal_handler,
+                                     LOGGER_RX_CAPACITY,
+                                     LOGGER_TX_CAPACITY,
+                                     LOGGER_UART_MAX_MSG_SIZE,
+                                     NULL,
+                                     usart_logger_transmit,
+                                     NULL,
+                                     NULL,
+                                     &arena_allocator_handler));
+}
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
 /* USER CODE END 0 */
 
 /**
@@ -78,7 +114,7 @@ static void VectorBase_Config(void) {
 int main(void) {
 
     /* USER CODE BEGIN 1 */
-    VectorBase_Config();
+    VectorBase_Config(); // bootloader code
     /* USER CODE END 1 */
 
     /* MCU Configuration--------------------------------------------------------*/
@@ -87,7 +123,7 @@ int main(void) {
     HAL_Init();
 
     /* USER CODE BEGIN Init */
-    state_t current_state = STATE_INIT;
+
     /* USER CODE END Init */
 
     /* Configure the system clock */
@@ -100,21 +136,52 @@ int main(void) {
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_DMA_Init();
-    MX_ADC1_Init();
-    MX_FDCAN1_Init();
     MX_USART1_UART_Init();
+    MX_FDCAN1_Init();
+    MX_ADC1_Init();
+    MX_TIM3_Init();
+    MX_TIM1_Init();
     /* USER CODE BEGIN 2 */
+
+    prv_main_init_logging_configuration();
+    EAGLETRT_API_UNUSED(logger_api_init(&logger_pal_handler, LOGGER_ENABLED));
+
+    adc_init();
+    HAL_TIM_Base_Start(&htim3);
+
+    HAL_FDCAN_Start(&hfdcan1);
+
+    state_t state = STATE_INIT;
+
+    struct PostInit init_struct = {
+        .start_timer = tim_start_timer_throttle,
+        .stop_timer = tim_stop_timer_throttle,
+        .config = {
+            .send = fdcan_send_primary,
+            .on_receive = can_communications_router_api_receive_primary,
+            .cs_enter = __disable_irq,
+            .cs_exit = __enable_irq }
+    };
+
+    state = run_state(state, &init_struct);
+
+    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0);
+
+    struct FsmData data = {
+        .get_tick = HAL_GetTick,
+        .update_module = adc_update_modules,
+    };
 
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
+        state = run_state(state, &data);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-
-        current_state = run_state(current_state, NULL);
     }
     /* USER CODE END 3 */
 }
@@ -127,13 +194,15 @@ void SystemClock_Config(void) {
     RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
     RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
 
-    __HAL_FLASH_SET_LATENCY(FLASH_LATENCY_0);
+    __HAL_FLASH_SET_LATENCY(FLASH_LATENCY_1);
 
     /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+    RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+    RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
+    RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
     if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
         Error_Handler();
     }
@@ -141,12 +210,12 @@ void SystemClock_Config(void) {
     /** Initializes the CPU, AHB and APB buses clocks
   */
     RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1;
-    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
     RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
     RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV1;
     RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV1;
 
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK) {
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK) {
         Error_Handler();
     }
 }
@@ -177,8 +246,9 @@ void Error_Handler(void) {
   */
 void assert_failed(uint8_t *file, uint32_t line) {
     /* USER CODE BEGIN 6 */
-    /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+    /* User can add his own implementation to report the file name and line
+     number, ex: printf("Wrong parameters value: file %s on line %d\r\n", file,
+     line) */
     /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

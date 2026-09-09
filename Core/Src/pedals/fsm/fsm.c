@@ -15,6 +15,12 @@ The finite state machine has:
 
 #include "fsm.h"
 #include "eagletrt-api.h"
+#include "can-communications-api.h"
+#include "brake-api.h"
+#include "throttle-api.h"
+#include "post-api.h"
+#include "identity-api.h"
+#include "logger-api.h"
 
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!
 
@@ -30,6 +36,8 @@ state_func_t *const state_table[NUM_STATES] = {
     do_flash, // in state flash
 };
 // No transition functions
+
+EAGLETRT_STATIC uint32_t fsm_last_module_update_tick = 0;
 
 /*  ____  _        _       
  * / ___|| |_ __ _| |_ ___ 
@@ -50,7 +58,10 @@ state_t do_init(state_data_t *data) {
     state_t next_state = STATE_IDLE;
     /* Your Code Here */
 
-    EAGLETRT_API_UNUSED(data);
+    struct PostInit *init_struct = (struct PostInit *)data;
+    if (post_api_init(init_struct) != POST_RC_OK) {
+        next_state = STATE_ERROR;
+    }
 
     switch (next_state) {
         case STATE_IDLE:
@@ -69,7 +80,41 @@ state_t do_idle(state_data_t *data) {
     state_t next_state = NO_CHANGE;
     /* Your Code Here */
 
-    EAGLETRT_API_UNUSED(data);
+    if (data == NULL) {
+        return STATE_ERROR;
+    }
+    struct FsmData *idle_struct = (struct FsmData *)data;
+    if (idle_struct->get_tick == NULL || idle_struct->update_module == NULL) {
+        return STATE_ERROR;
+    }
+    uint32_t current_tick = idle_struct->get_tick();
+
+    can_communications_api_process_rx();
+
+    if (current_tick - fsm_last_module_update_tick >= FSM_MODULES_UPDATE_PERIOD_MS) {
+        fsm_last_module_update_tick = current_tick;
+        idle_struct->update_module();
+    }
+
+    throttle_api_update_internal_status(current_tick);
+
+    logger_api_log(LOGGER_LEVEL_DEBUG, "FSM: Updating Throttle Status");
+
+    EAGLETRT_API_UNUSED(identity_api_send_pedals_version(current_tick));
+
+    EAGLETRT_API_UNUSED(identity_api_send_pedals_version_info(current_tick));
+
+    EAGLETRT_API_UNUSED(identity_api_send_libcan_version(current_tick));
+
+    EAGLETRT_API_UNUSED(identity_api_send_libcan_version_info(current_tick));
+
+    EAGLETRT_API_UNUSED(identity_api_send_pedals_fsm(current_tick, next_state));
+
+    EAGLETRT_API_UNUSED(throttle_api_send_status(current_tick));
+
+    EAGLETRT_API_UNUSED(brake_api_send_status(current_tick));
+
+    can_communications_api_process_tx();
 
     switch (next_state) {
         case NO_CHANGE:
@@ -140,8 +185,9 @@ state_t do_flash(state_data_t *data) {
 
 state_t run_state(state_t cur_state, state_data_t *data) {
     state_t new_state = state_table[cur_state](data);
-    if (new_state == NO_CHANGE)
+    if (new_state == NO_CHANGE) {
         new_state = cur_state;
+    }
 
     return new_state;
 }
