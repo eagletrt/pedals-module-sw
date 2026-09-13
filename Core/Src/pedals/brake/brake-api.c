@@ -56,10 +56,6 @@ enum BrakeReturnCode brake_api_send_status(uint32_t tick) {
         .pedalsbrake.botsvoltage = bots_get_voltage(),
     };
 
-    //logger_api_log(LOGGER_LEVEL_DEBUG, "Brake: Sending Status: travel=%f, front_pressure=%f, rear_pressure=%f, bots_voltage=%f", brake_handler.pedal_travel, brake_handler.front_pressure, brake_handler.rear_pressure, bots_get_voltage());
-
-    logger_api_log(LOGGER_LEVEL_EMPTY, "\n>travel_br:%f\n>front_pressure:%f\n>rear_pressure:%f\n>bots_voltage:%f", brake_handler.pedal_travel, brake_handler.front_pressure, brake_handler.rear_pressure, bots_get_voltage());
-
     if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSBRAKE, &data, frame.data) == -1) {
         return BRAKE_RC_ERROR;
     }

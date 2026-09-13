@@ -98,8 +98,6 @@ state_t do_idle(state_data_t *data) {
 
     throttle_api_update_internal_status(current_tick);
 
-    logger_api_log(LOGGER_LEVEL_DEBUG, "FSM: Updating Throttle Status");
-
     EAGLETRT_API_UNUSED(identity_api_send_pedals_version(current_tick));
 
     EAGLETRT_API_UNUSED(identity_api_send_pedals_version_info(current_tick));
