@@ -48,7 +48,7 @@ extern "C" {
 /* #define HAL_SMARTCARD_MODULE_ENABLED   */
 /* #define HAL_SMBUS_MODULE_ENABLED   */
 /* #define HAL_SPI_MODULE_ENABLED   */
-/* #define HAL_TIM_MODULE_ENABLED   */
+#define HAL_TIM_MODULE_ENABLED
 #define HAL_UART_MODULE_ENABLED
 /* #define HAL_USART_MODULE_ENABLED   */
 /* #define HAL_WWDG_MODULE_ENABLED   */
@@ -275,5 +275,3 @@ void assert_failed(uint8_t *file, uint32_t line);
 #endif
 
 #endif /* STM32C0xx_HAL_CONF_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

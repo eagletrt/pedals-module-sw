@@ -19,11 +19,23 @@ The finite state machine has:
 extern "C" {
 #endif
 #include <stdlib.h>
+#include <stdint.h>
+
+#define FSM_MODULES_UPDATE_PERIOD_MS (3)
 
 // State data object
 // By default set to void; override this typedef or load the proper
 // header if you need
 typedef void state_data_t;
+
+typedef uint32_t (*fsm_get_tick_callback)(void);
+typedef void (*fsm_serial_write_callback)(const char *str);
+typedef void (*fsm_update_module_callback)(void);
+
+struct FsmData {
+    fsm_get_tick_callback get_tick;
+    fsm_update_module_callback update_module;
+};
 
 // NOTHING SHALL BE CHANGED AFTER THIS LINE!
 
