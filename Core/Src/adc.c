@@ -302,14 +302,14 @@ void adc_update_modules() {
     float apps1 = ADC_CONV_APPS1_NORMALIZE(adc_voltages[ADC_READING_APPS_1]);
     float apps2 = ADC_CONV_APPS2_NORMALIZE(adc_voltages[ADC_READING_APPS_2]);
     float apps3 = ADC_CONV_APPS3_NORMALIZE(adc_voltages[ADC_READING_APPS_3]);
-    float bpps = ADC_CONV_BPPS_NORMALIZE(adc_voltages[ADC_READING_BPPS]);
-    float front = eagletrt_api_mapf(adc_voltages[ADC_READING_BSPS_FRONT], 0.5, 4.5, 0.0, 100.0);
+    //float bpps = ADC_CONV_BPPS_NORMALIZE(adc_voltages[ADC_READING_BPPS]);
+    float front = eagletrt_api_mapf(adc_voltages[ADC_READING_BSPS_FRONT], 0.499, 0.9, 0.0, 100.0);
     float rear = eagletrt_api_mapf(adc_voltages[ADC_READING_BSPS_REAR], 0.5, 4.5, 0.0, 100.0);
 
     logger_api_log(LOGGER_LEVEL_EMPTY, "\n>apps1_raw:%f\n>apps2_raw:%f\n>apps3_raw:%f\n>bpps_raw:%f\n>front_raw:%f\n>rear_raw:%f\n>bots_raw:%f", adc_voltages[ADC_READING_APPS_1], adc_voltages[ADC_READING_APPS_2], adc_voltages[ADC_READING_APPS_3], adc_voltages[ADC_READING_BPPS], adc_voltages[ADC_READING_BSPS_FRONT], adc_voltages[ADC_READING_BSPS_REAR], adc_voltages[ADC_READING_BOTS]);
 
     throttle_api_update_pedal_values(apps1, apps2, apps3);
-    brake_api_update_pedal_travel_percentage(bpps);
+    brake_api_update_pedal_travel_percentage(front / 100.0F);
     brake_api_update_front_pressure(front);
     brake_api_update_rear_pressure(rear);
     bots_set_voltage(adc_voltages[ADC_READING_BOTS]);

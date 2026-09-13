@@ -2,12 +2,16 @@
 #include "can-communications-api.h"
 #include "can-primary-api.h"
 #include "bots-api.h"
+#include "eagletrt-api.h"
 #include "eagletrt.h"
 
 EAGLETRT_STATIC struct BrakeHandler brake_handler;
 
 void brake_api_update_pedal_travel_percentage(float percentage) {
-    if (percentage < 0.0F || percentage > 1.0F) {
+    if (percentage > -0.05F && percentage < 1.05F) {
+        percentage = EAGLETRT_API_CLAMP(percentage, 0.0F, 1.0F);
+        //percentage = -1.0F;
+    } else if (percentage < -0.05F || percentage > 1.05F) {
         percentage = -1.0F;
     }
     brake_handler.pedal_travel = percentage;
@@ -18,7 +22,7 @@ void brake_api_update_front_pressure(float pressure) {
 }
 
 void brake_api_update_rear_pressure(float pressure) {
-    brake_handler.front_pressure = pressure;
+    brake_handler.rear_pressure = pressure;
 }
 
 float brake_api_get_pedal_travel_percentage() {
@@ -53,6 +57,8 @@ enum BrakeReturnCode brake_api_send_status(uint32_t tick) {
     };
 
     //logger_api_log(LOGGER_LEVEL_DEBUG, "Brake: Sending Status: travel=%f, front_pressure=%f, rear_pressure=%f, bots_voltage=%f", brake_handler.pedal_travel, brake_handler.front_pressure, brake_handler.rear_pressure, bots_get_voltage());
+
+    logger_api_log(LOGGER_LEVEL_EMPTY, "\n>travel_br:%f\n>front_pressure:%f\n>rear_pressure:%f\n>bots_voltage:%f", brake_handler.pedal_travel, brake_handler.front_pressure, brake_handler.rear_pressure, bots_get_voltage());
 
     if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSBRAKE, &data, frame.data) == -1) {
         return BRAKE_RC_ERROR;
