@@ -171,6 +171,7 @@ int main(void) {
     struct FsmData data = {
         .get_tick = HAL_GetTick,
         .update_module = adc_update_modules,
+        .system_reset = HAL_NVIC_SystemReset,
     };
 
     /* USER CODE END 2 */

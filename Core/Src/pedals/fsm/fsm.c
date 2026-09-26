@@ -16,6 +16,7 @@ The finite state machine has:
 #include "fsm.h"
 #include "eagletrt-api.h"
 #include "can-communications-api.h"
+#include "can-communications-router-api.h"
 #include "brake-api.h"
 #include "throttle-api.h"
 #include "post-api.h"
@@ -84,12 +85,16 @@ state_t do_idle(state_data_t *data) {
         return STATE_ERROR;
     }
     struct FsmData *idle_struct = (struct FsmData *)data;
-    if (idle_struct->get_tick == NULL || idle_struct->update_module == NULL) {
+    if (idle_struct->get_tick == NULL || idle_struct->update_module == NULL || idle_struct->system_reset == NULL) {
         return STATE_ERROR;
     }
     uint32_t current_tick = idle_struct->get_tick();
 
     can_communications_api_process_rx();
+
+    if (can_communications_router_api_is_bootloader_requested()) {
+        idle_struct->system_reset();
+    }
 
     if (current_tick - fsm_last_module_update_tick >= FSM_MODULES_UPDATE_PERIOD_MS) {
         fsm_last_module_update_tick = current_tick;

@@ -169,6 +169,7 @@ g_pfnVectors:
   .word  USART3_4_IRQHandler               /* USART3 and USART4                           */
   .word  FDCAN1_IT0_IRQHandler             /* FDCAN1 interrupt request 0 pending          */
   .word  FDCAN1_IT1_IRQHandler             /* FDCAN1 interrupt request 1 pending          */
+  .word  0x55AA11EE                        /* reserved for the OpenBLT checksum (offset 0xC0), see BOOT_FLASH_VECTOR_TABLE_CS_OFFSET */
 
   .size g_pfnVectors, .-g_pfnVectors
 /*******************************************************************************

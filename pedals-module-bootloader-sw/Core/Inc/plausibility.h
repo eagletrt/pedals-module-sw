@@ -113,6 +113,14 @@
 #define BOOT_COM_USB_RX_MAX_DATA       (63)
 #endif
 
+#ifndef BOOT_COM_CUSTOM_TX_MAX_DATA
+#define BOOT_COM_CUSTOM_TX_MAX_DATA    (63)
+#endif
+
+#ifndef BOOT_COM_CUSTOM_RX_MAX_DATA
+#define BOOT_COM_CUSTOM_RX_MAX_DATA    (63)
+#endif
+
 #ifndef BOOT_COM_NET_TX_MAX_DATA
 #define BOOT_COM_NET_TX_MAX_DATA       (129)
 #endif
@@ -361,6 +369,37 @@
 
 #endif /* BOOT_COM_USB_ENABLE > 0 */
 
+#ifndef BOOT_COM_CUSTOM_ENABLE
+#define BOOT_COM_CUSTOM_ENABLE             (0)
+#endif
+
+#if (BOOT_COM_CUSTOM_ENABLE > 0)
+#ifndef BOOT_COM_CUSTOM_TX_MAX_DATA
+#error "BOOT_COM_CUSTOM_TX_MAX_DATA is missing in blt_conf.h"
+#endif
+
+#if (BOOT_COM_CUSTOM_TX_MAX_DATA <= 0)
+#error "BOOT_COM_CUSTOM_TX_MAX_DATA must be > 0"
+#endif
+
+#if (BOOT_COM_CUSTOM_TX_MAX_DATA > 255)
+#error "BOOT_COM_CUSTOM_TX_MAX_DATA must be <= 255"
+#endif
+
+#ifndef BOOT_COM_CUSTOM_RX_MAX_DATA
+#error "BOOT_COM_CUSTOM_RX_MAX_DATA is missing in blt_conf.h"
+#endif
+
+#if (BOOT_COM_CUSTOM_RX_MAX_DATA <= 0)
+#error "BOOT_COM_CUSTOM_RX_MAX_DATA must be > 0"
+#endif
+
+#if (BOOT_COM_CUSTOM_RX_MAX_DATA > 255)
+#error "BOOT_COM_CUSTOM_RX_MAX_DATA must be <= 255"
+#endif
+
+#endif /* BOOT_COM_CUSTOM_ENABLE > 0 */
+
 #ifndef BOOT_COM_NET_ENABLE
 #define BOOT_COM_NET_ENABLE             (0)
 #endif
@@ -482,7 +521,7 @@
 #define BOOT_COM_DEFERRED_INIT_ENABLE       (0)
 #endif
 
-#if (BOOT_COM_CAN_ENABLE == 1) || (BOOT_COM_RS232_ENABLE == 1) || (BOOT_COM_MBRTU_ENABLE == 1) || (BOOT_COM_NET_ENABLE == 1) || (BOOT_COM_USB_ENABLE == 1)
+#if (BOOT_COM_CAN_ENABLE == 1) || (BOOT_COM_RS232_ENABLE == 1) || (BOOT_COM_MBRTU_ENABLE == 1) || (BOOT_COM_NET_ENABLE == 1) || (BOOT_COM_USB_ENABLE == 1) || (BOOT_COM_CUSTOM_ENABLE == 1)
 #define BOOT_COM_ENABLE   (1)
 #else
 #define BOOT_COM_ENABLE   (0)
@@ -499,40 +538,6 @@
 #if (BOOT_FILE_SYS_ENABLE < 0) || (BOOT_FILE_SYS_ENABLE > 1)
 #error "BOOT_FILE_SYS_ENABLE must be 0 or 1"
 #endif
-
-#if (BOOT_FILE_SYS_ENABLE > 0)
-#ifndef BOOT_FILE_LOGGING_ENABLE
-#define BOOT_FILE_LOGGING_ENABLE         (0)
-#endif
-
-#if (BOOT_FILE_LOGGING_ENABLE < 0) || (BOOT_FILE_LOGGING_ENABLE > 1)
-#error "BOOT_FILE_LOGGING_ENABLE must be 0 or 1"
-#endif
-
-#ifndef BOOT_FILE_ERROR_HOOK_ENABLE
-#define BOOT_FILE_ERROR_HOOK_ENABLE      (0)
-#endif
-
-#if (BOOT_FILE_ERROR_HOOK_ENABLE < 0) || (BOOT_FILE_ERROR_HOOK_ENABLE > 1)
-#error "BOOT_FILE_ERROR_HOOK_ENABLE must be 0 or 1"
-#endif
-
-#ifndef BOOT_FILE_STARTED_HOOK_ENABLE
-#define BOOT_FILE_STARTED_HOOK_ENABLE    (0)
-#endif
-
-#if (BOOT_FILE_STARTED_HOOK_ENABLE < 0) || (BOOT_FILE_STARTED_HOOK_ENABLE > 1)
-#error "BOOT_FILE_STARTED_HOOK_ENABLE must be 0 or 1"
-#endif
-
-#ifndef BOOT_FILE_COMPLETED_HOOK_ENABLE
-#define BOOT_FILE_COMPLETED_HOOK_ENABLE  (0)
-#endif
-
-#if (BOOT_FILE_COMPLETED_HOOK_ENABLE < 0) || (BOOT_FILE_COMPLETED_HOOK_ENABLE > 1)
-#error "BOOT_FILE_COMPLETED_HOOK_ENABLE must be 0 or 1"
-#endif
-#endif /* BOOT_FILE_SYS_ENABLE > 0 */
 
 
 /****************************************************************************************
@@ -596,6 +601,18 @@
 
 #if (BOOT_COP_HOOKS_ENABLE < 0) || (BOOT_COP_HOOKS_ENABLE > 1)
 #error "BOOT_COP_HOOKS_ENABLE must be 0 or 1"
+#endif
+
+
+/****************************************************************************************
+*   E V E N T S   M O D U L E   C O N F I G U R A T I O N   C H E C K
+****************************************************************************************/
+#ifndef BOOT_EVENTS_ENABLE
+#define BOOT_EVENTS_ENABLE              (0)
+#endif
+
+#if (BOOT_EVENTS_ENABLE < 0) || (BOOT_EVENTS_ENABLE > 1)
+#error "BOOT_EVENTS_ENABLE must be 0 or 1"
 #endif
 
 
