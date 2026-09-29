@@ -13,7 +13,7 @@
  *     the bootloader, which then answers the next CONNECT. Must match
  *     BOOT_COM_CAN_RX_MSG_ID in pedals-module-bootloader-sw/Core/Inc/blt_conf.h.
  */
-#define CAN_COMMUNICATIONS_ROUTER_BOOTLOADER_RX_ID (20U)
+#define CAN_COMMUNICATIONS_ROUTER_BOOTLOADER_RX_ID (0x20U)
 
 /*! \brief XCP CONNECT command code, first byte of the bootloader request frame. */
 #define CAN_COMMUNICATIONS_ROUTER_XCP_CMD_CONNECT (0xFFU)

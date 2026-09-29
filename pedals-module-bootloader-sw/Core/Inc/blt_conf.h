@@ -40,11 +40,11 @@
 /** \brief Configure the desired CAN baudrate. */
 #define BOOT_COM_CAN_BAUDRATE           (1000000)
 /** \brief Configure CAN message ID target->host. */
-#define BOOT_COM_CAN_TX_MSG_ID          (19u)
+#define BOOT_COM_CAN_TX_MSG_ID          (0x19U)
 /** \brief Configure number of bytes in the target->host CAN message. */
 #define BOOT_COM_CAN_TX_MAX_DATA        (8)
 /** \brief Configure CAN message ID host->target. */
-#define BOOT_COM_CAN_RX_MSG_ID          (20u)
+#define BOOT_COM_CAN_RX_MSG_ID          (0x20U)
 /** \brief Configure number of bytes in the host->target CAN message. */
 #define BOOT_COM_CAN_RX_MAX_DATA        (8)
 /** \brief Configure CAN classic (0) or CAN FD (1). */
