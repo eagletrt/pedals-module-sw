@@ -135,6 +135,7 @@ NVIC.PendSV_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:false
 NVIC.SVCall_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:false
 NVIC.SysTick_IRQn=true\:3\:0\:false\:false\:true\:false\:true\:false
 NVIC.TIM1_BRK_UP_TRG_COM_IRQn=true\:0\:0\:false\:false\:true\:true\:true\:true
+NVIC.TIM3_IRQn=true\:0\:0\:false\:false\:true\:true\:true\:true
 NVIC.USART1_IRQn=true\:0\:0\:false\:false\:true\:true\:true\:true
 PA1.GPIOParameters=GPIO_Label
 PA1.GPIO_Label=SENSE_5V

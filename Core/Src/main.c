@@ -147,8 +147,6 @@ int main(void) {
     EAGLETRT_API_UNUSED(logger_api_init(&logger_pal_handler, LOGGER_ENABLED));
 
     adc_init();
-    HAL_TIM_Base_Start(&htim3);
-
     HAL_FDCAN_Start(&hfdcan1);
 
     state_t state = STATE_INIT;
@@ -164,6 +162,8 @@ int main(void) {
     };
 
     state = run_state(state, &init_struct);
+
+    HAL_TIM_Base_Start_IT(&htim3);
 
     HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
     HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0);

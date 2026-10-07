@@ -1,10 +1,15 @@
 #include "post-api.h"
 #include "throttle-api.h"
 #include "can-communications-api.h"
+#include "bootloader.h"
 #include <stddef.h>
 
 enum PostReturnCode post_api_init(struct PostInit *init) {
     if (init == NULL) {
+        return POST_RC_ERROR;
+    }
+
+    if (bootloader_init() != BOOTLOADER_RC_OK) {
         return POST_RC_ERROR;
     }
 

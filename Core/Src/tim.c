@@ -22,6 +22,8 @@
 
 /* USER CODE BEGIN 0 */
 
+#include "bootloader.h"
+
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim1;
@@ -121,6 +123,10 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *tim_baseHandle) {
         /* USER CODE END TIM3_MspInit 0 */
         /* TIM3 clock enable */
         __HAL_RCC_TIM3_CLK_ENABLE();
+
+        /* TIM3 interrupt Init */
+        HAL_NVIC_SetPriority(TIM3_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(TIM3_IRQn);
         /* USER CODE BEGIN TIM3_MspInit 1 */
 
         /* USER CODE END TIM3_MspInit 1 */
@@ -147,6 +153,9 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *tim_baseHandle) {
         /* USER CODE END TIM3_MspDeInit 0 */
         /* Peripheral clock disable */
         __HAL_RCC_TIM3_CLK_DISABLE();
+
+        /* TIM3 interrupt Deinit */
+        HAL_NVIC_DisableIRQ(TIM3_IRQn);
         /* USER CODE BEGIN TIM3_MspDeInit 1 */
 
         /* USER CODE END TIM3_MspDeInit 1 */
@@ -159,6 +168,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM1) {
         throttle_api_implausibility_timeout_trigger();
         HAL_TIM_Base_Stop_IT(&htim1);
+    } else if (htim->Instance == TIM3) {
+        (void)bootloader_timebase_tick();
     }
 }
 
