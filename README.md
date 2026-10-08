@@ -15,8 +15,10 @@ Questa guida presuppone una conoscenza di base di STM32 e HAL: si concentra sul 
 | Modulo | Implementazione | Interfacce e tipi | Responsabilità |
 | --- | --- | --- | --- |
 | FSM | [fsm.c](Core/Src/pedals/fsm/fsm.c) | [fsm.h](Core/Inc/pedals/fsm/fsm.h) | Coordina avvio, aggiornamenti, comunicazioni e reset. |
-| POST | [post-api.c](Core/Src/pedals/post/post-api.c) | [post-api.h](Core/Inc/pedals/post/post-api.h), [post.h](Core/Inc/pedals/post/post.h) | Inizializza bootloader, throttle e CAN attraverso le callback fornite da `main`. |
-| Bootloader applicativo | [bootloader.c](Core/Src/pedals/bootloader/bootloader.c) | [bootloader.h](Core/Inc/pedals/bootloader/bootloader.h) | Riconosce CONNECT locale e attività di flashing sul bus; gestisce il timeout software. |
+| POST | [post-api.c](Core/Src/pedals/post/post-api.c) | [post-api.h](Core/Inc/pedals/post/post-api.h), [post.h](Core/Inc/pedals/post/post.h) | Inizializza timebase, scheduler dei watchdog, bootloader, throttle e CAN attraverso le callback fornite da `main`. |
+| Timebase | [timebase.c](Core/Src/pedals/timebase/timebase.c) | [timebase-api.h](Core/Inc/pedals/timebase/timebase-api.h), [timebase.h](Core/Inc/pedals/timebase/timebase.h) | Espone a tutta la scheda il tempo incrementato da TIM3, indipendente da HAL SysTick. |
+| Watchdog software | [watchdogs.c](Core/Src/pedals/watchdogs/watchdogs.c) | [watchdogs-api.h](Core/Inc/pedals/watchdogs/watchdogs-api.h) | Gestisce un unico scheduler condiviso e i watchdog registrati dai diversi moduli. |
+| Bootloader applicativo | [bootloader.c](Core/Src/pedals/bootloader/bootloader.c) | [bootloader-api.h](Core/Inc/pedals/bootloader/bootloader-api.h), [bootloader.h](Core/Inc/pedals/bootloader/bootloader.h) | Riconosce CONNECT locale e attività di flashing sul bus; possiede soltanto il proprio watchdog di inattività. |
 | Throttle | [throttle-api.c](Core/Src/pedals/throttle/throttle-api.c) | [throttle-api.h](Core/Inc/pedals/throttle/throttle-api.h), [throttle.h](Core/Inc/pedals/throttle/throttle.h) | Combina gli APPS, controlla la plausibilità e prepara la telemetria acceleratore. |
 | Brake | [brake-api.c](Core/Src/pedals/brake/brake-api.c) | [brake-api.h](Core/Inc/pedals/brake/brake-api.h), [brake.h](Core/Inc/pedals/brake/brake.h) | Conserva corsa e pressioni freno e prepara la telemetria freno/BOTS. |
 | BOTS | [bots-api.c](Core/Src/pedals/bots/bots-api.c) | [bots-api.h](Core/Inc/pedals/bots/bots-api.h) | Conserva la tensione del Brake Over-Travel Switch e la confronta con una soglia. |
@@ -46,7 +48,7 @@ FDCAN1 RX -> callback HAL -> coda RX -> router -> modulo bootloader
   -> XCP CONNECT per pedals -> flag persistente -> reset MCU
   -> frame nel range flashing -> STATE_FLASH, TX sospesa e RX attiva
        -> altri frame nel range: rinnovo del timeout
-       -> 1000 ms senza attività: STATE_IDLE, ripresa della telemetria
+       -> 500 ms senza attività: STATE_IDLE, ripresa della telemetria
 
 TIM1 scaduto -> flag di timeout -> errore throttle al successivo aggiornamento
 ```
@@ -59,8 +61,8 @@ La sequenza è rilevante perché i moduli dipendono da callback e code già iniz
 2. Inizializza HAL, clock, GPIO, DMA, USART1, FDCAN1, ADC1, TIM3 e TIM1.
 3. Crea l'arena e il contesto PAL del logger, quindi chiama `logger_api_init()`.
 4. `adc_init()` calibra l'ADC e avvia il DMA; viene avviato anche FDCAN1.
-5. Costruisce `PostInit` e chiama una volta `run_state(STATE_INIT, &init_struct)`, inizializzando anche timebase e watchdog del bootloader.
-6. Avvia TIM3 con interrupt: lo stesso update abilita i trigger ADC e incrementa la timebase del bootloader ogni millisecondo.
+5. Costruisce `PostInit` e chiama una volta `run_state(STATE_INIT, &init_struct)`: il POST inizializza la timebase globale, lo scheduler globale dei watchdog e poi i moduli che vi registrano i propri watchdog.
+6. Avvia TIM3 con interrupt: lo stesso update abilita i trigger ADC e incrementa la timebase globale ogni millisecondo.
 7. Abilita le notifiche RX delle FIFO CAN, dopo l'inizializzazione delle code.
 8. Costruisce `FsmData` e avvia il ciclo infinito.
 
@@ -69,7 +71,7 @@ Le dipendenze hardware passate da `main` sono:
 | Callback | Implementazione collegata | Uso |
 | --- | --- | --- |
 | `PostInit.start_timer` / `stop_timer` | `tim_start_timer_throttle()` / `tim_stop_timer_throttle()` | Finestra di plausibilità dell'acceleratore. |
-| Timebase bootloader | TIM3, tramite `bootloader_timebase_tick()` | Tick indipendente da HAL SysTick per il watchdog di inattività del flashing. |
+| Timebase globale | TIM3, tramite `timebase_tick()` | Tick indipendente da HAL SysTick, riutilizzabile da watchdog e futuri scheduler di task. |
 | `PostInit.config.send` | `fdcan_send_primary()` | Invio effettivo dei frame. |
 | `PostInit.config.on_receive` | `can_communications_router_api_receive_primary()` | Interpretazione dei frame fuori dall'interrupt. |
 | `PostInit.config.cs_enter` / `cs_exit` | `__disable_irq()` / `__enable_irq()` | Protezione delle code condivise fra ISR e main loop. |
@@ -83,12 +85,14 @@ Le dipendenze hardware passate da `main` sono:
 
 | Stato | Comportamento attuale |
 | --- | --- |
-| `STATE_INIT` | `post_api_init()` verifica le dipendenze e inizializza bootloader, throttle e CAN; la FSM passa a `STATE_IDLE` oppure `STATE_ERROR`. |
+| `STATE_INIT` | `post_api_init()` verifica le dipendenze e inizializza timebase, watchdog, bootloader, throttle e CAN; la FSM passa a `STATE_IDLE` oppure `STATE_ERROR`. |
 | `STATE_IDLE` | Processa RX e dà priorità al reset locale. Se rileva flashing passa a `STATE_FLASH` senza produrre nuova telemetria; altrimenti aggiorna i sensori e invia i messaggi periodici. |
 | `STATE_ERROR` | Rimane nello stato senza eseguire recupero o invii periodici. |
 | `STATE_FLASH` | Continua RX, sensori e plausibilità senza produrre telemetria. Un CONNECT locale resetta la MCU; il timeout senza traffico di flashing riporta la FSM in `STATE_IDLE`. |
 
 Il POST è quindi un'inizializzazione dei moduli, non un collaudo dei sensori. Logger, ADC e periferiche sono inizializzati separatamente da `main`.
+
+La timebase e il pool dei watchdog sono risorse della scheda, non del bootloader. L'ordine richiesto è `timebase_init()` → `watchdogs_init()` → inizializzazione dei moduli consumer. Ogni consumer conserva il proprio `struct Watchdog`, lo registra indicando un timeout in millisecondi e usa `start`, `restart`, `pet` o `stop`; il `main` chiama `watchdogs_update()` una sola volta per iterazione, indipendentemente dallo stato FSM. Le callback scadute vengono quindi eseguite nel main loop, mentre l'interrupt TIM3 si limita a incrementare il tempo. `timebase_get_current_tick()` e `timebase_get_current_time()` permettono anche a moduli futuri, per esempio uno scheduler di task periodici, di usare la stessa sorgente temporale.
 
 In `STATE_IDLE`, le funzioni `send_*()` vengono chiamate a ogni iterazione ma applicano internamente il proprio periodo. `FSM_MODULES_UPDATE_PERIOD_MS` vale 3 ms; `THROTTLE_UPDATE_PEDIOD_MS` vale 5 ms (il nome della macro contiene effettivamente `PEDIOD`). Sono intervalli minimi controllati tramite tick, non task con scadenze garantite: operazioni bloccanti nel ciclo possono ritardarle.
 
@@ -206,9 +210,9 @@ Il router delega a `bootloader_receive()`. Il modulo riconosce un frame con ID `
 
 Ogni frame con ID compreso fra `BOOTLOADER_CAN_FLASH_ID_MIN` e `BOOTLOADER_CAN_FLASH_ID_MAX`, estremi inclusi, rinnova il watchdog di inattività, indipendentemente dal comando XCP. Non basta controllare CONNECT: anche dati e risposte mantengono la scheda in `STATE_FLASH`. I frame fuori range non rinnovano il timeout e non provocano reset.
 
-Il range è provvisoriamente `0x19–0x20`, basato sui soli ID OpenBLT presenti nel repository: **prima del collaudo con altre schede va impostato il range ufficiale assegnato a tutti i messaggi di flashing**, senza includere ID di telemetria ordinaria. Le due define e `BOOTLOADER_INACTIVITY_TIMEOUT_MS` (1000 ms) sono in [bootloader.h](Core/Inc/pedals/bootloader/bootloader.h).
+Il range è provvisoriamente `0x19–0x20`, basato sui soli ID OpenBLT presenti nel repository: **prima del collaudo con altre schede va impostato il range ufficiale assegnato a tutti i messaggi di flashing**, senza includere ID di telemetria ordinaria. Le due define e `BOOTLOADER_INACTIVITY_TIMEOUT_MS` (500 ms) sono in [bootloader.h](Core/Inc/pedals/bootloader/bootloader.h).
 
-`bootloader_init()` inizializza una `TimebaseHandler`, il pool dei watchdog e il watchdog di inattività. TIM3 genera un interrupt ogni millisecondo e `HAL_TIM_PeriodElapsedCallback()` chiama `bootloader_timebase_tick()`; il modulo non usa `HAL_GetTick()` per il flashing. La FSM chiama `bootloader_update()` dopo aver svuotato la coda RX: la routine della libreria esegue la callback di timeout, che termina lo stato di flashing. Ogni frame nel range riavvia lo stesso watchdog. Questo watchdog software fa uscire da `STATE_FLASH`; non resetta la MCU.
+`bootloader_init()` azzera i flag e registra il proprio watchdog di inattività nello scheduler condiviso. TIM3 genera un interrupt ogni millisecondo e `HAL_TIM_PeriodElapsedCallback()` chiama `timebase_tick()`; il flashing non usa `HAL_GetTick()`. Il main loop chiama `watchdogs_update()` prima della FSM: la routine esegue le callback scadute di tutti i moduli, compresa quella che termina lo stato di flashing. Ogni frame nel range riavvia il watchdog posseduto dal bootloader. Questo watchdog software fa uscire da `STATE_FLASH`; non resetta la MCU.
 
 In `STATE_FLASH` nessuna funzione di invio periodico viene chiamata; sensori e plausibilità throttle continuano ad aggiornarsi. Un errore nell'elaborazione RX o nella routine del watchdog porta a `STATE_ERROR`. Il dispatch di ulteriori comandi applicativi resta da implementare nel TODO del router.
 
@@ -250,9 +254,9 @@ Il logger accoda e processa immediatamente la trasmissione. [usart_logger_transm
 
 | File | Elementi da conoscere quando si modifica l'applicazione |
 | --- | --- |
-| [main.c](Core/Src/main.c), [main.h](Core/Inc/main.h) | Composizione dei moduli, configurazione logger, callback, ciclo FSM, rimappatura vettori; nomi e pin dei segnali analogici. `Error_Handler()` disabilita gli interrupt e resta in un ciclo infinito, distinto da `STATE_ERROR`. |
+| [main.c](Core/Src/main.c), [main.h](Core/Inc/main.h) | Composizione dei moduli, configurazione logger, callback, aggiornamento globale dei watchdog, ciclo FSM, rimappatura vettori; nomi e pin dei segnali analogici. `Error_Handler()` disabilita gli interrupt e resta in un ciclo infinito, distinto da `STATE_ERROR`. |
 | [adc.c](Core/Src/adc.c), [adc.h](Core/Inc/adc.h), [adc_conversion.h](Core/Inc/adc_conversion.h) | Buffer, ordine canali, callback DMA, calibrazioni e aggiornamento dei moduli. |
-| [tim.c](Core/Src/tim.c), [tim.h](Core/Inc/tim.h) | TIM3: prescaler 47 e periodo 999, trigger ADC e tick timebase bootloader ogni 1 ms. TIM1: prescaler 4799 e periodo 999, timeout throttle di 100 ms. Start azzera contatore e flag; stop ferma e azzera il contatore; la callback di scadenza segnala il timeout e ferma il timer. |
+| [tim.c](Core/Src/tim.c), [tim.h](Core/Inc/tim.h) | TIM3: prescaler 47 e periodo 999, trigger ADC e tick della timebase globale ogni 1 ms. TIM1: prescaler 4799 e periodo 999, timeout throttle di 100 ms. Start azzera contatore e flag; stop ferma e azzera il contatore; la callback di scadenza segnala il timeout e ferma il timer. |
 | [fdcan.c](Core/Src/fdcan.c), [fdcan.h](Core/Inc/fdcan.h) | Adattatore tra frame applicativo e HAL, conversione lunghezza→DLC in TX, ricezione dalle FIFO e accodamento; cancellazione delle richieste TX pendenti all'ingresso in flashing. |
 | [usart.c](Core/Src/usart.c), [usart.h](Core/Inc/usart.h) | Callback PAL→UART e configurazione del canale di log. |
 | [stm32c0xx_it.c](Core/Src/stm32c0xx_it.c), [stm32c0xx_it.h](Core/Inc/stm32c0xx_it.h) | Instradano gli interrupt DMA1 Channel1, TIM1, USART1 e FDCAN1 ai rispettivi handler HAL; SysTick aggiorna il tick HAL. Le callback applicative si trovano nei file delle periferiche. |
@@ -296,18 +300,19 @@ I test esistenti si trovano in [test/](test/):
 - `test_brake`: gestione dei valori di corsa freno.
 - `test_bots`: memorizzazione tensione e soglia di attivazione.
 - `test_can_router`: riconoscimento XCP CONNECT e rifiuto delle combinazioni non corrispondenti.
-- `test_bootloader`: richiesta locale, limiti inclusivi del range, timebase, rinnovo e scadenza del watchdog.
+- `test_timebase_watchdogs`: timebase comune, più watchdog nello stesso scheduler, scadenza, restart, pet, stop e argomenti non validi.
+- `test_bootloader`: richiesta locale, limiti inclusivi del range, rinnovo e scadenza tramite i servizi temporali condivisi.
 - `test_fsm_flashing`: percorso integrato code→router→FSM, assenza di nuova telemetria, ripresa dopo inattività e reset locale da `IDLE`/`FLASH`.
 
-È possibile selezionare una suite, per esempio `pio test -e tests -f test_bootloader -f test_can_router -f test_fsm_flashing`. I test accedono ad alcuni handler grazie a `-DEAGLETRT_STATIC=`. I test nativi non verificano calibrazioni, timing hardware o collegamenti CAN.
+È possibile selezionare una suite, per esempio `pio test -e tests -f test_timebase_watchdogs -f test_bootloader -f test_can_router -f test_fsm_flashing`. I test accedono ad alcuni handler grazie a `-DEAGLETRT_STATIC=`. I test nativi non verificano calibrazioni, timing hardware o collegamenti CAN.
 
-I 19 test delle tre suite interessate (`test_bootloader`, `test_can_router` e `test_fsm_flashing`) passano; compilano anche le immagini `release`, `release-bootloader` e `bootloader`. La suite completa passa 43 test su 45: restano i due fallimenti già presenti in throttle (`one_value_valid` e `no_value_valid`), relativi al clamp provvisorio degli APPS fuori range e non al bootloader.
+I 24 test delle quattro suite interessate (`test_timebase_watchdogs`, `test_bootloader`, `test_can_router` e `test_fsm_flashing`) passano; compilano anche le immagini `release` e `release-bootloader`. La suite completa passa 48 test su 50: restano i due fallimenti già presenti in throttle (`one_value_valid` e `no_value_valid`), relativi al clamp provvisorio degli APPS fuori range e non a questa modifica.
 
 Collaudo su scheda ancora da eseguire, dopo aver configurato il range di rete:
 
 1. Verificare la telemetria normale e inviare un frame nel range diverso dal CONNECT locale: pedals deve smettere di trasmettere messaggi applicativi.
-2. Continuare con frame nel range a intervalli inferiori a 1000 ms: la scheda deve restare silenziosa, con ADC e plausibilità ancora attivi.
-3. Interrompere il traffico di flashing mantenendo eventualmente traffico fuori range: la telemetria deve riprendere dopo 1000 ms.
+2. Continuare con frame nel range a intervalli inferiori a 500 ms: la scheda deve restare silenziosa, con ADC e plausibilità ancora attivi.
+3. Interrompere il traffico di flashing mantenendo eventualmente traffico fuori range: la telemetria deve riprendere dopo 500 ms.
 4. Ripetere con gli estremi del range e con ID immediatamente esterni.
 5. Inviare CONNECT per pedals sia dal funzionamento normale sia mentre è silenziosa, quindi verificare l'aggiornamento completo con il tool OpenBLT.
 

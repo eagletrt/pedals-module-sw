@@ -110,10 +110,6 @@ state_t do_idle(state_data_t *data) {
         return STATE_FLASH;
     }
 
-    if (bootloader_update() != BOOTLOADER_RC_OK) {
-        return STATE_ERROR;
-    }
-
     prv_fsm_update_modules(idle_struct, current_tick);
 
     if (bootloader_is_flashing()) {
@@ -186,10 +182,6 @@ state_t do_flash(state_data_t *data) {
         flash_struct->system_reset();
         return NO_CHANGE;
     }
-    if (bootloader_update() != BOOTLOADER_RC_OK) {
-        return STATE_ERROR;
-    }
-
     prv_fsm_update_modules(flash_struct, flash_struct->get_tick());
     if (!bootloader_is_flashing()) {
         next_state = STATE_IDLE;

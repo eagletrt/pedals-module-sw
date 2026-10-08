@@ -8,20 +8,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/*! \brief Initialize the module-owned timebase and flashing inactivity watchdog. */
+/*! \brief Initialize the flashing state and register its inactivity watchdog. */
 enum BootloaderReturnCode bootloader_init(void);
-
-/*!
- * \brief Increment the module timebase by one tick.
- * \details Called by the 1 ms TIM3 interrupt, independently from HAL SysTick.
- */
-enum BootloaderReturnCode bootloader_timebase_tick(void);
-
-/*!
- * \brief Run the watchdog scheduler using the current timebase tick.
- * \details Call from the main loop after draining the CAN RX queue.
- */
-enum BootloaderReturnCode bootloader_update(void);
 
 /*!
  * \brief Handle flashing traffic in main-loop context; ignore other identifiers.

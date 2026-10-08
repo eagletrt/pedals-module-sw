@@ -37,12 +37,8 @@
  */
 #define BOOTLOADER_INACTIVITY_TIMEOUT_MS (500U)
 
-/*! \brief Resolution of the module-owned timebase, driven by TIM3. */
-#define BOOTLOADER_TIMEBASE_RESOLUTION_MS (1U)
-
 enum BootloaderReturnCode {
     BOOTLOADER_RC_OK,
-    BOOTLOADER_RC_TIMEBASE_ERROR,
     BOOTLOADER_RC_WATCHDOG_ERROR,
 };
 

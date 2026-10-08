@@ -34,6 +34,7 @@
 #include "eagletrt-api.h"
 #include "logger-api.h"
 #include "arena-allocator-api.h"
+#include "pedals/watchdogs/watchdogs-api.h"
 
 /* USER CODE END Includes */
 
@@ -179,7 +180,11 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        state = run_state(state, &data);
+        if (watchdogs_update() != WATCHDOG_RC_OK) {
+            state = STATE_ERROR;
+        } else {
+            state = run_state(state, &data);
+        }
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */

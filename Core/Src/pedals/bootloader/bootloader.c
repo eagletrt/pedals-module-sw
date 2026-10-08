@@ -1,8 +1,7 @@
 #include "bootloader-api.h"
-#include "arena-allocator-api.h"
 #include "eagletrt.h"
-#include "timebase-api.h"
-#include "watchdogs-api.h"
+#include "pedals/timebase/timebase.h"
+#include "pedals/watchdogs/watchdogs-api.h"
 
 #include <string.h>
 
@@ -13,14 +12,12 @@
     BOOTLOADER_CAN_RX_ID > BOOTLOADER_CAN_FLASH_ID_MAX
 #error "The flashing range must include the pedals bootloader identifier"
 #endif
-#if BOOTLOADER_INACTIVITY_TIMEOUT_MS < BOOTLOADER_TIMEBASE_RESOLUTION_MS || \
-    BOOTLOADER_INACTIVITY_TIMEOUT_MS % BOOTLOADER_TIMEBASE_RESOLUTION_MS != 0U
+#if BOOTLOADER_INACTIVITY_TIMEOUT_MS < TIMEBASE_RESOLUTION_MS || \
+    BOOTLOADER_INACTIVITY_TIMEOUT_MS % TIMEBASE_RESOLUTION_MS != 0U
 #error "The flashing timeout must be an exact, positive number of timebase ticks"
 #endif
 
 struct BootloaderHandler {
-    struct TimebaseHandler timebase;
-    struct WatchdogHandler watchdog_pool;
     struct Watchdog inactivity_watchdog;
     bool initialized;
 };
@@ -35,54 +32,18 @@ EAGLETRT_STATIC void prv_bootloader_inactivity_timeout(void) {
     bootloader_flashing = false;
 }
 
-EAGLETRT_STATIC uint32_t prv_bootloader_current_tick(void) {
-    return timebase_get_tick(&bootloader_handler.timebase);
-}
-
 enum BootloaderReturnCode bootloader_init(void) {
-    if (bootloader_handler.initialized) {
-        arena_allocator_api_free(&bootloader_handler.watchdog_pool.arena_handler);
-    }
     memset(&bootloader_handler, 0, sizeof(bootloader_handler));
     bootloader_requested = false;
     bootloader_flashing = false;
 
-    if (timebase_api_init(&bootloader_handler.timebase, BOOTLOADER_TIMEBASE_RESOLUTION_MS) != TIMEBASE_RC_OK ||
-        timebase_set_enable(&bootloader_handler.timebase, true) != TIMEBASE_RC_OK) {
-        return BOOTLOADER_RC_TIMEBASE_ERROR;
-    }
-    if (watchdogs_api_init_pool(&bootloader_handler.watchdog_pool, prv_bootloader_current_tick()) != WATCHDOG_RC_OK) {
-        return BOOTLOADER_RC_WATCHDOG_ERROR;
-    }
-    const uint32_t timeout_ticks = TIMEBASE_MS_TO_TICKS(BOOTLOADER_INACTIVITY_TIMEOUT_MS,
-                                                        BOOTLOADER_TIMEBASE_RESOLUTION_MS);
-    if (watchdogs_api_init_watchdog(&bootloader_handler.inactivity_watchdog,
-                                    timeout_ticks,
-                                    prv_bootloader_inactivity_timeout) != WATCHDOG_RC_OK) {
-        arena_allocator_api_free(&bootloader_handler.watchdog_pool.arena_handler);
+    if (watchdogs_init_watchdog(&bootloader_handler.inactivity_watchdog,
+                                BOOTLOADER_INACTIVITY_TIMEOUT_MS,
+                                prv_bootloader_inactivity_timeout) != WATCHDOG_RC_OK) {
         return BOOTLOADER_RC_WATCHDOG_ERROR;
     }
 
     bootloader_handler.initialized = true;
-    return BOOTLOADER_RC_OK;
-}
-
-enum BootloaderReturnCode bootloader_timebase_tick(void) {
-    if (!bootloader_handler.initialized ||
-        timebase_inc_tick(&bootloader_handler.timebase) != TIMEBASE_RC_OK) {
-        return BOOTLOADER_RC_TIMEBASE_ERROR;
-    }
-    return BOOTLOADER_RC_OK;
-}
-
-enum BootloaderReturnCode bootloader_update(void) {
-    if (!bootloader_handler.initialized) {
-        return BOOTLOADER_RC_WATCHDOG_ERROR;
-    }
-    if (watchdogs_api_routine(&bootloader_handler.watchdog_pool,
-                              prv_bootloader_current_tick()) != WATCHDOG_RC_OK) {
-        return BOOTLOADER_RC_WATCHDOG_ERROR;
-    }
     return BOOTLOADER_RC_OK;
 }
 
@@ -101,9 +62,7 @@ enum CanCommunicationReturnCode bootloader_receive(const struct CanCommunication
     }
 
     bootloader_flashing = true;
-    if (watchdogs_api_watchdog_restart(&bootloader_handler.watchdog_pool,
-                                       &bootloader_handler.inactivity_watchdog,
-                                       prv_bootloader_current_tick()) != WATCHDOG_RC_OK) {
+    if (watchdogs_restart(&bootloader_handler.inactivity_watchdog) != WATCHDOG_RC_OK) {
         bootloader_flashing = false;
         return CAN_COMMUNICATION_RC_ERROR;
     }

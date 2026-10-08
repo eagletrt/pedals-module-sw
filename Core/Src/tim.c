@@ -22,7 +22,7 @@
 
 /* USER CODE BEGIN 0 */
 
-#include "bootloader-api.h"
+#include "pedals/timebase/timebase-api.h"
 
 /* USER CODE END 0 */
 
@@ -169,7 +169,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         throttle_api_implausibility_timeout_trigger();
         HAL_TIM_Base_Stop_IT(&htim1);
     } else if (htim->Instance == TIM3) {
-        (void)bootloader_timebase_tick();
+        (void)timebase_tick();
     }
 }
 

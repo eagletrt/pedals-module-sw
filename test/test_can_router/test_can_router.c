@@ -1,6 +1,8 @@
 #include "unity.h"
 #include "can-communications-router-api.h"
 #include "bootloader-api.h"
+#include "pedals/timebase/timebase-api.h"
+#include "pedals/watchdogs/watchdogs-api.h"
 
 static struct CanCommunicationFrame xcp_connect_frame(void) {
     struct CanCommunicationFrame frame = {
@@ -12,6 +14,8 @@ static struct CanCommunicationFrame xcp_connect_frame(void) {
 }
 
 void setUp(void) {
+    TEST_ASSERT_EQUAL(TIMEBASE_RC_OK, timebase_init());
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, watchdogs_init());
     TEST_ASSERT_EQUAL(BOOTLOADER_RC_OK, bootloader_init());
 }
 
