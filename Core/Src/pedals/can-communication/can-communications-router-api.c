@@ -1,5 +1,5 @@
 #include "can-communications-router-api.h"
-#include "bootloader.h"
+#include "bootloader-api.h"
 
 enum CanCommunicationReturnCode can_communications_router_api_receive_primary(const struct CanCommunicationFrame *frame) {
     if (frame == NULL) {

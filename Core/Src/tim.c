@@ -22,7 +22,7 @@
 
 /* USER CODE BEGIN 0 */
 
-#include "bootloader.h"
+#include "bootloader-api.h"
 
 /* USER CODE END 0 */
 

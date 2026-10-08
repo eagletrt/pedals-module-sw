@@ -1,6 +1,6 @@
 #include "unity.h"
 #include "can-communications-router-api.h"
-#include "bootloader.h"
+#include "bootloader-api.h"
 
 static struct CanCommunicationFrame xcp_connect_frame(void) {
     struct CanCommunicationFrame frame = {

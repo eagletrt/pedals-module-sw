@@ -1,5 +1,5 @@
 #include "unity.h"
-#include "bootloader.h"
+#include "bootloader-api.h"
 #include "timebase.h"
 
 static struct CanCommunicationFrame connect_frame(void) {

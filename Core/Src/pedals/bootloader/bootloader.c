@@ -1,4 +1,4 @@
-#include "bootloader.h"
+#include "bootloader-api.h"
 #include "arena-allocator-api.h"
 #include "eagletrt.h"
 #include "timebase-api.h"
@@ -55,7 +55,7 @@ enum BootloaderReturnCode bootloader_init(void) {
         return BOOTLOADER_RC_WATCHDOG_ERROR;
     }
     const uint32_t timeout_ticks = TIMEBASE_MS_TO_TICKS(BOOTLOADER_INACTIVITY_TIMEOUT_MS,
-                                                       BOOTLOADER_TIMEBASE_RESOLUTION_MS);
+                                                        BOOTLOADER_TIMEBASE_RESOLUTION_MS);
     if (watchdogs_api_init_watchdog(&bootloader_handler.inactivity_watchdog,
                                     timeout_ticks,
                                     prv_bootloader_inactivity_timeout) != WATCHDOG_RC_OK) {

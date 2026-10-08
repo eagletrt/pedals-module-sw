@@ -1,6 +1,6 @@
 #include "unity.h"
 #include "arena-allocator-api.h"
-#include "bootloader.h"
+#include "bootloader-api.h"
 #include "can-communications-api.h"
 #include "can-communications-router-api.h"
 #include "fsm.h"

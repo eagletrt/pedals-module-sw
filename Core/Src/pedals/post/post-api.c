@@ -1,7 +1,7 @@
 #include "post-api.h"
 #include "throttle-api.h"
 #include "can-communications-api.h"
-#include "bootloader.h"
+#include "bootloader-api.h"
 #include <stddef.h>
 
 enum PostReturnCode post_api_init(struct PostInit *init) {

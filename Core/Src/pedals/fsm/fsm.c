@@ -17,7 +17,7 @@ The finite state machine has:
 #include "eagletrt-api.h"
 #include "can-communications-api.h"
 #include "can-communications-router-api.h"
-#include "bootloader.h"
+#include "bootloader-api.h"
 #include "brake-api.h"
 #include "throttle-api.h"
 #include "post-api.h"
