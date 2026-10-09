@@ -1,10 +1,19 @@
 #include "post-api.h"
 #include "throttle-api.h"
 #include "can-communications-api.h"
+#include "bootloader-api.h"
+#include "pedals/timebase/timebase-api.h"
+#include "pedals/watchdogs/watchdogs-api.h"
 #include <stddef.h>
 
 enum PostReturnCode post_api_init(struct PostInit *init) {
     if (init == NULL) {
+        return POST_RC_ERROR;
+    }
+
+    if (timebase_init() != TIMEBASE_RC_OK ||
+        watchdogs_init() != WATCHDOG_RC_OK ||
+        bootloader_init() != BOOTLOADER_RC_OK) {
         return POST_RC_ERROR;
     }
 

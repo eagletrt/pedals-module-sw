@@ -18,8 +18,8 @@ enum PostReturnCode {
  * 
  */
 struct PostInit {
-    throttle_timer_callback start_timer; /*!< Throttle's start timer callback*/
-    throttle_timer_callback stop_timer;  /*!< Throttle's stop timer callback*/
+    throttle_timer_callback start_timer;   /*!< Throttle's start timer callback*/
+    throttle_timer_callback stop_timer;    /*!< Throttle's stop timer callback*/
 
     struct CanCommunicationsNetworkConfig config;
 };
