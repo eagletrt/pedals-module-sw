@@ -92,7 +92,11 @@ Le dipendenze hardware passate da `main` sono:
 
 Il POST è quindi un'inizializzazione dei moduli, non un collaudo dei sensori. Logger, ADC e periferiche sono inizializzati separatamente da `main`.
 
-La timebase e il pool dei watchdog sono risorse della scheda, non del bootloader. L'ordine richiesto è `timebase_init()` → `watchdogs_init()` → inizializzazione dei moduli consumer. Ogni consumer conserva il proprio `struct Watchdog`, lo registra indicando un timeout in millisecondi e usa `start`, `restart`, `pet` o `stop`; il `main` chiama `watchdogs_update()` una sola volta per iterazione, indipendentemente dallo stato FSM. Le callback scadute vengono quindi eseguite nel main loop, mentre l'interrupt TIM3 si limita a incrementare il tempo. `timebase_get_current_tick()` e `timebase_get_current_time()` permettono anche a moduli futuri, per esempio uno scheduler di task periodici, di usare la stessa sorgente temporale.
+La timebase e il pool dei watchdog sono risorse della scheda, non del bootloader. L'ordine richiesto è `timebase_init()` → `watchdogs_init()` → inizializzazione dei moduli consumer. `watchdogs_init()` passa alla libreria la funzione `timebase_get_current_tick` come callback: lo scheduler la conserva e legge autonomamente il tempo quando serve. Ogni consumer conserva il proprio `struct Watchdog`, lo inizializza indicando un timeout in millisecondi e usa `start`, `restart`, `pet`, `stop` o `reset`, senza fornire un tick o una callback temporale. Il `main` chiama `watchdogs_update()` una sola volta per iterazione, indipendentemente dallo stato FSM. Le callback scadute vengono eseguite nel main loop, mentre l'interrupt TIM3 si limita a incrementare il tempo; anche le operazioni sui watchdog vanno chiamate dal main loop.
+
+`watchdogs_reset()` riporta un watchdog inizializzato a `NOT_RUNNING`, anche se è scaduto: non lo avvia e non esegue la callback. Se è in esecuzione, lo rimuove dallo scheduler; se è già fermo, la chiamata riesce comunque. `watchdogs_restart()` invece avvia o rinnova il conteggio in qualsiasi stato: resta quindi l'operazione usata dal bootloader a ogni frame di flashing. Il reset di un watchdog software non è il reset della MCU.
+
+Un futuro scheduler globale delle task potrà ricevere la stessa `timebase_get_current_tick` una sola volta in `tasks_api_init()`. Le task non sono ancora integrate negli invii periodici attuali.
 
 In `STATE_IDLE`, le funzioni `send_*()` vengono chiamate a ogni iterazione ma applicano internamente il proprio periodo. `FSM_MODULES_UPDATE_PERIOD_MS` vale 3 ms; `THROTTLE_UPDATE_PEDIOD_MS` vale 5 ms (il nome della macro contiene effettivamente `PEDIOD`). Sono intervalli minimi controllati tramite tick, non task con scadenze garantite: operazioni bloccanti nel ciclo possono ritardarle.
 
@@ -300,13 +304,13 @@ I test esistenti si trovano in [test/](test/):
 - `test_brake`: gestione dei valori di corsa freno.
 - `test_bots`: memorizzazione tensione e soglia di attivazione.
 - `test_can_router`: riconoscimento XCP CONNECT e rifiuto delle combinazioni non corrispondenti.
-- `test_timebase_watchdogs`: timebase comune, più watchdog nello stesso scheduler, scadenza, restart, pet, stop e argomenti non validi.
+- `test_timebase_watchdogs`: timebase comune, lettura del tick aggiornato tramite callback, più watchdog nello stesso scheduler, scadenza, restart, pet, stop, reset senza riavvio e argomenti non validi.
 - `test_bootloader`: richiesta locale, limiti inclusivi del range, rinnovo e scadenza tramite i servizi temporali condivisi.
 - `test_fsm_flashing`: percorso integrato code→router→FSM, assenza di nuova telemetria, ripresa dopo inattività e reset locale da `IDLE`/`FLASH`.
 
 È possibile selezionare una suite, per esempio `pio test -e tests -f test_timebase_watchdogs -f test_bootloader -f test_can_router -f test_fsm_flashing`. I test accedono ad alcuni handler grazie a `-DEAGLETRT_STATIC=`. I test nativi non verificano calibrazioni, timing hardware o collegamenti CAN.
 
-I 24 test delle quattro suite interessate (`test_timebase_watchdogs`, `test_bootloader`, `test_can_router` e `test_fsm_flashing`) passano; compilano anche le immagini `release` e `release-bootloader`. La suite completa passa 48 test su 50: restano i due fallimenti già presenti in throttle (`one_value_valid` e `no_value_valid`), relativi al clamp provvisorio degli APPS fuori range e non a questa modifica.
+Verifica con `libtimebase-sw` sul branch `dev`, commit `9643d9f`: i 28 test delle quattro suite interessate (`test_timebase_watchdogs`, `test_bootloader`, `test_can_router` e `test_fsm_flashing`) passano; compilano anche le immagini `release` e `release-bootloader`. La suite completa passa 52 test su 54: restano i due fallimenti già presenti in throttle (`one_value_valid` e `no_value_valid`), relativi al clamp provvisorio degli APPS fuori range e non a questa modifica. Firmware e test usano entrambi `#dev` in `platformio.ini`; il riferimento al branch può avanzare con i successivi aggiornamenti delle dipendenze.
 
 Collaudo su scheda ancora da eseguire, dopo aver configurato il range di rete:
 

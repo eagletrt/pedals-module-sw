@@ -27,7 +27,7 @@ enum WatchdogReturnCode watchdogs_init(void) {
     memset(&watchdogs_handler, 0, sizeof(watchdogs_handler));
 
     const enum WatchdogReturnCode result =
-        watchdogs_api_init_pool(&watchdogs_handler.scheduler, timebase_get_current_tick());
+        watchdogs_api_init_pool(&watchdogs_handler.scheduler, timebase_get_current_tick);
     if (result != WATCHDOG_RC_OK) {
         arena_allocator_api_free(&watchdogs_handler.scheduler.arena_handler);
         return result;
@@ -41,10 +41,10 @@ enum WatchdogReturnCode watchdogs_update(void) {
     if (!prv_watchdogs_is_ready()) {
         return WATCHDOG_RC_UNINITIALIZED;
     }
-    return watchdogs_api_routine(&watchdogs_handler.scheduler, timebase_get_current_tick());
+    return watchdogs_api_routine(&watchdogs_handler.scheduler);
 }
 
-enum WatchdogReturnCode watchdogs_init_watchdog(struct Watchdog *watchdog, uint32_t timeout_ms, timeout_callback callback) {
+enum WatchdogReturnCode watchdogs_init_watchdog(struct Watchdog *watchdog, uint32_t timeout_ms, watchdog_timeout_callback callback) {
     if (watchdog == NULL || callback == NULL) {
         return WATCHDOG_RC_NULL_POINTER;
     }
@@ -63,7 +63,7 @@ enum WatchdogReturnCode watchdogs_start(struct Watchdog *watchdog) {
     if (!prv_watchdogs_is_ready()) {
         return WATCHDOG_RC_UNINITIALIZED;
     }
-    return watchdogs_api_watchdog_start(&watchdogs_handler.scheduler, watchdog, timebase_get_current_tick());
+    return watchdogs_api_watchdog_start(&watchdogs_handler.scheduler, watchdog);
 }
 
 enum WatchdogReturnCode watchdogs_stop(struct Watchdog *watchdog) {
@@ -77,16 +77,21 @@ enum WatchdogReturnCode watchdogs_restart(struct Watchdog *watchdog) {
     if (!prv_watchdogs_is_ready()) {
         return WATCHDOG_RC_UNINITIALIZED;
     }
-    return watchdogs_api_watchdog_restart(&watchdogs_handler.scheduler,
-                                          watchdog,
-                                          timebase_get_current_tick());
+    return watchdogs_api_watchdog_restart(&watchdogs_handler.scheduler, watchdog);
+}
+
+enum WatchdogReturnCode watchdogs_reset(struct Watchdog *watchdog) {
+    if (!prv_watchdogs_is_ready()) {
+        return WATCHDOG_RC_UNINITIALIZED;
+    }
+    return watchdogs_api_watchdog_reset(&watchdogs_handler.scheduler, watchdog);
 }
 
 enum WatchdogReturnCode watchdogs_pet(struct Watchdog *watchdog) {
     if (!prv_watchdogs_is_ready()) {
         return WATCHDOG_RC_UNINITIALIZED;
     }
-    return watchdogs_api_watchdog_pet(&watchdogs_handler.scheduler, watchdog, timebase_get_current_tick());
+    return watchdogs_api_watchdog_pet(&watchdogs_handler.scheduler, watchdog);
 }
 
 bool watchdogs_is_running(struct Watchdog *watchdog) {

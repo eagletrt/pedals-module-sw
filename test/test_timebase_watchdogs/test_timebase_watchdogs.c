@@ -100,6 +100,63 @@ void test_watchdog_initialization_rejects_invalid_arguments(void) {
     TEST_ASSERT_EQUAL(WATCHDOG_RC_ERROR, watchdogs_init_watchdog(&watchdog_a, 0U, callback_a));
 }
 
+void test_reset_clears_timeout_without_restarting_watchdog(void) {
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, watchdogs_init_watchdog(&watchdog_a, 2U, callback_a));
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, watchdogs_start(&watchdog_a));
+    advance_time(2U);
+    TEST_ASSERT_TRUE(watchdogs_is_timed_out(&watchdog_a));
+    TEST_ASSERT_EQUAL_UINT(1U, callback_a_count);
+
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, watchdogs_reset(&watchdog_a));
+    TEST_ASSERT_FALSE(watchdogs_is_timed_out(&watchdog_a));
+    TEST_ASSERT_FALSE(watchdogs_is_running(&watchdog_a));
+    advance_time(4U);
+    TEST_ASSERT_EQUAL_UINT(1U, callback_a_count);
+
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, watchdogs_start(&watchdog_a));
+    advance_time(1U);
+    TEST_ASSERT_EQUAL_UINT(1U, callback_a_count);
+    advance_time(1U);
+    TEST_ASSERT_EQUAL_UINT(2U, callback_a_count);
+}
+
+void test_reset_stops_only_the_selected_watchdog_and_is_repeatable(void) {
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, watchdogs_init_watchdog(&watchdog_a, 3U, callback_a));
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, watchdogs_init_watchdog(&watchdog_b, 5U, callback_b));
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, watchdogs_start(&watchdog_a));
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, watchdogs_start(&watchdog_b));
+    advance_time(1U);
+
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, watchdogs_reset(&watchdog_a));
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, watchdogs_reset(&watchdog_a));
+    TEST_ASSERT_FALSE(watchdogs_is_running(&watchdog_a));
+    TEST_ASSERT_FALSE(watchdogs_is_timed_out(&watchdog_a));
+    TEST_ASSERT_TRUE(watchdogs_is_running(&watchdog_b));
+    advance_time(4U);
+    TEST_ASSERT_EQUAL_UINT(0U, callback_a_count);
+    TEST_ASSERT_EQUAL_UINT(1U, callback_b_count);
+}
+
+void test_reset_rejects_null_and_uninitialized_watchdogs(void) {
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_NULL_POINTER, watchdogs_reset(NULL));
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_UNINITIALIZED, watchdogs_reset(&watchdog_a));
+}
+
+void test_start_reads_current_tick_without_a_scheduler_update(void) {
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, watchdogs_init_watchdog(&watchdog_a, 3U, callback_a));
+    for (uint32_t i = 0U; i < TIMEBASE_CONVERT_MS_TO_TICKS(5U); ++i) {
+        TEST_ASSERT_EQUAL(TIMEBASE_RC_OK, timebase_tick());
+    }
+
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, watchdogs_start(&watchdog_a));
+    TEST_ASSERT_EQUAL(WATCHDOG_RC_OK, watchdogs_update());
+    TEST_ASSERT_EQUAL_UINT(0U, callback_a_count);
+    advance_time(2U);
+    TEST_ASSERT_EQUAL_UINT(0U, callback_a_count);
+    advance_time(1U);
+    TEST_ASSERT_EQUAL_UINT(1U, callback_a_count);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_timebase_is_shared_and_uses_configured_resolution);
@@ -107,5 +164,9 @@ int main(void) {
     RUN_TEST(test_restart_rearms_a_timed_out_watchdog);
     RUN_TEST(test_pet_and_stop_use_the_shared_current_tick);
     RUN_TEST(test_watchdog_initialization_rejects_invalid_arguments);
+    RUN_TEST(test_reset_clears_timeout_without_restarting_watchdog);
+    RUN_TEST(test_reset_stops_only_the_selected_watchdog_and_is_repeatable);
+    RUN_TEST(test_reset_rejects_null_and_uninitialized_watchdogs);
+    RUN_TEST(test_start_reads_current_tick_without_a_scheduler_update);
     return UNITY_END();
 }
