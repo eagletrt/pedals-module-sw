@@ -3,6 +3,8 @@
 #include "bootloader-api.h"
 
 EAGLETRT_STATIC void prv_dispatch_rx(uint32_t id, union CanPrimaryMessages message) {
+    EAGLETRT_API_UNUSED(message);
+
     switch (id) {
         case CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSFLASHINGRX: {
             bootloader_api_reboot();
