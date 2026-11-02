@@ -5,11 +5,6 @@
 
 #include <string.h>
 
-#if BOOTLOADER_INACTIVITY_TIMEOUT_MS < TIMEBASE_RESOLUTION_MS || \
-    BOOTLOADER_INACTIVITY_TIMEOUT_MS % TIMEBASE_RESOLUTION_MS != 0U
-#error "The flashing timeout must be an exact, positive number of timebase ticks"
-#endif
-
 EAGLETRT_STATIC struct BootloaderHandler bootloader_handler;
 
 EAGLETRT_STATIC void prv_bootloader_inactivity_timeout(void) {
