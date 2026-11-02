@@ -63,11 +63,11 @@ enum BootloaderReturnCode bootloader_api_watchdog_pet(void) {
 }
 
 
-bool bootloader_is_timedout(void) {
+bool bootloader_api_is_timedout(void) {
     return bootloader_handler.timedout;
 }
 
-bool bootloader_is_flashing(void) {
+bool bootloader_api_is_flashing(void) {
     return bootloader_handler.flashing;
 }
 
