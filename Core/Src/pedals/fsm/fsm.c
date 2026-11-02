@@ -16,13 +16,11 @@ The finite state machine has:
 #include "fsm.h"
 #include "eagletrt-api.h"
 #include "can-communications-api.h"
-#include "can-communications-router-api.h"
 #include "bootloader-api.h"
 #include "brake-api.h"
 #include "throttle-api.h"
 #include "post-api.h"
 #include "identity-api.h"
-#include "logger-api.h"
 
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!
 
