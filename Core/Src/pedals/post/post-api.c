@@ -13,7 +13,7 @@ enum PostReturnCode post_api_init(struct PostInit *init) {
 
     if (timebase_init() != TIMEBASE_RC_OK ||
         watchdogs_init() != WATCHDOG_RC_OK ||
-        bootloader_init() != BOOTLOADER_RC_OK) {
+        bootloader_api_init() != BOOTLOADER_RC_OK) {
         return POST_RC_ERROR;
     }
 

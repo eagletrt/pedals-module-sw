@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 /*! \brief Initialize the flashing state and register its inactivity watchdog. */
-enum BootloaderReturnCode bootloader_init(reboot_callback reboot);
+enum BootloaderReturnCode bootloader_api_init(reboot_callback reboot);
 
 /*!
  * \brief Calls the MCU reboot callback

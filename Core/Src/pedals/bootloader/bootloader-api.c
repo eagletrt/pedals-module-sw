@@ -1,6 +1,5 @@
 #include "bootloader-api.h"
 #include "eagletrt.h"
-#include "pedals/timebase/timebase.h"
 #include "scheduler-api.h"
 #include "watchdogs-api.h"
 
@@ -17,7 +16,7 @@ EAGLETRT_STATIC void prv_bootloader_inactivity_timeout(void) {
     bootloader_handler.timedout = true;
 }
 
-enum BootloaderReturnCode bootloader_init(reboot_callback reboot) {
+enum BootloaderReturnCode bootloader_api_init(reboot_callback reboot) {
     memset(&bootloader_handler, 0, sizeof(bootloader_handler));
 
     if (reboot == nullptr) {
