@@ -3,17 +3,23 @@
 #include "can-communications-api.h"
 #include "bootloader-api.h"
 #include "pedals/timebase/timebase-api.h"
-#include "pedals/watchdogs/watchdogs-api.h"
-#include <stddef.h>
+#include "watchdogs-api.h"
+#include "scheduler-api.h"
 
 enum PostReturnCode post_api_init(struct PostInit *init) {
-    if (init == NULL) {
+    if (init == nullptr) {
         return POST_RC_ERROR;
     }
 
-    if (timebase_init() != TIMEBASE_RC_OK ||
-        watchdogs_init() != WATCHDOG_RC_OK ||
-        bootloader_api_init() != BOOTLOADER_RC_OK) {
+    if (timebase_init() != TIMEBASE_RC_OK) {
+        return POST_RC_ERROR;
+    }
+
+    if (scheduler_api_init(init->get_tick) != SCHEDULER_RC_OK) {
+        return POST_RC_ERROR;
+    }
+
+    if (bootloader_api_init(init->reboot) != BOOTLOADER_RC_OK) {
         return POST_RC_ERROR;
     }
 

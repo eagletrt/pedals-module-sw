@@ -33,8 +33,8 @@
 #include "post.h"
 #include "eagletrt-api.h"
 #include "logger-api.h"
+#include "scheduler-api.h"
 #include "arena-allocator-api.h"
-#include "pedals/watchdogs/watchdogs-api.h"
 
 /* USER CODE END Includes */
 
@@ -159,7 +159,9 @@ int main(void) {
             .send = fdcan_send_primary,
             .on_receive = can_communications_router_api_receive_primary,
             .cs_enter = __disable_irq,
-            .cs_exit = __enable_irq }
+            .cs_exit = __enable_irq },
+        .get_tick = HAL_GetTick,
+        .reboot = NVIC_SystemReset
     };
 
     state = run_state(state, &init_struct);
@@ -180,7 +182,7 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        if (watchdogs_update() != WATCHDOG_RC_OK) {
+        if (scheduler_api_routine() != SCHEDULER_RC_OK) {
             state = STATE_ERROR;
         } else {
             state = run_state(state, &data);
