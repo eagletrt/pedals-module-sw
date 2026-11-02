@@ -1,7 +1,6 @@
 #ifndef BOOTLOADER_API_H
 #define BOOTLOADER_API_H
 
-#include "can-communications.h"
 #include "bootloader.h"
 
 #include <stdbool.h>
@@ -9,26 +8,54 @@
 #include <stdint.h>
 
 /*! \brief Initialize the flashing state and register its inactivity watchdog. */
-enum BootloaderReturnCode bootloader_init(void);
+enum BootloaderReturnCode bootloader_init(reboot_callback reboot);
 
 /*!
- * \brief Handle flashing traffic in main-loop context; ignore other identifiers.
- * \details Every frame in the flashing range refreshes the inactivity timer.
- * Only a two-byte XCP CONNECT addressed to pedals requests a MCU reset.
+ * \brief Calls the MCU reboot callback
+ *
+ * \retval BOOTLOADER_RC_OK if the MCU succesfully called the reboot callback
+ * \retval BOOTLOADER_RC_NULL_POINTER if the reboot callback is a null pointer
+ * \retval BOOTLOADER_RC_ERROR if the MCU didn't call the reboot callback
  */
-enum CanCommunicationReturnCode bootloader_receive(const struct CanCommunicationFrame *frame);
+enum BootloaderReturnCode bootloader_api_reboot(void);
 
 /*!
- * \brief Tells whether an XCP CONNECT for the bootloader has been received.
+ * \brief Restart the watchdog of the module
  *
- * \details Once set, the request stays pending until the MCU is reset.
- *
- * \retval true if the firmware should reset into the bootloader.
- * \retval false otherwise.
+ * \retval BOOTLOADER_RC_OK if the watchdog was successfully restarted
+ * \retval BOOTLOADER_RC_NULL_POINTER if the watchdog is a null pointer
+ * \retval BOOTLOADER_RC_ERROR if the watchdog was not successfully restarted
  */
-bool bootloader_is_requested(void);
+enum BootloaderReturnCode bootloader_api_watchdog_restart(void);
 
-/*! \brief True while the inactivity watchdog is running. */
-bool bootloader_is_flashing(void);
+/*!
+ * \brief Reset the watchdog of the module
+ *
+ * \retval BOOTLOADER_RC_OK
+ */
+enum BootloaderReturnCode bootloader_api_watchdog_pet(void);
+
+/*!
+ * \brief Wheather the module's watchdog has timedout
+ *
+ * \retval true The module's watchdog has timedout
+ * \retval false The module's watchdog has not timedout
+ */
+bool bootloader_api_is_timedout(void);
+
+/*!
+ * \brief Wheather the MCU is flashing
+ *
+ * \retval true The MCU is flashing
+ * \retval false The MCU is not flashing
+ */
+bool bootloader_api_is_flashing(void);
+
+/*!
+ * \brief Set wheather the MCU is flashing
+ *
+ * \retval BOOTLOADER_RC_OK
+ */
+enum BootloaderReturnCode bootloader_api_set_flashing(bool flashing);
 
 #endif // BOOTLOADER_API_H

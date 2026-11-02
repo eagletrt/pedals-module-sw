@@ -19,14 +19,19 @@
 #define BOOTLOADER_INACTIVITY_TIMEOUT_MS (500U)
 
 /*!
+ * \brief Reboot callback
+ */
+typedef void (*reboot_callback)(void);
+
+/*!
  * \brief The handler containing the handlers for the watchdog and the state of the
  * module
  */
 struct BootloaderHandler {
     struct Watchdog inactivity_watchdog;
-    bool initialized;
-    bool bootloader_requested;
-    bool bootloader_flashing;
+    reboot_callback reboot;
+    bool flashing;
+    bool timedout;
 };
 
 /*!
@@ -35,7 +40,7 @@ struct BootloaderHandler {
 enum BootloaderReturnCode {
     BOOTLOADER_RC_OK = 0,         /*!< The function executed succesfully */
     BOOTLOADER_RC_NULL_POINTER,   /*!< An argument of pointer type was null or a null pointer */
-    BOOTLOADER_RC_WATCHDOG_ERROR, /*!< An argument of pointer type was null or a null pointer */
+    BOOTLOADER_RC_WATCHDOG_ERROR, /*!< An error occured with the watchdog */
     BOOTLOADER_RC_ERROR,          /*!< The function encountered an error */
 };
 

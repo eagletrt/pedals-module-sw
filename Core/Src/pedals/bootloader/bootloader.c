@@ -12,16 +12,16 @@
 
 EAGLETRT_STATIC struct BootloaderHandler bootloader_handler;
 
-EAGLETRT_STATIC bool prv_bootloader_is_request(const struct CanCommunicationFrame *frame);
-
 EAGLETRT_STATIC void prv_bootloader_inactivity_timeout(void) {
-    bootloader_handler.bootloader_flashing = false;
+    bootloader_handler.flashing = false;
 }
 
-enum BootloaderReturnCode bootloader_init(void) {
+enum BootloaderReturnCode bootloader_init(reboot_callback reboot) {
     memset(&bootloader_handler, 0, sizeof(bootloader_handler));
-    bootloader_handler.bootloader_requested = false;
-    bootloader_handler.bootloader_flashing = false;
+
+    if (reboot == nullptr) {
+        return BOOTLOADER_RC_NULL_POINTER;
+    }
 
     if (watchdogs_init_watchdog(&bootloader_handler.inactivity_watchdog,
                                 BOOTLOADER_INACTIVITY_TIMEOUT_MS,
@@ -29,52 +29,38 @@ enum BootloaderReturnCode bootloader_init(void) {
         return BOOTLOADER_RC_WATCHDOG_ERROR;
     }
 
-    bootloader_handler.initialized = true;
+    bootloader_handler.timedout = false;
+    bootloader_handler.flashing = false;
+
     return BOOTLOADER_RC_OK;
 }
 
-enum CanCommunicationReturnCode bootloader_receive(const struct CanCommunicationFrame *frame) {
-    if (frame == NULL) {
-        return CAN_COMMUNICATION_RC_NULL_POINTER;
-    }
-    if (!bootloader_handler.initialized) {
-        return CAN_COMMUNICATION_RC_ERROR;
-    }
-    if (frame->length > CAN_COMMUNICATIONS_FRAME_DATA_SIZE) {
-        return CAN_COMMUNICATION_RC_INVALID_LENGTH;
-    }
-    if (frame->id < BOOTLOADER_CAN_FLASH_ID_MIN || frame->id > BOOTLOADER_CAN_FLASH_ID_MAX) {
-        return CAN_COMMUNICATION_RC_OK;
-    }
+enum BootloaderReturnCode bootloader_api_reboot(void) {
+    bootloader_handler.reboot();
 
-    bootloader_handler.bootloader_flashing = true;
-    if (watchdogs_restart(&bootloader_handler.inactivity_watchdog) != WATCHDOG_RC_OK) {
-        bootloader_handler.bootloader_flashing = false;
-        return CAN_COMMUNICATION_RC_ERROR;
-    }
-
-    if (prv_bootloader_is_request(frame)) {
-        bootloader_handler.bootloader_requested = true;
-    }
-    return CAN_COMMUNICATION_RC_OK;
+    return BOOTLOADER_RC_OK;
 }
 
-/*!
- * \brief Checks for the XCP CONNECT the flashing tool sends to the bootloader.
- *
- * \details Same check as the official OpenBLT demo applications: matching identifier,
- *     2 bytes long and XCP CONNECT command code. The connection mode byte is ignored.
- */
-// EAGLETRT_STATIC bool prv_bootloader_is_request(const struct CanCommunicationFrame *frame) {
-//     return (frame->id == BOOTLOADER_CAN_RX_ID) &&
-//            (frame->length == BOOTLOADER_XCP_CONNECT_LENGTH) &&
-//            (frame->data[0] == BOOTLOADER_XCP_CMD_CONNECT);
-// }
+enum BootloaderReturnCode bootloader_api_watchdog_restart(void) {
+    // TODO
+    return BOOTLOADER_RC_OK;
+}
 
-bool bootloader_is_requested(void) {
-    return bootloader_handler.bootloader_requested;
+enum BootloaderReturnCode bootloader_api_watchdog_pet(void) {
+    // TODO
+    return BOOTLOADER_RC_OK;
+}
+
+bool bootloader_is_timedout(void) {
+    return bootloader_handler.timedout;
 }
 
 bool bootloader_is_flashing(void) {
-    return bootloader_handler.bootloader_flashing;
+    return bootloader_handler.flashing;
+}
+
+enum BootloaderReturnCode bootloader_api_set_flashing(bool flashing) {
+    bootloader_handler.flashing = flashing;
+
+    return BOOTLOADER_RC_OK;
 }
