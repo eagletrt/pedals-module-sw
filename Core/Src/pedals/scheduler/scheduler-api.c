@@ -6,12 +6,7 @@
 
 #include <string.h>
 
-struct WatchdogsHandler {
-    struct WatchdogHandler scheduler;
-    bool initialized;
-};
-
-EAGLETRT_STATIC struct WatchdogsHandler watchdogs_handler;
+EAGLETRT_STATIC struct WatchdogHandler watchdogs_handler;
 
 EAGLETRT_STATIC bool prv_watchdogs_is_ready(void) {
     return watchdogs_handler.initialized && timebase_is_initialized();
