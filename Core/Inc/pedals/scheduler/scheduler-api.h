@@ -38,4 +38,6 @@ enum SchedulerReturnCode scheduler_stop_watchdog(struct Watchdog *watchdog);
  */
 enum SchedulerReturnCode scheduler_reset_watchdog(struct Watchdog *watchdog);
 
+enum SchedulerReturnCode scheduler_pet_watchdog(struct Watchdog *watchdog);
+
 #endif //SCHEDULER_API_H

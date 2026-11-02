@@ -73,3 +73,14 @@ enum SchedulerReturnCode scheduler_reset_watchdog(struct Watchdog *watchdog) {
             return SCHEDULER_RC_ERROR;
     }
 }
+
+enum SchedulerReturnCode scheduler_pet_watchdog(struct Watchdog *watchdog) {
+    switch (watchdogs_api_watchdog_pet(&watchdogs_handler, watchdog)) {
+        case WATCHDOG_RC_OK:
+            return SCHEDULER_RC_OK;
+        case WATCHDOG_RC_NULL_POINTER:
+            return SCHEDULER_RC_NULL_POINTER;
+        default:
+            return SCHEDULER_RC_ERROR;
+    }
+}
