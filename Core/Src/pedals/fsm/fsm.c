@@ -54,14 +54,14 @@ EAGLETRT_STATIC void prv_fsm_update_modules(const struct FsmData *data, uint32_t
     throttle_api_update_internal_status(tick);
 }
 
-/*  ____  _        _       
- * / ___|| |_ __ _| |_ ___ 
+/*  ____  _        _
+ * / ___|| |_ __ _| |_ ___
  * \___ \| __/ _` | __/ _ \
  *  ___) | || (_| | ||  __/
  * |____/ \__\__,_|\__\___|
- *                         
- *   __                  _   _                 
- *  / _|_   _ _ __   ___| |_(_) ___  _ __  ___ 
+ *
+ *   __                  _   _
+ *  / _|_   _ _ __   ___| |_(_) ___  _ __  ___
  * | |_| | | | '_ \ / __| __| |/ _ \| '_ \/ __|
  * |  _| |_| | | | | (__| |_| | (_) | | | \__ \
  * |_|  \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
@@ -105,14 +105,10 @@ state_t do_idle(state_data_t *data) {
         return STATE_ERROR;
     }
 
-    if (bootloader_is_requested()) {
-        idle_struct->system_reset();
-        return STATE_FLASH;
-    }
-
     prv_fsm_update_modules(idle_struct, current_tick);
 
-    if (bootloader_is_flashing()) {
+    if (bootloader_api_is_flashing()) {
+        bootloader_api_watchdog_restart(); // TODO: put this in transition state
         return STATE_FLASH;
     }
 
@@ -178,12 +174,11 @@ state_t do_flash(state_data_t *data) {
     if (can_communications_api_process_rx() != CAN_COMMUNICATION_RC_OK) {
         return STATE_ERROR;
     }
-    if (bootloader_is_requested()) {
-        flash_struct->system_reset();
-        return NO_CHANGE;
-    }
+
     prv_fsm_update_modules(flash_struct, flash_struct->get_tick());
-    if (!bootloader_is_flashing()) {
+
+    if (bootloader_api_is_timedout()) {
+        bootloader_api_set_flashing(false); // TODO: put this in transition state
         next_state = STATE_IDLE;
     }
 
@@ -200,18 +195,18 @@ state_t do_flash(state_data_t *data) {
     return next_state;
 }
 
-/*  ____  _        _        
- * / ___|| |_ __ _| |_ ___  
+/*  ____  _        _
+ * / ___|| |_ __ _| |_ ___
  * \___ \| __/ _` | __/ _ \
- *  ___) | || (_| | ||  __/ 
- * |____/ \__\__,_|\__\___| 
- *                          
- *                                              
- *  _ __ ___   __ _ _ __   __ _  __ _  ___ _ __ 
+ *  ___) | || (_| | ||  __/
+ * |____/ \__\__,_|\__\___|
+ *
+ *
+ *  _ __ ___   __ _ _ __   __ _  __ _  ___ _ __
  * | '_ ` _ \ / _` | '_ \ / _` |/ _` |/ _ \ '__|
- * | | | | | | (_| | | | | (_| | (_| |  __/ |   
- * |_| |_| |_|\__,_|_| |_|\__,_|\__, |\___|_|   
- *                              |___/           
+ * | | | | | | (_| | | | | (_| | (_| |  __/ |
+ * |_| |_| |_|\__,_|_| |_|\__,_|\__, |\___|_|
+ *                              |___/
  */
 
 state_t run_state(state_t cur_state, state_data_t *data) {
