@@ -8,7 +8,7 @@
 
 EAGLETRT_STATIC struct WatchdogHandler watchdogs_handler;
 
-enum SchedulerReturnCode scheduler_init(void) {
+enum SchedulerReturnCode scheduler_api_init(void) {
     // if (!timebase_is_initialized()) {
     //     return WATCHDOG_RC_UNINITIALIZED;
     // }
@@ -22,7 +22,7 @@ enum SchedulerReturnCode scheduler_init(void) {
     return SCHEDULER_RC_OK;
 }
 
-enum SchedulerReturnCode scheduler_routine(void) {
+enum SchedulerReturnCode scheduler_api_routine(void) {
     if (watchdogs_api_routine(&watchdogs_handler) != WATCHDOG_RC_OK) {
         return SCHEDULER_RC_ERROR;
     }
@@ -30,7 +30,7 @@ enum SchedulerReturnCode scheduler_routine(void) {
     return SCHEDULER_RC_OK;
 }
 
-enum SchedulerReturnCode scheduler_start_watchdog(struct Watchdog *watchdog) {
+enum SchedulerReturnCode scheduler_api_watchdog_start(struct Watchdog *watchdog) {
     switch (watchdogs_api_watchdog_start(&watchdogs_handler, watchdog)) {
         case WATCHDOG_RC_OK:
             return SCHEDULER_RC_OK;
@@ -41,7 +41,7 @@ enum SchedulerReturnCode scheduler_start_watchdog(struct Watchdog *watchdog) {
     }
 }
 
-enum SchedulerReturnCode scheduler_restart_watchdog(struct Watchdog *watchdog) {
+enum SchedulerReturnCode scheduler_api_watchdog_restart(struct Watchdog *watchdog) {
     switch (watchdogs_api_watchdog_restart(&watchdogs_handler, watchdog)) {
         case WATCHDOG_RC_OK:
             return SCHEDULER_RC_OK;
@@ -52,7 +52,7 @@ enum SchedulerReturnCode scheduler_restart_watchdog(struct Watchdog *watchdog) {
     }
 }
 
-enum SchedulerReturnCode scheduler_stop_watchdog(struct Watchdog *watchdog) {
+enum SchedulerReturnCode scheduler_api_watchdog_stop(struct Watchdog *watchdog) {
     switch (watchdogs_api_watchdog_stop(&watchdogs_handler, watchdog)) {
         case WATCHDOG_RC_OK:
             return SCHEDULER_RC_OK;
@@ -63,7 +63,7 @@ enum SchedulerReturnCode scheduler_stop_watchdog(struct Watchdog *watchdog) {
     }
 }
 
-enum SchedulerReturnCode scheduler_reset_watchdog(struct Watchdog *watchdog) {
+enum SchedulerReturnCode scheduler_api_watchdog_reset(struct Watchdog *watchdog) {
     switch (watchdogs_api_watchdog_reset(&watchdogs_handler, watchdog)) {
         case WATCHDOG_RC_OK:
             return SCHEDULER_RC_OK;
@@ -74,7 +74,7 @@ enum SchedulerReturnCode scheduler_reset_watchdog(struct Watchdog *watchdog) {
     }
 }
 
-enum SchedulerReturnCode scheduler_pet_watchdog(struct Watchdog *watchdog) {
+enum SchedulerReturnCode scheduler_api_watchdog_pet(struct Watchdog *watchdog) {
     switch (watchdogs_api_watchdog_pet(&watchdogs_handler, watchdog)) {
         case WATCHDOG_RC_OK:
             return SCHEDULER_RC_OK;
