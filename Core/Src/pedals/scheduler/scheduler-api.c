@@ -1,21 +1,20 @@
 #include "scheduler-api.h"
 
 #include "eagletrt.h"
-#include "pedals/timebase/timebase-api.h" // TODO: check how timebase is handled
-#include <watchdogs/watchdogs-api.h>
+#include "watchdogs-api.h"
 
 #include <string.h>
 
 EAGLETRT_STATIC struct WatchdogHandler watchdogs_handler;
 
-enum SchedulerReturnCode scheduler_api_init(void) {
-    // if (!timebase_is_initialized()) {
-    //     return WATCHDOG_RC_UNINITIALIZED;
-    // }
+enum SchedulerReturnCode scheduler_api_init(watchdog_tick_callback get_tick) {
+    if (get_tick == nullptr) {
+        return SCHEDULER_RC_NULL_POINTER;
+    }
 
     memset(&watchdogs_handler, 0, sizeof(watchdogs_handler));
 
-    if (watchdogs_api_init_pool(&watchdogs_handler, timebase_get_current_tick) != WATCHDOG_RC_OK) {
+    if (watchdogs_api_init_pool(&watchdogs_handler, get_tick) != WATCHDOG_RC_OK) {
         return SCHEDULER_RC_ERROR;
     }
 

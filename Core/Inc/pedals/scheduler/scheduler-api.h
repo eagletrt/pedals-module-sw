@@ -10,7 +10,7 @@
  * \brief Initialize the board-wide scheduler scheduler and bind its tick getter.
  * \details Call after timebase_init(). All scheduler operations run in main-loop context.
  */
-enum SchedulerReturnCode scheduler_api_init(void);
+enum SchedulerReturnCode scheduler_api_init(watchdog_tick_callback get_tick);
 
 /*!
  * \brief Execute all expired scheduler callbacks using the board-wide timebase.
