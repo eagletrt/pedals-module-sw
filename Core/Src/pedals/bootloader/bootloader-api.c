@@ -12,15 +12,17 @@
 
 EAGLETRT_STATIC struct BootloaderHandler bootloader_handler;
 
+EAGLETRT_STATIC bool prv_bootloader_is_request(const struct CanCommunicationFrame *frame);
+
 EAGLETRT_STATIC void prv_bootloader_inactivity_timeout(void) {
-    bootloader_handler.flashing = false;
+    bootloader_handler.bootloader_flashing = false;
 }
 
 enum BootloaderReturnCode bootloader_init(reboot_callback reboot) {
     memset(&bootloader_handler, 0, sizeof(bootloader_handler));
 
     if (reboot == nullptr) {
-        return BOOTLOADER_RC_NULL_POINTER;
+            return BOOTLOADER_RC_NULL_POINTER;
     }
 
     if (watchdogs_init_watchdog(&bootloader_handler.inactivity_watchdog,
@@ -35,21 +37,17 @@ enum BootloaderReturnCode bootloader_init(reboot_callback reboot) {
     return BOOTLOADER_RC_OK;
 }
 
-enum BootloaderReturnCode bootloader_api_reboot(void) {
-    bootloader_handler.reboot();
-
-    return BOOTLOADER_RC_OK;
-}
-
-enum BootloaderReturnCode bootloader_api_watchdog_restart(void) {
-    // TODO
-    return BOOTLOADER_RC_OK;
-}
-
-enum BootloaderReturnCode bootloader_api_watchdog_pet(void) {
-    // TODO
-    return BOOTLOADER_RC_OK;
-}
+/*!
+ * \brief Checks for the XCP CONNECT the flashing tool sends to the bootloader.
+ *
+ * \details Same check as the official OpenBLT demo applications: matching identifier,
+ *     2 bytes long and XCP CONNECT command code. The connection mode byte is ignored.
+ */
+// EAGLETRT_STATIC bool prv_bootloader_is_request(const struct CanCommunicationFrame *frame) {
+//     return (frame->id == BOOTLOADER_CAN_RX_ID) &&
+//            (frame->length == BOOTLOADER_XCP_CONNECT_LENGTH) &&
+//            (frame->data[0] == BOOTLOADER_XCP_CMD_CONNECT);
+// }
 
 bool bootloader_is_timedout(void) {
     return bootloader_handler.timedout;
@@ -57,10 +55,4 @@ bool bootloader_is_timedout(void) {
 
 bool bootloader_is_flashing(void) {
     return bootloader_handler.flashing;
-}
-
-enum BootloaderReturnCode bootloader_api_set_flashing(bool flashing) {
-    bootloader_handler.flashing = flashing;
-
-    return BOOTLOADER_RC_OK;
 }
