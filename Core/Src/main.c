@@ -161,7 +161,7 @@ int main(void) {
             .cs_enter = __disable_irq,
             .cs_exit = __enable_irq },
         .get_tick = HAL_GetTick,
-        .reboot = NVIC_SystemReset
+        .reboot = HAL_NVIC_SystemReset
     };
 
     state = run_state(state, &init_struct);
