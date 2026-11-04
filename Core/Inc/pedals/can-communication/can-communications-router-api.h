@@ -3,6 +3,8 @@
 
 #include "can-communications.h"
 
+#include <stdbool.h>
+
 /*!
  * \brief Router function for incoming CAN frames on primary network.
  *

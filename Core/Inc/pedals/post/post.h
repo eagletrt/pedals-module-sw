@@ -3,10 +3,12 @@
 
 #include "throttle.h"
 #include "can-communications.h"
+#include "watchdogs.h"
+#include "bootloader.h"
 
 /*!
  * \brief Operation status for module's functions
- * 
+ *
  */
 enum PostReturnCode {
     POST_RC_OK,   /*!< No error was found*/
@@ -15,13 +17,16 @@ enum PostReturnCode {
 
 /*!
  * \brief Wrapper for function pointers needed for initialisation
- * 
+ *
  */
 struct PostInit {
-    throttle_timer_callback start_timer; /*!< Throttle's start timer callback*/
-    throttle_timer_callback stop_timer;  /*!< Throttle's stop timer callback*/
+    throttle_timer_callback start_timer;   /*!< Throttle's start timer callback*/
+    throttle_timer_callback stop_timer;    /*!< Throttle's stop timer callback*/
 
     struct CanCommunicationsNetworkConfig config;
+
+    watchdog_tick_callback get_tick;
+    reboot_callback reboot;
 };
 
 #endif //POST_H

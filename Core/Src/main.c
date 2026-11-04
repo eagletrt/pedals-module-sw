@@ -33,6 +33,7 @@
 #include "post.h"
 #include "eagletrt-api.h"
 #include "logger-api.h"
+#include "scheduler-api.h"
 #include "arena-allocator-api.h"
 
 /* USER CODE END Includes */
@@ -147,8 +148,6 @@ int main(void) {
     EAGLETRT_API_UNUSED(logger_api_init(&logger_pal_handler, LOGGER_ENABLED));
 
     adc_init();
-    HAL_TIM_Base_Start(&htim3);
-
     HAL_FDCAN_Start(&hfdcan1);
 
     state_t state = STATE_INIT;
@@ -160,10 +159,14 @@ int main(void) {
             .send = fdcan_send_primary,
             .on_receive = can_communications_router_api_receive_primary,
             .cs_enter = __disable_irq,
-            .cs_exit = __enable_irq }
+            .cs_exit = __enable_irq },
+        .get_tick = HAL_GetTick,
+        .reboot = HAL_NVIC_SystemReset
     };
 
     state = run_state(state, &init_struct);
+
+    HAL_TIM_Base_Start_IT(&htim3);
 
     HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
     HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0);
@@ -171,6 +174,7 @@ int main(void) {
     struct FsmData data = {
         .get_tick = HAL_GetTick,
         .update_module = adc_update_modules,
+        .system_reset = HAL_NVIC_SystemReset,
     };
 
     /* USER CODE END 2 */
@@ -178,7 +182,11 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        state = run_state(state, &data);
+        if (scheduler_api_routine() != SCHEDULER_RC_OK) {
+            state = STATE_ERROR;
+        } else {
+            state = run_state(state, &data);
+        }
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
