@@ -182,11 +182,8 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        if (scheduler_api_routine() != SCHEDULER_RC_OK) {
-            state = STATE_ERROR;
-        } else {
-            state = run_state(state, &data);
-        }
+        scheduler_api_routine();
+        state = run_state(state, &data);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
