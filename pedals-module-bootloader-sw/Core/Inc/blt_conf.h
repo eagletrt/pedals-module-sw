@@ -16,7 +16,7 @@
  * SYSCLK set in SystemClock_Config(), because timer.c uses it to configure the SysTick.
  */
 /** \brief Frequency of the external crystal oscillator. */
-#define BOOT_CPU_XTAL_SPEED_KHZ (16000)
+#define BOOT_CPU_XTAL_SPEED_KHZ (48000)
 /** \brief Desired system speed. */
 #define BOOT_CPU_SYSTEM_SPEED_KHZ (48000)
 /** \brief Motorola or Intel style byte ordering. */
