@@ -111,7 +111,7 @@ state_t do_idle(state_data_t *data) {
 
     if (bootloader_api_is_flashing()) {
         bootloader_api_watchdog_restart(); // TODO: put this in transition state
-        return STATE_FLASH;
+        next_state = STATE_FLASH;
     }
 
     EAGLETRT_API_UNUSED(identity_api_send_pedals_version(current_tick));
