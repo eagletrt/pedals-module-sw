@@ -18,6 +18,8 @@ enum BootloaderReturnCode bootloader_api_init(reboot_callback reboot) {
         return BOOTLOADER_RC_NULL_POINTER;
     }
 
+    bootloader_handler.reboot = reboot;
+
     if (watchdogs_api_init_watchdog(&bootloader_handler.inactivity_watchdog,
                                     BOOTLOADER_INACTIVITY_TIMEOUT_MS,
                                     prv_bootloader_inactivity_timeout) != WATCHDOG_RC_OK) {
