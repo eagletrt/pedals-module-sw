@@ -21,6 +21,7 @@ The finite state machine has:
 #include "throttle-api.h"
 #include "post-api.h"
 #include "identity-api.h"
+#include "scheduler-api.h"
 
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!
 
@@ -97,6 +98,9 @@ state_t do_idle(state_data_t *data) {
     if (!prv_fsm_data_is_valid(idle_struct)) {
         return STATE_ERROR;
     }
+
+    scheduler_api_routine();
+
     uint32_t current_tick = idle_struct->get_tick();
 
     if (can_communications_api_process_rx() != CAN_COMMUNICATION_RC_OK) {
@@ -168,6 +172,8 @@ state_t do_flash(state_data_t *data) {
     if (!prv_fsm_data_is_valid(flash_struct)) {
         return STATE_ERROR;
     }
+
+    scheduler_api_routine();
 
     if (can_communications_api_process_rx() != CAN_COMMUNICATION_RC_OK) {
         return STATE_ERROR;

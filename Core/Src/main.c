@@ -182,7 +182,6 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        scheduler_api_routine();
         state = run_state(state, &data);
         /* USER CODE END WHILE */
 
