@@ -103,9 +103,7 @@ state_t do_idle(state_data_t *data) {
 
     uint32_t current_tick = idle_struct->get_tick();
 
-    if (can_communications_api_process_rx() != CAN_COMMUNICATION_RC_OK) {
-        return STATE_ERROR;
-    }
+    can_communications_api_process_rx();
 
     prv_fsm_update_modules(idle_struct, current_tick);
 
