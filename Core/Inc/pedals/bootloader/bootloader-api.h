@@ -7,7 +7,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/*! \brief Initialize the flashing state and register its inactivity watchdog. */
+/*!
+ * \brief Initialize the flashing state and register its inactivity watchdog.
+ *
+ * \retval BOOTLOADER_RC_OK if the MCU succesfully initialized
+ * \retval BOOTLOADER_RC_NULL_POINTER if the reboot callback is a null pointer
+ * \retval BOOTLOADER_RC_ERROR if during initialization encountered any error
+ */
 enum BootloaderReturnCode bootloader_api_init(reboot_callback reboot);
 
 /*!
@@ -31,7 +37,9 @@ enum BootloaderReturnCode bootloader_api_watchdog_restart(void);
 /*!
  * \brief Reset the watchdog of the module
  *
- * \retval BOOTLOADER_RC_OK
+ * \retval BOOTLOADER_RC_OK if the watchdog was petted
+ * \retval BOOTLOADER_RC_NULL_POINTER if the watchdog is a null pointer
+ * \retval BOOTLOADER_RC_ERROR if the watchdog was not petted
  */
 enum BootloaderReturnCode bootloader_api_watchdog_pet(void);
 
