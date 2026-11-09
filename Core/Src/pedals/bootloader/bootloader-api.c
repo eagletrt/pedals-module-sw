@@ -41,10 +41,11 @@ enum BootloaderReturnCode bootloader_api_reboot(void) {
 }
 
 enum BootloaderReturnCode bootloader_api_watchdog_restart(void) {
+    bootloader_handler.timedout = false;
     switch (scheduler_api_watchdog_restart(&bootloader_handler.inactivity_watchdog)) {
-        case SCHEDULER_RC_OK:
+        case WATCHDOG_RC_OK:
             return BOOTLOADER_RC_OK;
-        case SCHEDULER_RC_NULL_POINTER:
+        case WATCHDOG_RC_NULL_POINTER:
             return BOOTLOADER_RC_NULL_POINTER;
         default:
             return BOOTLOADER_RC_ERROR;
@@ -53,9 +54,9 @@ enum BootloaderReturnCode bootloader_api_watchdog_restart(void) {
 
 enum BootloaderReturnCode bootloader_api_watchdog_pet(void) {
     switch (scheduler_api_watchdog_pet(&bootloader_handler.inactivity_watchdog)) {
-        case SCHEDULER_RC_OK:
+        case WATCHDOG_RC_OK:
             return BOOTLOADER_RC_OK;
-        case SCHEDULER_RC_NULL_POINTER:
+        case WATCHDOG_RC_NULL_POINTER:
             return BOOTLOADER_RC_NULL_POINTER;
         default:
             return BOOTLOADER_RC_ERROR;
