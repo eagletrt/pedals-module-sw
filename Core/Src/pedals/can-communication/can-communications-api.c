@@ -17,7 +17,6 @@
 #include "arena-allocator-api.h"
 #include "pal-api.h"
 #include "eagletrt.h"
-#include "logger-api.h"
 
 #include <string.h>
 
@@ -155,7 +154,6 @@ enum CanCommunicationReturnCode can_communications_api_add_to_tx_buffer(const st
 }
 
 enum CanCommunicationReturnCode can_communications_api_add_to_rx_buffer(const struct CanCommunicationFrame *frame) {
-    //logger_api_log(LOGGER_LEVEL_DEBUG, "Received frame with ID %d and length %d", frame->id, frame->length);
     return prv_enqueue(frame, false);
 }
 
