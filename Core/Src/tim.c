@@ -22,8 +22,6 @@
 
 /* USER CODE BEGIN 0 */
 
-#include "pedals/timebase/timebase-api.h"
-
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim1;
@@ -168,8 +166,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM1) {
         throttle_api_implausibility_timeout_trigger();
         HAL_TIM_Base_Stop_IT(&htim1);
-    } else if (htim->Instance == TIM3) {
-        (void)timebase_tick();
     }
 }
 
