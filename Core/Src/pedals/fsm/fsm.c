@@ -16,11 +16,12 @@ The finite state machine has:
 #include "fsm.h"
 #include "eagletrt-api.h"
 #include "can-communications-api.h"
+#include "bootloader-api.h"
 #include "brake-api.h"
 #include "throttle-api.h"
 #include "post-api.h"
 #include "identity-api.h"
-#include "logger-api.h"
+#include "scheduler-api.h"
 
 // SEARCH FOR Your Code Here FOR CODE INSERTION POINTS!
 
@@ -39,14 +40,27 @@ state_func_t *const state_table[NUM_STATES] = {
 
 EAGLETRT_STATIC uint32_t fsm_last_module_update_tick = 0;
 
-/*  ____  _        _       
- * / ___|| |_ __ _| |_ ___ 
+EAGLETRT_STATIC bool prv_fsm_data_is_valid(const struct FsmData *data) {
+    return data != NULL && data->get_tick != NULL &&
+           data->update_module != NULL && data->system_reset != NULL;
+}
+
+EAGLETRT_STATIC void prv_fsm_update_modules(const struct FsmData *data, uint32_t tick) {
+    if (tick - fsm_last_module_update_tick >= FSM_MODULES_UPDATE_PERIOD_MS) {
+        fsm_last_module_update_tick = tick;
+        data->update_module();
+    }
+    throttle_api_update_internal_status(tick);
+}
+
+/*  ____  _        _
+ * / ___|| |_ __ _| |_ ___
  * \___ \| __/ _` | __/ _ \
  *  ___) | || (_| | ||  __/
  * |____/ \__\__,_|\__\___|
- *                         
- *   __                  _   _                 
- *  / _|_   _ _ __   ___| |_(_) ___  _ __  ___ 
+ *
+ *   __                  _   _
+ *  / _|_   _ _ __   ___| |_(_) ___  _ __  ___
  * | |_| | | | '_ \ / __| __| |/ _ \| '_ \/ __|
  * |  _| |_| | | | | (__| |_| | (_) | | | \__ \
  * |_|  \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
@@ -80,23 +94,23 @@ state_t do_idle(state_data_t *data) {
     state_t next_state = NO_CHANGE;
     /* Your Code Here */
 
-    if (data == NULL) {
-        return STATE_ERROR;
-    }
     struct FsmData *idle_struct = (struct FsmData *)data;
-    if (idle_struct->get_tick == NULL || idle_struct->update_module == NULL) {
+    if (!prv_fsm_data_is_valid(idle_struct)) {
         return STATE_ERROR;
     }
+
+    scheduler_api_routine();
+
     uint32_t current_tick = idle_struct->get_tick();
 
     can_communications_api_process_rx();
 
-    if (current_tick - fsm_last_module_update_tick >= FSM_MODULES_UPDATE_PERIOD_MS) {
-        fsm_last_module_update_tick = current_tick;
-        idle_struct->update_module();
-    }
+    prv_fsm_update_modules(idle_struct, current_tick);
 
-    throttle_api_update_internal_status(current_tick);
+    if (bootloader_api_is_flashing()) {
+        bootloader_api_watchdog_restart(); // TODO: put this in transition state
+        next_state = STATE_FLASH;
+    }
 
     EAGLETRT_API_UNUSED(identity_api_send_pedals_version(current_tick));
 
@@ -152,7 +166,23 @@ state_t do_flash(state_data_t *data) {
     state_t next_state = NO_CHANGE;
     /* Your Code Here */
 
-    EAGLETRT_API_UNUSED(data);
+    struct FsmData *flash_struct = (struct FsmData *)data;
+    if (!prv_fsm_data_is_valid(flash_struct)) {
+        return STATE_ERROR;
+    }
+
+    scheduler_api_routine();
+
+    if (can_communications_api_process_rx() != CAN_COMMUNICATION_RC_OK) {
+        return STATE_ERROR;
+    }
+
+    prv_fsm_update_modules(flash_struct, flash_struct->get_tick());
+
+    if (bootloader_api_is_timedout()) {
+        bootloader_api_set_flashing(false); // TODO: put this in transition state
+        next_state = STATE_IDLE;
+    }
 
     switch (next_state) {
         case NO_CHANGE:
@@ -167,18 +197,18 @@ state_t do_flash(state_data_t *data) {
     return next_state;
 }
 
-/*  ____  _        _        
- * / ___|| |_ __ _| |_ ___  
+/*  ____  _        _
+ * / ___|| |_ __ _| |_ ___
  * \___ \| __/ _` | __/ _ \
- *  ___) | || (_| | ||  __/ 
- * |____/ \__\__,_|\__\___| 
- *                          
- *                                              
- *  _ __ ___   __ _ _ __   __ _  __ _  ___ _ __ 
+ *  ___) | || (_| | ||  __/
+ * |____/ \__\__,_|\__\___|
+ *
+ *
+ *  _ __ ___   __ _ _ __   __ _  __ _  ___ _ __
  * | '_ ` _ \ / _` | '_ \ / _` |/ _` |/ _ \ '__|
- * | | | | | | (_| | | | | (_| | (_| |  __/ |   
- * |_| |_| |_|\__,_|_| |_|\__,_|\__, |\___|_|   
- *                              |___/           
+ * | | | | | | (_| | | | | (_| | (_| |  __/ |
+ * |_| |_| |_|\__,_|_| |_|\__,_|\__, |\___|_|
+ *                              |___/
  */
 
 state_t run_state(state_t cur_state, state_data_t *data) {

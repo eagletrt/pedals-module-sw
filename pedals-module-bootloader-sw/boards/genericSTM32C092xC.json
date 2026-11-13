@@ -1,0 +1,35 @@
+{
+  "build": {
+    "core": "stm32",
+    "cpu": "cortex-m0plus",
+    "extra_flags": "-DSTM32C0 -DSTM32C092xx",
+    "f_cpu": "48000000L",
+    "mcu": "stm32c092xx",
+    "product_line": "STM32C092xx"
+  },
+  "debug": {
+    "default_tools": [
+      "stlink"
+    ],
+    "jlink_device": "STM32C092CC",
+    "openocd_target": "stm32c0x"
+  },
+  "frameworks": [
+    "cmsis",
+    "stm32cube"
+  ],
+  "name": "Custom STM32C092xC (Cortex-M0+, 256K flash, 30K RAM)",
+  "upload": {
+    "maximum_ram_size": 30720,
+    "maximum_size": 262144,
+    "protocol": "stlink",
+    "protocols": [
+      "stlink",
+      "cmsis-dap",
+      "jlink",
+      "blackmagic"
+    ]
+  },
+  "url": "https://www.st.com/en/microcontrollers-microprocessors/stm32c092cc.html",
+  "vendor": "ST"
+}

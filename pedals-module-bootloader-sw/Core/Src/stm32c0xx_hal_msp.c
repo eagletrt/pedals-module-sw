@@ -79,4 +79,32 @@ void HAL_MspInit(void)
 
 /* USER CODE BEGIN 1 */
 
+/**
+  * Called by HAL_DeInit() in CpuStartUserProgram() right before jumping to the main
+  * firmware. Hands over the MCU as close as possible to its reset state, like the
+  * official OpenBLT STM32C0 demo does, so the main firmware starts from a clean
+  * FDCAN peripheral and its own clock configuration.
+  */
+void HAL_MspDeInit(void)
+{
+  /* OpenBLT's ComFree() does not stop the CAN controller, so reset it here together
+   * with its GPIO port (PA11/PA12). The bootloader does not use any other pin of
+   * port A, so resetting the whole port is equivalent to HAL_GPIO_DeInit() but smaller.
+   */
+  __HAL_RCC_FDCAN1_FORCE_RESET();
+  __HAL_RCC_FDCAN1_RELEASE_RESET();
+  __HAL_RCC_FDCAN1_CLK_DISABLE();
+  __HAL_RCC_GPIOA_FORCE_RESET();
+  __HAL_RCC_GPIOA_RELEASE_RESET();
+  __HAL_RCC_GPIOA_CLK_DISABLE();
+
+  /* Reset the RCC clock configuration to the default reset state. The LL version is used
+   * because HAL_RCC_DeInit() would also re-arm the SysTick through HAL_InitTick().
+   */
+  LL_RCC_DeInit();
+
+  __HAL_RCC_PWR_CLK_DISABLE();
+  __HAL_RCC_SYSCFG_CLK_DISABLE();
+}
+
 /* USER CODE END 1 */
