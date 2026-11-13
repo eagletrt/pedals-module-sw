@@ -22,6 +22,8 @@
 
 /* USER CODE BEGIN 0 */
 
+#include "can-communications-api.h"
+
 /* USER CODE END 0 */
 
 FDCAN_HandleTypeDef hfdcan1;
@@ -43,10 +45,10 @@ void MX_FDCAN1_Init(void) {
     hfdcan1.Init.AutoRetransmission = DISABLE;
     hfdcan1.Init.TransmitPause = DISABLE;
     hfdcan1.Init.ProtocolException = DISABLE;
-    hfdcan1.Init.NominalPrescaler = 1;
-    hfdcan1.Init.NominalSyncJumpWidth = 1;
-    hfdcan1.Init.NominalTimeSeg1 = 12;
-    hfdcan1.Init.NominalTimeSeg2 = 3;
+    hfdcan1.Init.NominalPrescaler = 3;
+    hfdcan1.Init.NominalSyncJumpWidth = 2;
+    hfdcan1.Init.NominalTimeSeg1 = 13;
+    hfdcan1.Init.NominalTimeSeg2 = 2;
     hfdcan1.Init.DataPrescaler = 1;
     hfdcan1.Init.DataSyncJumpWidth = 1;
     hfdcan1.Init.DataTimeSeg1 = 1;
@@ -94,6 +96,11 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef *fdcanHandle) {
         GPIO_InitStruct.Alternate = GPIO_AF4_FDCAN1;
         HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+        /* FDCAN1 interrupt Init */
+        HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(FDCAN1_IT0_IRQn);
+        HAL_NVIC_SetPriority(FDCAN1_IT1_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(FDCAN1_IT1_IRQn);
         /* USER CODE BEGIN FDCAN1_MspInit 1 */
 
         /* USER CODE END FDCAN1_MspInit 1 */
@@ -115,6 +122,9 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef *fdcanHandle) {
     */
         HAL_GPIO_DeInit(GPIOA, GPIO_PIN_11 | GPIO_PIN_12);
 
+        /* FDCAN1 interrupt Deinit */
+        HAL_NVIC_DisableIRQ(FDCAN1_IT0_IRQn);
+        HAL_NVIC_DisableIRQ(FDCAN1_IT1_IRQn);
         /* USER CODE BEGIN FDCAN1_MspDeInit 1 */
 
         /* USER CODE END FDCAN1_MspDeInit 1 */
@@ -122,5 +132,67 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef *fdcanHandle) {
 }
 
 /* USER CODE BEGIN 1 */
+
+uint32_t prv_fdcan_get_header_length(uint8_t length) {
+    if (length > CAN_COMMUNICATIONS_FRAME_DATA_SIZE) {
+        return FDCAN_DLC_BYTES_8;
+    }
+    const uint32_t dlc[] = {
+        FDCAN_DLC_BYTES_0,
+        FDCAN_DLC_BYTES_1,
+        FDCAN_DLC_BYTES_2,
+        FDCAN_DLC_BYTES_3,
+        FDCAN_DLC_BYTES_4,
+        FDCAN_DLC_BYTES_5,
+        FDCAN_DLC_BYTES_6,
+        FDCAN_DLC_BYTES_7,
+        FDCAN_DLC_BYTES_8
+    };
+    return dlc[length];
+}
+
+enum CanCommunicationReturnCode fdcan_send_primary(const struct CanCommunicationFrame *frame) {
+    FDCAN_TxHeaderTypeDef header = {
+        .Identifier = frame->id,
+        .IdType = FDCAN_STANDARD_ID,
+        .TxFrameType = FDCAN_DATA_FRAME,
+        .ErrorStateIndicator = FDCAN_ESI_ACTIVE,
+        .BitRateSwitch = FDCAN_BRS_OFF,
+        .FDFormat = FDCAN_CLASSIC_CAN,
+        .TxEventFifoControl = FDCAN_STORE_TX_EVENTS,
+        .MessageMarker = 0
+    };
+
+    header.DataLength = prv_fdcan_get_header_length(frame->length);
+
+    if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &header, frame->data) != HAL_OK) {
+        return CAN_COMMUNICATION_RC_TRANSMISSION_ERROR;
+    }
+    return CAN_COMMUNICATION_RC_OK;
+}
+
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs) {
+    if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != RESET) {
+        FDCAN_RxHeaderTypeDef header = { 0 };
+        struct CanCommunicationFrame msg = { 0 };
+        HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &header, msg.data);
+        HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+        msg.id = header.Identifier;
+        msg.length = (uint8_t)header.DataLength;
+        can_communications_api_add_to_rx_buffer(&msg);
+    }
+}
+
+void HAL_FDCAN_RxFifo1Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo1ITs) {
+    if ((RxFifo1ITs & FDCAN_IT_RX_FIFO1_NEW_MESSAGE) != RESET) {
+        FDCAN_RxHeaderTypeDef header = { 0 };
+        struct CanCommunicationFrame msg = { 0 };
+        HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO1, &header, msg.data);
+        HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0);
+        msg.id = header.Identifier;
+        msg.length = (uint8_t)header.DataLength;
+        can_communications_api_add_to_rx_buffer(&msg);
+    }
+}
 
 /* USER CODE END 1 */

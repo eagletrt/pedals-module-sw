@@ -24,8 +24,9 @@ void throttle_api_update_pedal_values(float apps1, float apps2, float apps3);
 /*!
  * \brief Updates the combined throttle pedal travel percentage and its status as a consequence 
  * 
+ * \param tick current tick, used to check if it waited enough time before next update
  */
-void throttle_api_update_internal_status(void);
+void throttle_api_update_internal_status(uint32_t tick);
 
 /*!
  * \brief Function to get the newest value of the throttle pedal travel
@@ -54,5 +55,21 @@ float throttle_api_get_apps(enum ThrottleId apps_id);
  * 
  */
 void throttle_api_implausibility_timeout_trigger(void);
+
+/*!
+ * \brief Sends throttle status (combined percentage and throttle FSM state) to CAN at a certain rate
+ * 
+ * \param tick current tick, used to check if it waited enough time before sending
+ * \return enum ThrottleReturnCode if it was able to send the message or not
+ */
+enum ThrottleReturnCode throttle_api_send_status(uint32_t tick);
+
+/*!
+ * \brief Sends raw APPS percentages to CAN at a certain rate
+ * 
+ * \param tick current tick, used to check if it waited enough time before sending
+ * \return enum ThrottleReturnCode if it was able to send the message or not
+ */
+enum ThrottleReturnCode throttle_api_send_apps(uint32_t tick);
 
 #endif //THROTTLE_API_H

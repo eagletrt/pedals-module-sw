@@ -2,6 +2,7 @@
 #define BRAKE_API_H
 
 #include "brake.h"
+#include "logger-api.h"
 
 /*!
  * \brief Function to call when ADC finished its conversion of the pedal travel percentage
@@ -50,5 +51,13 @@ float brake_api_get_front_pressure();
  * \return float positive > 0 or -1 if the original signal is out of range
  */
 float brake_api_get_rear_pressure();
+
+/*!
+ * \brief Send brake status (travel percentage, front and rear brake pressure) to CAN at a certain rate
+ * 
+ * \param tick current tick, used to check if it waited enough time before sending
+ * \return enum BrakeReturnCode if it was able to send the message or not
+ */
+enum BrakeReturnCode brake_api_send_status(uint32_t tick);
 
 #endif //BRAKE_API_H

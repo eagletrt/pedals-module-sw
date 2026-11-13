@@ -426,3 +426,4 @@ extra/
 additional_info/
 fsm_work/
 .vscode/
+bin2srec
