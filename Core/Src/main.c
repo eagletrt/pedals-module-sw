@@ -20,6 +20,7 @@
 #include "main.h"
 #include "adc.h"
 #include "dma.h"
+#include "eagletrt-fsm-api.h"
 #include "fdcan.h"
 #include "tim.h"
 #include "usart.h"
@@ -27,6 +28,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "fsm-conf.h"
 
 #include "can-communications-router-api.h"
 #include "fsm.h"
@@ -150,8 +152,6 @@ int main(void) {
     adc_init();
     HAL_FDCAN_Start(&hfdcan1);
 
-    state_t state = STATE_INIT;
-
     struct PostInit init_struct = {
         .start_timer = tim_start_timer_throttle,
         .stop_timer = tim_stop_timer_throttle,
@@ -164,7 +164,10 @@ int main(void) {
         .reboot = HAL_NVIC_SystemReset
     };
 
-    state = run_state(state, &init_struct);
+    //TODO: decide how to manage errors
+    fsm_api_init(&fsm_handler, fsm_states, FSM_STATE_INIT, FSM_STATE_COUNT);
+
+    fsm_api_run_state(&fsm_handler, &init_struct);
 
     HAL_TIM_Base_Start_IT(&htim3);
 
@@ -182,7 +185,7 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        state = run_state(state, &data);
+        fsm_api_run_state(&fsm_handler, &data);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
