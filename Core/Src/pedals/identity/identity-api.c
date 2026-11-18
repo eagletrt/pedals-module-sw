@@ -75,7 +75,8 @@ enum IdentityReturnCode identity_api_send_pedals_version_info(uint32_t tick) {
     return IDENTITY_RC_OK;
 }
 
-enum IdentityReturnCode identity_api_send_pedals_fsm(uint32_t tick, state_t fsm_state) {
+enum IdentityReturnCode identity_api_send_pedals_fsm(uint32_t tick, enum
+        FSMStateID fsm_state) {
     if (tick - identity_handler.last_status_tick < can_primary_cycle_time_pedalsfsm) {
         return IDENTITY_RC_OK;
     }
@@ -86,6 +87,7 @@ enum IdentityReturnCode identity_api_send_pedals_fsm(uint32_t tick, state_t fsm_
         .length = can_primary_byte_size_pedalsfsm
     };
     union CanPrimaryMessages status_msg = {
+        //TODO: check how enum order is important for libcan
         .pedalsfsm.status = fsm_state,
     };
 

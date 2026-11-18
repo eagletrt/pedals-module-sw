@@ -1,0 +1,41 @@
+CompileFlags:
+  # Linker-only flags that clang does not understand
+  Remove:
+    - -specs=*
+    - --specs=*
+
+Diagnostics:
+  UnusedIncludes: Strict
+  # Mirror your clangtidy checks from platformio.ini
+  ClangTidy:
+    Add:
+      - cert-*
+      - clang-analyzer-*
+      - bugprone-*
+      - performance-*
+      - readability-*
+    Remove:
+      - bugprone-easily-swappable-parameters
+    CheckOptions:
+      readability-identifier-length.MinimumVariableNameLength: 2
+
+Index:
+  Background: Build
+
+InlayHints:
+  Enabled: true
+  ParameterNames: true
+  DeducedTypes: true
+  BlockEnd: false
+
+Hover:
+  ShowAKA: true
+
+---
+# Test-only include paths
+If:
+  PathMatch: test/.*
+CompileFlags:
+  Add:
+    - -Itest/include
+    - -I.pio/libdeps/tests/Unity/src

@@ -31,7 +31,6 @@
 #include "fsm-conf.h"
 
 #include "can-communications-router-api.h"
-#include "fsm.h"
 #include "post.h"
 #include "eagletrt-api.h"
 #include "logger-api.h"

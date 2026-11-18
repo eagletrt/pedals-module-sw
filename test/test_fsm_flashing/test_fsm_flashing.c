@@ -3,7 +3,7 @@
 #include "bootloader-api.h"
 #include "can-communications-api.h"
 #include "can-communications-router-api.h"
-#include "fsm.h"
+#include "eagletrt-fsm.h"
 #include "pedals/timebase/timebase-api.h"
 #include "pedals/watchdogs/watchdogs-api.h"
 #include "post-api.h"
