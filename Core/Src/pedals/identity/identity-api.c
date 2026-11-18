@@ -75,8 +75,7 @@ enum IdentityReturnCode identity_api_send_pedals_version_info(uint32_t tick) {
     return IDENTITY_RC_OK;
 }
 
-enum IdentityReturnCode identity_api_send_pedals_fsm(uint32_t tick, enum
-        FSMStateID fsm_state) {
+enum IdentityReturnCode identity_api_send_pedals_fsm(uint32_t tick, enum FSMStateID fsm_state) {
     if (tick - identity_handler.last_status_tick < can_primary_cycle_time_pedalsfsm) {
         return IDENTITY_RC_OK;
     }

@@ -2,7 +2,7 @@
 #define IDENTITY_API_H
 
 #include "identity.h"
-#include "fsm-conf.h"
+#include "pedals-fsm.h"
 #include "logger-api.h"
 
 /*!

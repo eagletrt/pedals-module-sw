@@ -28,7 +28,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "fsm-conf.h"
+#include "pedals-fsm-api.h"
 
 #include "can-communications-router-api.h"
 #include "post.h"
@@ -155,18 +155,21 @@ int main(void) {
         .start_timer = tim_start_timer_throttle,
         .stop_timer = tim_stop_timer_throttle,
         .config = {
-            .send = fdcan_send_primary,
-            .on_receive = can_communications_router_api_receive_primary,
-            .cs_enter = __disable_irq,
-            .cs_exit = __enable_irq },
+                   .send = fdcan_send_primary,
+                   .on_receive = can_communications_router_api_receive_primary,
+                   .cs_enter = __disable_irq,
+                   .cs_exit = __enable_irq,
+                   },
         .get_tick = HAL_GetTick,
-        .reboot = HAL_NVIC_SystemReset
+        .reboot = HAL_NVIC_SystemReset,
     };
 
     //TODO: decide how to manage errors
-    fsm_api_init(&fsm_handler, fsm_states, FSM_STATE_INIT, FSM_STATE_COUNT);
+    if (pedals_fsm_api_init() != FSM_RC_OK) {
+        Error_Handler();
+    }
 
-    fsm_api_run_state(&fsm_handler, &init_struct);
+    pedals_fsm_api_run_state(&init_struct);
 
     HAL_TIM_Base_Start_IT(&htim3);
 
@@ -184,7 +187,7 @@ int main(void) {
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        fsm_api_run_state(&fsm_handler, &data);
+        pedals_fsm_api_run_state(&data);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
