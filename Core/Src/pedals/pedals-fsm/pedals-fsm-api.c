@@ -207,7 +207,11 @@ enum FSMReturnCode pedals_fsm_api_run_state(void *data) {
 }
 
 enum FSMReturnCode pedals_fsm_api_transition_to(enum FSMStateID state_id) {
-    return fsm_api_transition_to(&pedals_fsm_handler, state_id);
+    enum FSMReturnCode result = fsm_api_transition_to(&pedals_fsm_handler, state_id);
+    if (result != FSM_RC_OK) {
+        fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_ERROR);
+    }
+    return result;
 }
 
 enum FSMStateID pedals_fsm_api_get_state(void) {
