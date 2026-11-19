@@ -34,7 +34,7 @@ EAGLETRT_STATIC void prv_fsm_update_modules(const struct FsmData *data, uint32_t
  */
 
 /*! \brief FSM init state routine */
-void prv_fsm_routine_init(void *data) {
+EAGLETRT_STATIC void prv_fsm_routine_init(void *data) {
     struct PostInit *init_struct = (struct PostInit *)data;
     if (post_api_init(init_struct) != POST_RC_OK) {
         // STATE_ERROR
@@ -43,7 +43,7 @@ void prv_fsm_routine_init(void *data) {
 }
 
 /*! \brief FSM idle state routine */
-void prv_fsm_routine_idle(void *data) {
+EAGLETRT_STATIC void prv_fsm_routine_idle(void *data) {
     struct FsmData *idle_struct = (struct FsmData *)data;
     if (!prv_fsm_data_is_valid(idle_struct)) {
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_ERROR);
@@ -81,7 +81,7 @@ void prv_fsm_routine_idle(void *data) {
 }
 
 /*! \brief FSM idle state routine */
-void prv_fsm_routine_flash(void *data) {
+EAGLETRT_STATIC void prv_fsm_routine_flash(void *data) {
     struct FsmData *flash_struct = (struct FsmData *)data;
     if (!prv_fsm_data_is_valid(flash_struct)) {
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_ERROR);
@@ -104,7 +104,7 @@ void prv_fsm_routine_flash(void *data) {
 }
 
 /*! \brief FSM flash state routine */
-void prv_fsm_routine_error(void *data) {
+EAGLETRT_STATIC void prv_fsm_routine_error(void *data) {
     EAGLETRT_API_UNUSED(data);
 }
 
@@ -116,28 +116,32 @@ void prv_fsm_routine_error(void *data) {
  */
 
 /*! \brief FSM transition callback from init to idle */
-void prv_fsm_init_to_idle(void *data) {
+EAGLETRT_STATIC void prv_fsm_init_to_idle(void *data) {
+    EAGLETRT_API_UNUSED(data);
 }
 /*! \brief FSM transition callback from init to error */
-void prv_fsm_init_to_error(void *data) {
+EAGLETRT_STATIC void prv_fsm_init_to_error(void *data) {
+    EAGLETRT_API_UNUSED(data);
 }
 
 /*! \brief FSM transition callback from idle to flash */
-void prv_fsm_idle_to_flash(void *data) {
+EAGLETRT_STATIC void prv_fsm_idle_to_flash(void *data) {
     EAGLETRT_API_UNUSED(data);
     bootloader_api_watchdog_restart();
 }
 /*! \brief FSM transition callback from idle to error */
-void prv_fsm_idle_to_error(void *data) {
+EAGLETRT_STATIC void prv_fsm_idle_to_error(void *data) {
+    EAGLETRT_API_UNUSED(data);
 }
 
 /*! \brief FSM transition callback from flash to idle */
-void prv_fsm_flash_to_idle(void *data) {
+EAGLETRT_STATIC void prv_fsm_flash_to_idle(void *data) {
     EAGLETRT_API_UNUSED(data);
     bootloader_api_set_flashing(false);
 }
 /*! \brief FSM transition callback from flash to error */
-void prv_fsm_flash_to_error(void *data) {
+EAGLETRT_STATIC void prv_fsm_flash_to_error(void *data) {
+    EAGLETRT_API_UNUSED(data);
 }
 
 /*! \} */
