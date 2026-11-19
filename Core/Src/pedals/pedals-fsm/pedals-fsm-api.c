@@ -1,3 +1,10 @@
+/*!
+ * \file bootloader-api.h
+ * \author Matteo Grande [mattwexx2929@gmail.com]
+ * \date 2026-11-19
+ * \brief Implementation of the APIs of the pedals fsm module
+ */
+
 #include "pedals-fsm-api.h"
 #include "eagletrt-fsm-api.h"
 
@@ -10,8 +17,8 @@
 #include "identity-api.h"
 #include "scheduler-api.h"
 
-/*! \brief Module FSMHandler */
-struct FSMHandler pedals_fsm_handler;
+/*! \brief Private Module FSMHandler */
+EAGLETRT_STATIC struct FSMHandler pedals_fsm_handler;
 
 EAGLETRT_STATIC uint32_t fsm_last_module_update_tick = 0;
 
