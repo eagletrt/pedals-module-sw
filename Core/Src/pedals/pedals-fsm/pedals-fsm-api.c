@@ -44,7 +44,6 @@ EAGLETRT_STATIC void prv_fsm_update_modules(const struct FsmData *data, uint32_t
 EAGLETRT_STATIC void prv_fsm_routine_init(void *data) {
     struct PostInit *init_struct = (struct PostInit *)data;
     if (post_api_init(init_struct) != POST_RC_OK) {
-        // STATE_ERROR
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_ERROR);
     }
 }
@@ -52,6 +51,7 @@ EAGLETRT_STATIC void prv_fsm_routine_init(void *data) {
 /*! \brief FSM idle state routine */
 EAGLETRT_STATIC void prv_fsm_routine_idle(void *data) {
     struct FsmData *idle_struct = (struct FsmData *)data;
+
     if (!prv_fsm_data_is_valid(idle_struct)) {
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_ERROR);
         return;
@@ -66,23 +66,19 @@ EAGLETRT_STATIC void prv_fsm_routine_idle(void *data) {
     prv_fsm_update_modules(idle_struct, current_tick);
 
     if (bootloader_api_is_flashing()) {
-        bootloader_api_watchdog_restart(); // TODO: put this in transition state
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_FLASH);
     }
 
-    EAGLETRT_API_UNUSED(identity_api_send_pedals_version(current_tick));
+    identity_api_send_pedals_version(current_tick);
+    identity_api_send_pedals_version_info(current_tick);
 
-    EAGLETRT_API_UNUSED(identity_api_send_pedals_version_info(current_tick));
+    identity_api_send_libcan_version(current_tick);
+    identity_api_send_libcan_version_info(current_tick);
 
-    EAGLETRT_API_UNUSED(identity_api_send_libcan_version(current_tick));
+    identity_api_send_pedals_fsm(current_tick, fsm_api_get_state(&pedals_fsm_handler));
 
-    EAGLETRT_API_UNUSED(identity_api_send_libcan_version_info(current_tick));
-
-    EAGLETRT_API_UNUSED(identity_api_send_pedals_fsm(current_tick, fsm_api_get_state(&pedals_fsm_handler)));
-
-    EAGLETRT_API_UNUSED(throttle_api_send_status(current_tick));
-
-    EAGLETRT_API_UNUSED(brake_api_send_status(current_tick));
+    throttle_api_send_status(current_tick);
+    brake_api_send_status(current_tick);
 
     can_communications_api_process_tx();
 }
@@ -105,7 +101,6 @@ EAGLETRT_STATIC void prv_fsm_routine_flash(void *data) {
     prv_fsm_update_modules(flash_struct, flash_struct->get_tick());
 
     if (bootloader_api_is_timedout()) {
-        bootloader_api_set_flashing(false); // TODO: put this in transition state
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_IDLE);
     }
 }
