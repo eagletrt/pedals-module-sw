@@ -115,10 +115,20 @@ void prv_fsm_routine_error(void *data) {
  * \{
  */
 
+/*! \brief FSM transition callback from init to idle */
+void prv_fsm_init_to_idle(void *data) {
+}
+/*! \brief FSM transition callback from init to error */
+void prv_fsm_init_to_error(void *data) {
+}
+
 /*! \brief FSM transition callback from idle to flash */
 void prv_fsm_idle_to_flash(void *data) {
     EAGLETRT_API_UNUSED(data);
     bootloader_api_watchdog_restart();
+}
+/*! \brief FSM transition callback from idle to error */
+void prv_fsm_idle_to_error(void *data) {
 }
 
 /*! \brief FSM transition callback from flash to idle */
@@ -126,16 +136,26 @@ void prv_fsm_flash_to_idle(void *data) {
     EAGLETRT_API_UNUSED(data);
     bootloader_api_set_flashing(false);
 }
+/*! \brief FSM transition callback from flash to error */
+void prv_fsm_flash_to_error(void *data) {
+}
 
 /*! \} */
 
+/*! \brief FSM transitions from init */
+const struct Transition fsm_init_transitions[] = {
+    { .to = FSM_STATE_IDLE,  .function = prv_fsm_init_to_idle  },
+    { .to = FSM_STATE_ERROR, .function = prv_fsm_init_to_error },
+};
 /*! \brief FSM transitions from idle */
 const struct Transition fsm_idle_transitions[] = {
     { .to = FSM_STATE_FLASH, .function = prv_fsm_idle_to_flash },
+    { .to = FSM_STATE_ERROR, .function = prv_fsm_idle_to_error },
 };
 /*! \brief FSM transitions from flash */
 const struct Transition fsm_flash_transitions[] = {
-    { .to = FSM_STATE_IDLE, .function = prv_fsm_flash_to_idle },
+    { .to = FSM_STATE_IDLE,  .function = prv_fsm_flash_to_idle  },
+    { .to = FSM_STATE_ERROR, .function = prv_fsm_flash_to_error },
 };
 
 /*! \brief FSM possible states */
@@ -144,8 +164,8 @@ const struct State pedals_fsm_states[] = {
      .id = FSM_STATE_INIT,
      .function = prv_fsm_routine_init,
      .next_default = FSM_STATE_IDLE,
-     .transitions = nullptr,
-     .num_transitions = 0,
+     .transitions = fsm_init_transitions,
+     .num_transitions = EAGLETRT_FSM_TRANSITION_LEN(fsm_init_transitions),
      },
 
     {
