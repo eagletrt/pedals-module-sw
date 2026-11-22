@@ -203,11 +203,12 @@ enum FSMReturnCode pedals_fsm_api_run_state(void *data) {
 }
 
 enum FSMReturnCode pedals_fsm_api_transition_to(enum FSMStateID state_id) {
-    enum FSMReturnCode result = fsm_api_transition_to(&pedals_fsm_handler, state_id);
-    if (result != FSM_RC_OK) {
-        fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_ERROR);
+    // If the fsm wants to go in ERROR and someone else require a different
+    // state from ERROR the fsm gives precedence to ERROR
+    if (pedals_fsm_handler.requested_state == FSM_STATE_ERROR && state_id != FSM_STATE_ERROR) {
+        return FSM_RC_INVALID_TRANSITION;
     }
-    return result;
+    return fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_ERROR);
 }
 
 enum FSMStateID pedals_fsm_api_get_state(void) {
