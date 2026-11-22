@@ -101,7 +101,7 @@ EAGLETRT_STATIC void prv_fsm_routine_flash(void *data) {
     }
 }
 
-/*! \brief FSM flash state routine */
+/*! \brief FSM error state routine */
 EAGLETRT_STATIC void prv_fsm_routine_error(void *data) {
     EAGLETRT_API_UNUSED(data);
 }
