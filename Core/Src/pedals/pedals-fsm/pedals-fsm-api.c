@@ -81,7 +81,7 @@ EAGLETRT_STATIC void prv_fsm_routine_idle(void *data) {
     can_communications_api_process_tx();
 }
 
-/*! \brief FSM idle state routine */
+/*! \brief FSM flash state routine */
 EAGLETRT_STATIC void prv_fsm_routine_flash(void *data) {
     struct FsmData *flash_struct = (struct FsmData *)data;
     if (!prv_fsm_data_is_valid(flash_struct)) {
