@@ -188,6 +188,7 @@ int main(void) {
     /* USER CODE BEGIN WHILE */
     while (1) {
         pedals_fsm_api_run_state(&data);
+        scheduler_api_routine();
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */

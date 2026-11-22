@@ -57,8 +57,6 @@ EAGLETRT_STATIC void prv_fsm_routine_idle(void *data) {
         return;
     }
 
-    scheduler_api_routine();
-
     uint32_t current_tick = idle_struct->get_tick();
 
     can_communications_api_process_rx();
@@ -90,8 +88,6 @@ EAGLETRT_STATIC void prv_fsm_routine_flash(void *data) {
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_ERROR);
         return;
     }
-
-    scheduler_api_routine();
 
     if (can_communications_api_process_rx() != CAN_COMMUNICATION_RC_OK) {
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_ERROR);
