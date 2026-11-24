@@ -44,11 +44,4 @@ typedef void (*fsm_update_module_callback)(void);
 /*! \brief Callback used to reset the MCU. */
 typedef void (*fsm_system_reset_callback)(void);
 
-/*! \brief Data passed to the FSM while it is in the operational states. */
-struct FsmData { //TODO: Not actually needed(?) (need to rework the modules).
-    fsm_get_tick_callback get_tick;
-    fsm_update_module_callback update_module;
-    fsm_system_reset_callback system_reset;
-};
-
 #endif //PEDALS_FSM_H

@@ -1,6 +1,7 @@
 #ifndef POST_H
 #define POST_H
 
+#include "pedals-fsm.h"
 #include "throttle.h"
 #include "can-communications.h"
 #include "watchdogs.h"
@@ -24,6 +25,8 @@ struct PostInit {
     throttle_timer_callback stop_timer;    /*!< Throttle's stop timer callback*/
 
     struct CanCommunicationsNetworkConfig config;
+
+    fsm_update_module_callback update_module; /*!<  */
 
     watchdog_tick_callback get_tick;
     reboot_callback reboot;

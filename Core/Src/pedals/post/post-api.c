@@ -10,6 +10,10 @@ enum PostReturnCode post_api_init(struct PostInit *init) {
         return POST_RC_ERROR;
     }
 
+    if(init->update_module == nullptr) {
+        return POST_RC_ERROR;
+    }
+
     if (scheduler_api_init(init->get_tick) != SCHEDULER_RC_OK) {
         return POST_RC_ERROR;
     }

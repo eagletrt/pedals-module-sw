@@ -160,6 +160,7 @@ int main(void) {
                    .cs_enter = __disable_irq,
                    .cs_exit = __enable_irq,
                    },
+        .update_module = adc_update_modules,
         .get_tick = HAL_GetTick,
         .reboot = HAL_NVIC_SystemReset,
     };
@@ -176,18 +177,12 @@ int main(void) {
     HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
     HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0);
 
-    struct FsmData data = {
-        .get_tick = HAL_GetTick,
-        .update_module = adc_update_modules,
-        .system_reset = HAL_NVIC_SystemReset,
-    };
-
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        pedals_fsm_api_run_state(&data);
+        pedals_fsm_api_run_state(nullptr);
         scheduler_api_routine();
         /* USER CODE END WHILE */
 
