@@ -75,7 +75,7 @@ enum IdentityReturnCode identity_api_send_pedals_version_info(uint32_t tick) {
     return IDENTITY_RC_OK;
 }
 
-enum IdentityReturnCode identity_api_send_pedals_fsm(uint32_t tick, state_t fsm_state) {
+enum IdentityReturnCode identity_api_send_pedals_fsm(uint32_t tick, enum FSMStateID fsm_state) {
     if (tick - identity_handler.last_status_tick < can_primary_cycle_time_pedalsfsm) {
         return IDENTITY_RC_OK;
     }
@@ -85,8 +85,26 @@ enum IdentityReturnCode identity_api_send_pedals_fsm(uint32_t tick, state_t fsm_
         .id = CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSFSM,
         .length = can_primary_byte_size_pedalsfsm
     };
+    enum CanPrimaryPedalsfsmStatus can_pedals_fsm_status;
+    switch (fsm_state) {
+        case FSM_STATE_INIT: {
+            can_pedals_fsm_status = CAN_PRIMARY_PEDALSFSM_STATUS_INIT;
+            break;
+        }
+        case FSM_STATE_IDLE: {
+            can_pedals_fsm_status = CAN_PRIMARY_PEDALSFSM_STATUS_IDLE;
+            break;
+        }
+        case FSM_STATE_FLASH: {
+            can_pedals_fsm_status = CAN_PRIMARY_PEDALSFSM_STATUS_FLASH;
+            break;
+        }
+        case FSM_STATE_ERROR:
+        default:
+            can_pedals_fsm_status = CAN_PRIMARY_PEDALSFSM_STATUS_ERROR;
+    }
     union CanPrimaryMessages status_msg = {
-        .pedalsfsm.status = fsm_state,
+        .pedalsfsm.status = can_pedals_fsm_status,
     };
 
     //logger_api_log(LOGGER_LEVEL_DEBUG, "Identity: Sending Pedals FSM: %d", fsm_state);

@@ -20,6 +20,7 @@
 #include "main.h"
 #include "adc.h"
 #include "dma.h"
+#include "eagletrt-fsm-api.h"
 #include "fdcan.h"
 #include "tim.h"
 #include "usart.h"
@@ -27,9 +28,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "pedals-fsm-api.h"
 
 #include "can-communications-router-api.h"
-#include "fsm.h"
 #include "post.h"
 #include "eagletrt-api.h"
 #include "logger-api.h"
@@ -150,39 +151,39 @@ int main(void) {
     adc_init();
     HAL_FDCAN_Start(&hfdcan1);
 
-    state_t state = STATE_INIT;
-
     struct PostInit init_struct = {
         .start_timer = tim_start_timer_throttle,
         .stop_timer = tim_stop_timer_throttle,
         .config = {
-            .send = fdcan_send_primary,
-            .on_receive = can_communications_router_api_receive_primary,
-            .cs_enter = __disable_irq,
-            .cs_exit = __enable_irq },
+                   .send = fdcan_send_primary,
+                   .on_receive = can_communications_router_api_receive_primary,
+                   .cs_enter = __disable_irq,
+                   .cs_exit = __enable_irq,
+                   },
+        .update_module = adc_update_modules,
         .get_tick = HAL_GetTick,
-        .reboot = HAL_NVIC_SystemReset
+        .reboot = HAL_NVIC_SystemReset,
     };
 
-    state = run_state(state, &init_struct);
+    //TODO: decide how to manage errors
+    if (pedals_fsm_api_init() != FSM_RC_OK) {
+        Error_Handler();
+    }
+
+    pedals_fsm_api_run_state(&init_struct);
 
     HAL_TIM_Base_Start_IT(&htim3);
 
     HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
     HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO1_NEW_MESSAGE, 0);
 
-    struct FsmData data = {
-        .get_tick = HAL_GetTick,
-        .update_module = adc_update_modules,
-        .system_reset = HAL_NVIC_SystemReset,
-    };
-
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
-        state = run_state(state, &data);
+        pedals_fsm_api_run_state(nullptr);
+        scheduler_api_routine();
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
