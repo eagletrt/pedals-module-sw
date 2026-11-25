@@ -28,7 +28,7 @@ enum ThrottleReturnCode {
     THROTTLE_RC_OK,               /*!< No new error to signal*/
     THROTTLE_RC_CALLBACK_FAILURE, /*!< Call to external functions failed*/
     THROTTLE_RC_NULL_POINTER,     /*!< Pointer was null instead of pointing to function*/
-    THROTTLE_RC_ERROR             /*!< Generic error */
+    THROTTLE_RC_ERROR,            /*!< Generic error */
 };
 
 /*!
@@ -39,7 +39,7 @@ enum ThrottleId {
     THROTTLE_ID_APPS_1, /*!< First apps*/
     THROTTLE_ID_APPS_2, /*!< Second apps*/
     THROTTLE_ID_APPS_3, /*!< Third apps*/
-    THROTTLE_ID_COUNT   /*!< Number of APPS present*/
+    THROTTLE_ID_COUNT,  /*!< Number of APPS present*/
 };
 
 /*!
@@ -61,8 +61,6 @@ struct ThrottleHandler {
     throttle_timer_callback start_timer;              /*!< Pointer to external function to start the timer*/
     throttle_timer_callback stop_timer;               /*!< Pointer to external function to stop and reset the timer*/
     bool is_implausibility_timeout;                   /*!< Bool to set to true when implausibility timer runs out*/
-    uint32_t last_status_tick;                        /*!< Last tick in which a message for throttle status was sent*/
-    uint32_t last_update_tick;                        /*!< Last tick in which the throttle updated using apps values*/
 };
 
 #endif //THROTTLE_H
