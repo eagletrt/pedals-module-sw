@@ -4,6 +4,7 @@
 #include "eagletrt.h"
 #include "identity-api.h"
 #include "throttle-api.h"
+#include "brake-api.h"
 #include "pedals-fsm-api.h"
 #include "watchdogs-api.h"
 #include "tasks-api.h"
@@ -76,6 +77,14 @@ EAGLETRT_STATIC TaskList tasks = {
      .function = throttle_api_send_status_task,
      .start = 0U,
      .interval = can_primary_cycle_time_pedalsthrottle,
+     .repeats = 0,
+     },
+    {
+     .task_id = SCHEDULER_TASK_BRAKE_SEND_STATUS,
+     .state = TASKS_STATE_DISABLED,
+     .function = brake_api_send_status_task,
+     .start = 0U,
+     .interval = can_primary_cycle_time_pedalsbrake,
      .repeats = 0,
      },
 };

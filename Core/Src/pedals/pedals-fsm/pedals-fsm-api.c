@@ -25,7 +25,6 @@ EAGLETRT_STATIC fsm_get_tick_callback get_tick;
 
 EAGLETRT_STATIC void prv_fsm_update_modules() {
     update_module();
-    throttle_api_update_internal_status(get_tick());
 }
 
 /*!
@@ -60,9 +59,6 @@ EAGLETRT_STATIC void prv_fsm_routine_idle(void *data) {
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_FLASH);
     }
 
-    throttle_api_send_status(current_tick);
-    brake_api_send_status(current_tick);
-
     can_communications_api_process_tx();
 }
 
@@ -70,16 +66,13 @@ EAGLETRT_STATIC void prv_fsm_routine_idle(void *data) {
 EAGLETRT_STATIC void prv_fsm_routine_flash(void *data) {
     EAGLETRT_API_UNUSED(data);
 
-    if (can_communications_api_process_rx() != CAN_COMMUNICATION_RC_OK) {
-        fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_ERROR);
-        return;
-    }
-
     prv_fsm_update_modules();
 
     if (bootloader_api_is_timedout()) {
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_IDLE);
     }
+
+    can_communications_api_process_rx();
 }
 
 /*! \brief FSM error state routine */

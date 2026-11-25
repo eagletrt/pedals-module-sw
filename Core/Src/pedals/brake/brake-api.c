@@ -37,11 +37,8 @@ float brake_api_get_rear_pressure() {
     return brake_handler.rear_pressure;
 }
 
-enum BrakeReturnCode brake_api_send_status(uint32_t tick) {
-    if (tick - brake_handler.last_tick < can_primary_cycle_time_pedalsbrake) {
-        return BRAKE_RC_OK;
-    }
-    brake_handler.last_tick = tick;
+void brake_api_send_status(uint8_t task_id) {
+    EAGLETRT_API_UNUSED(task_id);
 
     struct CanCommunicationFrame frame = {
         .id = CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSBRAKE,
@@ -56,11 +53,10 @@ enum BrakeReturnCode brake_api_send_status(uint32_t tick) {
         .pedalsbrake.botsvoltage = bots_get_voltage(),
     };
 
-    if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSBRAKE, &data, frame.data) == -1) {
-        return BRAKE_RC_ERROR;
-    }
-    if (can_communications_api_add_to_tx_buffer(&frame) != CAN_COMMUNICATION_RC_OK) {
-        return BRAKE_RC_ERROR;
-    }
-    return BRAKE_RC_OK;
+    EAGLETRT_API_UNUSED(
+        can_primary_api_serialize_from_id(
+            CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSBRAKE,
+            &data,
+            frame.data));
+    can_communications_api_add_to_tx_buffer(&frame);
 }
