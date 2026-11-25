@@ -108,7 +108,7 @@ void throttle_api_update_pedal_values(float apps1, float apps2, float apps3) {
     throttle_handler.apps_travel_percentages[2] = apps3;
 }
 
-void throttle_api_update_internal_status(uint32_t tick) {
+void throttle_api_routine_task(uint32_t tick) {
     constexpr float throttle_max_percentage = 1.0F;
     constexpr float throttle_min_percentage = 0.0F;
 
@@ -156,11 +156,8 @@ void throttle_api_implausibility_timeout_trigger() {
     throttle_handler.is_implausibility_timeout = true;
 }
 
-enum ThrottleReturnCode throttle_api_send_status(uint32_t tick) {
-    if (tick - throttle_handler.last_status_tick < can_primary_cycle_time_pedalsthrottle) {
-        return THROTTLE_RC_OK;
-    }
-    throttle_handler.last_status_tick = tick;
+void throttle_api_send_status_task(uint8_t task_id) {
+    EAGLETRT_API_UNUSED(task_id);
 
     struct CanCommunicationFrame frame = {
         .id = CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSTHROTTLE,
@@ -174,17 +171,9 @@ enum ThrottleReturnCode throttle_api_send_status(uint32_t tick) {
         .pedalsthrottle.plausibility = throttle_handler.status,
     };
 
-    //logger_api_log(LOGGER_LEVEL_DEBUG, "Throttle: Sending Status: apps1:%f, apps2=%f, apps3=%f, travel=%f, plausibility=%d", throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_1], throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_2], throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_3], throttle_handler.travel_percentage, throttle_handler.status);
-
-    // logger_api_log(LOGGER_LEVEL_EMPTY, "\n>apps1_converted:%f\n>apps2_converted:%f\n>apps3_converted:%f\n>travel:%f\n>plausibility:%d", throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_1], throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_2], throttle_handler.apps_travel_percentages[THROTTLE_ID_APPS_3], throttle_handler.travel_percentage, throttle_handler.status);
-
-    //logger_api_log(LOGGER_LEVEL_EMPTY, "\n>travel:%f\n>plausibility:%d", throttle_handler.travel_percentage, throttle_handler.status);
-
-    if (can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSTHROTTLE, &status_msg, frame.data) == -1) {
-        return THROTTLE_RC_ERROR;
-    }
-    if (can_communications_api_add_to_tx_buffer(&frame) != CAN_COMMUNICATION_RC_OK) {
-        return THROTTLE_RC_ERROR;
-    }
-    return THROTTLE_RC_OK;
+    EAGLETRT_API_UNUSED(
+        can_primary_api_serialize_from_id(CAN_PRIMARY_MESSAGE_FRAME_ID_PEDALSTHROTTLE,
+                                          &status_msg,
+                                          frame.data));
+    can_communications_api_add_to_tx_buffer(&frame);
 }

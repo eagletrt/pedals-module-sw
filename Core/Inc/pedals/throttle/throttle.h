@@ -8,7 +8,7 @@
 
 #define THROTTLE_ERROR_VALUE (-1.0F)
 
-#define THROTTLE_UPDATE_PEDIOD_MS (5)
+#define THROTTLE_UPDATE_PEDIOD_MS (5U)
 
 /*!
  * \brief Represents throttle internal status regarding implausibility, different from return code
@@ -22,7 +22,7 @@ enum ThrottleStatus {
 
 /*!
  * \brief return code for throttle operations, different from throttle status
- * 
+ *
  */
 enum ThrottleReturnCode {
     THROTTLE_RC_OK,               /*!< No new error to signal*/
@@ -33,7 +33,7 @@ enum ThrottleReturnCode {
 
 /*!
  * \brief identifier for throttle apps's
- * 
+ *
  */
 enum ThrottleId {
     THROTTLE_ID_APPS_1, /*!< First apps*/
@@ -44,15 +44,15 @@ enum ThrottleId {
 
 /*!
  * \brief Callback type to access timer (external) functions
- * 
+ *
  * \return enum ThrottleReturnCode to check if the call was successful
- * 
+ *
  */
 typedef enum ThrottleReturnCode (*throttle_timer_callback)(void);
 
 /*!
  * \brief Structure to handle the status of the throttle
- * 
+ *
  */
 struct ThrottleHandler {
     float travel_percentage;                          /*!< Last valid value of the throttle, used when it can't reliably read the sensors*/

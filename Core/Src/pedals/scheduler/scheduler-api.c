@@ -3,6 +3,7 @@
 #include "can-primary.h"
 #include "eagletrt.h"
 #include "identity-api.h"
+#include "throttle-api.h"
 #include "pedals-fsm-api.h"
 #include "watchdogs-api.h"
 #include "tasks-api.h"
@@ -59,6 +60,22 @@ EAGLETRT_STATIC TaskList tasks = {
      .function = identity_api_send_libcan_version_info_task,
      .start = 0U,
      .interval = can_primary_cycle_time_pedalslibcanversioninfo,
+     .repeats = 0,
+     },
+    {
+     .task_id = SCHEDULER_TASK_THROTTLE_ROUTINE,
+     .state = TASKS_STATE_DISABLED,
+     .function = throttle_api_routine_task,
+     .start = 0U,
+     .interval = THROTTLE_UPDATE_PEDIOD_MS,
+     .repeats = 0,
+     },
+    {
+     .task_id = SCHEDULER_TASK_THROTTLE_SEND_STATUS,
+     .state = TASKS_STATE_DISABLED,
+     .function = throttle_api_send_status_task,
+     .start = 0U,
+     .interval = can_primary_cycle_time_pedalsthrottle,
      .repeats = 0,
      },
 };
