@@ -165,6 +165,10 @@ int main(void) {
         .reboot = HAL_NVIC_SystemReset,
     };
 
+    if (scheduler_api_init(HAL_GetTick) != SCHEDULER_RC_OK) {
+        Error_Handler();
+    }
+
     //TODO: decide how to manage errors
     if (pedals_fsm_api_init() != FSM_RC_OK) {
         Error_Handler();
@@ -183,7 +187,8 @@ int main(void) {
     /* USER CODE BEGIN WHILE */
     while (1) {
         pedals_fsm_api_run_state(nullptr);
-        scheduler_api_routine();
+        scheduler_api_watchdogs_routine();
+        scheduler_api_tasks_routine();
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */

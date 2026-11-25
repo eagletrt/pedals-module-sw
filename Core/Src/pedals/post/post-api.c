@@ -3,7 +3,6 @@
 #include "can-communications-api.h"
 #include "bootloader-api.h"
 #include "watchdogs-api.h"
-#include "scheduler-api.h"
 
 enum PostReturnCode post_api_init(struct PostInit *init) {
     if (init == nullptr) {
@@ -11,10 +10,6 @@ enum PostReturnCode post_api_init(struct PostInit *init) {
     }
 
     if(init->update_module == nullptr) {
-        return POST_RC_ERROR;
-    }
-
-    if (scheduler_api_init(init->get_tick) != SCHEDULER_RC_OK) {
         return POST_RC_ERROR;
     }
 
