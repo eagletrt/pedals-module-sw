@@ -23,14 +23,9 @@ EAGLETRT_STATIC struct FSMHandler pedals_fsm_handler;
 EAGLETRT_STATIC fsm_update_module_callback update_module;
 EAGLETRT_STATIC fsm_get_tick_callback get_tick;
 
-EAGLETRT_STATIC uint32_t fsm_last_module_update_tick = 0;
-
-EAGLETRT_STATIC void prv_fsm_update_modules(uint32_t tick) {
-    if (tick - fsm_last_module_update_tick >= FSM_MODULES_UPDATE_PERIOD_MS) {
-        fsm_last_module_update_tick = tick;
-        update_module();
-    }
-    throttle_api_update_internal_status(tick);
+EAGLETRT_STATIC void prv_fsm_update_modules() {
+    update_module();
+    throttle_api_update_internal_status(get_tick());
 }
 
 /*!
@@ -59,7 +54,7 @@ EAGLETRT_STATIC void prv_fsm_routine_idle(void *data) {
 
     can_communications_api_process_rx();
 
-    prv_fsm_update_modules(current_tick);
+    prv_fsm_update_modules();
 
     if (bootloader_api_is_flashing()) {
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_FLASH);
@@ -88,7 +83,7 @@ EAGLETRT_STATIC void prv_fsm_routine_flash(void *data) {
         return;
     }
 
-    prv_fsm_update_modules(get_tick());
+    prv_fsm_update_modules();
 
     if (bootloader_api_is_timedout()) {
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_IDLE);

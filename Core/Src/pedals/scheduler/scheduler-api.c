@@ -16,7 +16,7 @@ EAGLETRT_STATIC TaskList tasks = {
      .state = TASKS_STATE_ENABLED,
      .function = pedals_fsm_run_task,
      .start = 0U,
-     .interval = 5U,
+     .interval = PEDALS_FSM_RUN_TASK_INTERVAL,
      .repeats = 0,
      },
 };

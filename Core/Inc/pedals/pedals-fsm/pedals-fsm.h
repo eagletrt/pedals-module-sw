@@ -11,9 +11,9 @@
 #include <stdint.h>
 
 /*!
- * \brief Minimum interval, in milliseconds, between two module updates.
+ * \brief interval, in milliseconds, for `pedals_fsm_run_task`.
  */
-#define FSM_MODULES_UPDATE_PERIOD_MS (3)
+#define PEDALS_FSM_RUN_TASK_INTERVAL (3)
 
 /*! \brief Identifiers of the possible FSM states. */
 enum FSMStateID {
