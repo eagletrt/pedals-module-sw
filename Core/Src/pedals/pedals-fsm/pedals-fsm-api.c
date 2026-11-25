@@ -60,14 +60,6 @@ EAGLETRT_STATIC void prv_fsm_routine_idle(void *data) {
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_FLASH);
     }
 
-    identity_api_send_pedals_version(current_tick);
-    identity_api_send_pedals_version_info(current_tick);
-
-    identity_api_send_libcan_version(current_tick);
-    identity_api_send_libcan_version_info(current_tick);
-
-    identity_api_send_pedals_fsm(current_tick, fsm_api_get_state(&pedals_fsm_handler));
-
     throttle_api_send_status(current_tick);
     brake_api_send_status(current_tick);
 

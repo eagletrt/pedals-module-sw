@@ -1,6 +1,8 @@
 #include "scheduler-api.h"
 
+#include "can-primary.h"
 #include "eagletrt.h"
+#include "identity-api.h"
 #include "pedals-fsm-api.h"
 #include "watchdogs-api.h"
 #include "tasks-api.h"
@@ -17,6 +19,46 @@ EAGLETRT_STATIC TaskList tasks = {
      .function = pedals_fsm_run_task,
      .start = 0U,
      .interval = PEDALS_FSM_RUN_TASK_INTERVAL,
+     .repeats = 0,
+     },
+    {
+     .task_id = SCHEDULER_TASK_IDENTITY_SEND_PEDALS_VERSION,
+     .state = TASKS_STATE_DISABLED,
+     .function = identity_api_send_pedals_version_task,
+     .start = 0U,
+     .interval = can_primary_cycle_time_pedalsversion,
+     .repeats = 0,
+     },
+    {
+     .task_id = SCHEDULER_TASK_IDENTITY_SEND_PEDALS_VERSION_INFO,
+     .state = TASKS_STATE_DISABLED,
+     .function = identity_api_send_pedals_version_task,
+     .start = 0U,
+     .interval = can_primary_cycle_time_pedalsversioninfo,
+     .repeats = 0,
+     },
+    {
+     .task_id = SCHEDULER_TASK_IDENTITY_SEND_PEDALS_FSM,
+     .state = TASKS_STATE_DISABLED,
+     .function = identity_api_send_pedals_fsm_task,
+     .start = 0U,
+     .interval = can_primary_cycle_time_pedalsfsm,
+     .repeats = 0,
+     },
+    {
+     .task_id = SCHEDULER_TASK_IDENTITY_SEND_LIBCAN_VERSION,
+     .state = TASKS_STATE_DISABLED,
+     .function = identity_api_send_libcan_version_task,
+     .start = 0U,
+     .interval = can_primary_cycle_time_pedalslibcanversion,
+     .repeats = 0,
+     },
+    {
+     .task_id = SCHEDULER_TASK_IDENTITY_SEND_LIBCAN_VERSION_INFO,
+     .state = TASKS_STATE_DISABLED,
+     .function = identity_api_send_libcan_version_info_task,
+     .start = 0U,
+     .interval = can_primary_cycle_time_pedalslibcanversioninfo,
      .repeats = 0,
      },
 };
