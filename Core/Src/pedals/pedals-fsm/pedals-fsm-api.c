@@ -208,3 +208,8 @@ enum FSMReturnCode pedals_fsm_api_transition_to(enum FSMStateID state_id) {
 enum FSMStateID pedals_fsm_api_get_state(void) {
     return fsm_api_get_state(&pedals_fsm_handler);
 }
+
+void pedals_fsm_run_task(uint8_t task_id) {
+    EAGLETRT_API_UNUSED(task_id);
+    pedals_fsm_api_run_state(nullptr);
+}

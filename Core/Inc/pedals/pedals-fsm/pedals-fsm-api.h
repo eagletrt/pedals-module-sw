@@ -55,4 +55,9 @@ enum FSMReturnCode pedals_fsm_api_transition_to(enum FSMStateID state_id);
  */
 enum FSMStateID pedals_fsm_api_get_state(void);
 
+/*!
+ * \brief
+ */
+void pedals_fsm_run_task(uint8_t task_id);
+
 #endif //PEDALS_FSM_API_H
