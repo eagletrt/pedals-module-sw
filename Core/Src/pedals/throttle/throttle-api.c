@@ -108,14 +108,11 @@ void throttle_api_update_pedal_values(float apps1, float apps2, float apps3) {
     throttle_handler.apps_travel_percentages[2] = apps3;
 }
 
-void throttle_api_routine_task(uint32_t tick) {
+void throttle_api_routine_task(uint8_t task_id) {
+    EAGLETRT_API_UNUSED(task_id);
+
     constexpr float throttle_max_percentage = 1.0F;
     constexpr float throttle_min_percentage = 0.0F;
-
-    if (tick - throttle_handler.last_update_tick < THROTTLE_UPDATE_PEDIOD_MS) {
-        return;
-    }
-    throttle_handler.last_update_tick = tick;
 
     // if status is THROTTLE_STATUS_IMPLAUSIBILITY_ERROR you can't recover from the error, leave the throttle state as it is
     if (throttle_handler.status != THROTTLE_STATUS_OK && throttle_handler.status != THROTTLE_STATUS_IMPLAUSIBILITY_RECOVERABLE) {
