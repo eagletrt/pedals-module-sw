@@ -7,7 +7,7 @@
 
 EAGLETRT_STATIC struct BrakeHandler brake_handler;
 
-void brake_api_update_pedal_travel_percentage(float percentage) {
+void brake_api_set_pedal_travel_percentage(float percentage) {
     if (percentage > -0.05F && percentage < 1.05F) {
         percentage = EAGLETRT_API_CLAMP(percentage, 0.0F, 1.0F);
         //percentage = -1.0F;
@@ -17,27 +17,27 @@ void brake_api_update_pedal_travel_percentage(float percentage) {
     brake_handler.pedal_travel = percentage;
 }
 
-void brake_api_update_front_pressure(float pressure) {
+void brake_api_set_front_pressure(float pressure) {
     brake_handler.front_pressure = pressure;
 }
 
-void brake_api_update_rear_pressure(float pressure) {
+void brake_api_set_rear_pressure(float pressure) {
     brake_handler.rear_pressure = pressure;
 }
 
-float brake_api_get_pedal_travel_percentage() {
+float brake_api_get_pedal_travel_percentage(void) {
     return brake_handler.pedal_travel;
 }
 
-float brake_api_get_front_pressure() {
+float brake_api_get_front_pressure(void) {
     return brake_handler.front_pressure;
 }
 
-float brake_api_get_rear_pressure() {
+float brake_api_get_rear_pressure(void) {
     return brake_handler.rear_pressure;
 }
 
-void brake_api_send_status(uint8_t task_id) {
+void brake_api_send_status_task(uint8_t task_id) {
     EAGLETRT_API_UNUSED(task_id);
 
     struct CanCommunicationFrame frame = {

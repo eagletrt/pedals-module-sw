@@ -11,7 +11,7 @@
  *
  * \details This function will enforce the restriction in values of the 'percentage' parameter, if not in range [0,1] the saved value will be -1
  */
-void brake_api_update_pedal_travel_percentage(float percentage);
+void brake_api_set_pedal_travel_percentage(float percentage);
 
 /*!
  * \brief Function to call when ADC finished its conversion of the front brake liquid pressure
@@ -20,7 +20,7 @@ void brake_api_update_pedal_travel_percentage(float percentage);
  *
  * \details This function cannot check if the value is out of range, always check parameter value before calling the function
  */
-void brake_api_update_front_pressure(float pressure);
+void brake_api_set_front_pressure(float pressure);
 
 /*!
  * \brief Function to call when ADC finished its conversion of the rear brake liquid pressure
@@ -29,7 +29,7 @@ void brake_api_update_front_pressure(float pressure);
  *
  * \details This function cannot check if the value is out of range, always check parameter value before calling the function
  */
-void brake_api_update_rear_pressure(float pressure);
+void brake_api_set_rear_pressure(float pressure);
 
 /*!
  * \brief Returns value of the last read brake pedal travel percentage
