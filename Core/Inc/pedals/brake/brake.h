@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+constexpr uint16_t brake_routine_cycle = 5U;
+
 typedef void(*brake_update_hook_callback)(void);
 
 enum BrakeReturnCode {

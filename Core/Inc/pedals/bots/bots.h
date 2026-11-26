@@ -1,6 +1,11 @@
 #ifndef BOTS_H
 #define BOTS_H
 
+#include <stdint.h>
+
+/*! \brief */
+constexpr uint16_t bots_routine_cycle = 5U;
+
 /*! \brief */
 constexpr float bots_threshold_voltage_triggered = 0.5F;
 
