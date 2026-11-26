@@ -12,6 +12,7 @@
 #include "can-communications-api.h"
 #include "bootloader-api.h"
 #include "post-api.h"
+#include "scheduler-api.h"
 
 /*! \brief Private Module FSMHandler */
 EAGLETRT_STATIC struct FSMHandler pedals_fsm_handler;
@@ -61,6 +62,34 @@ EAGLETRT_STATIC void prv_fsm_routine_error(void *data) {
 /*! \} */
 
 /*!
+ * \defgroup FSMTaskHelpers
+ * \{
+ */
+
+/*! \brief enable all tasks */
+EAGLETRT_STATIC void prv_fsm_enable_tasks(void) {
+    for (enum SchedulerTaskName task_id = 0; task_id < SCHEDULER_TASKS_COUNT; task_id++) {
+        scheduler_api_enable_task(task_id);
+    }
+}
+
+/*! \brief disable noisy tasks */
+EAGLETRT_STATIC void prv_fsm_disable_noisy_tasks(void) {
+    bool is_task_noisy[SCHEDULER_TASKS_COUNT] = { true };
+    is_task_noisy[SCHEDULER_TASK_IDENTITY_SEND_PEDALS_FSM] = false;
+
+    for (enum SchedulerTaskName task_id = 0;
+         task_id < SCHEDULER_TASKS_COUNT;
+         task_id++) {
+        if (is_task_noisy[task_id]) {
+            scheduler_api_disable_task(task_id);
+        }
+    }
+}
+
+/*! \} */
+
+/*!
  * \defgroup FSMTransitions
  * \{
  */
@@ -68,48 +97,45 @@ EAGLETRT_STATIC void prv_fsm_routine_error(void *data) {
 /*! \brief FSM transition callback from init to idle */
 EAGLETRT_STATIC void prv_fsm_init_to_idle(void *data) {
     EAGLETRT_API_UNUSED(data);
-}
-/*! \brief FSM transition callback from init to error */
-EAGLETRT_STATIC void prv_fsm_init_to_error(void *data) {
-    EAGLETRT_API_UNUSED(data);
+    prv_fsm_enable_tasks();
 }
 
 /*! \brief FSM transition callback from idle to flash */
 EAGLETRT_STATIC void prv_fsm_idle_to_flash(void *data) {
     EAGLETRT_API_UNUSED(data);
+    prv_fsm_disable_noisy_tasks();
     bootloader_api_watchdog_restart();
-}
-/*! \brief FSM transition callback from idle to error */
-EAGLETRT_STATIC void prv_fsm_idle_to_error(void *data) {
-    EAGLETRT_API_UNUSED(data);
 }
 
 /*! \brief FSM transition callback from flash to idle */
 EAGLETRT_STATIC void prv_fsm_flash_to_idle(void *data) {
     EAGLETRT_API_UNUSED(data);
+    prv_fsm_enable_tasks();
     bootloader_api_set_flashing(false);
 }
-/*! \brief FSM transition callback from flash to error */
-EAGLETRT_STATIC void prv_fsm_flash_to_error(void *data) {
+
+/*! \brief FSM transition callback from any state to error */
+EAGLETRT_STATIC void prv_fsm_to_error(void *data) {
     EAGLETRT_API_UNUSED(data);
+    prv_fsm_disable_noisy_tasks();
 }
 
 /*! \} */
 
 /*! \brief FSM transitions from init */
 const struct Transition fsm_init_transitions[] = {
-    { .to = FSM_STATE_IDLE,  .function = prv_fsm_init_to_idle  },
-    { .to = FSM_STATE_ERROR, .function = prv_fsm_init_to_error },
+    { .to = FSM_STATE_IDLE,  .function = prv_fsm_init_to_idle },
+    { .to = FSM_STATE_ERROR, .function = prv_fsm_to_error     },
 };
 /*! \brief FSM transitions from idle */
 const struct Transition fsm_idle_transitions[] = {
     { .to = FSM_STATE_FLASH, .function = prv_fsm_idle_to_flash },
-    { .to = FSM_STATE_ERROR, .function = prv_fsm_idle_to_error },
+    { .to = FSM_STATE_ERROR, .function = prv_fsm_to_error      },
 };
 /*! \brief FSM transitions from flash */
 const struct Transition fsm_flash_transitions[] = {
-    { .to = FSM_STATE_IDLE,  .function = prv_fsm_flash_to_idle  },
-    { .to = FSM_STATE_ERROR, .function = prv_fsm_flash_to_error },
+    { .to = FSM_STATE_IDLE,  .function = prv_fsm_flash_to_idle },
+    { .to = FSM_STATE_ERROR, .function = prv_fsm_to_error      },
 };
 
 /*! \brief FSM possible states */
