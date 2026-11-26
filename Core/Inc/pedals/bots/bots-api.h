@@ -1,7 +1,12 @@
 #ifndef BOTS_API_H
 #define BOTS_API_H
 
-#include "stdbool.h"
+#include "bots.h"
+
+#include "stdint.h"
+
+/*! \brief */
+enum BotsReturnCode bots_api_init(bots_update_hook_callback update_hook);
 
 /*!
  * \brief Set the voltage value for BOTS. If the voltage is below a certain threshold, it will trigger an error message
@@ -24,5 +29,8 @@ float bots_api_get_voltage(void);
  * \retval false if bots_set_triggered wasn't called or if it already returned true without bots_set_triggered being called again
  */
 bool bots_api_is_triggered(void);
+
+/*! \brief */
+void bots_api_routine_task(uint8_t task_id);
 
 #endif //BOTS_API_H
