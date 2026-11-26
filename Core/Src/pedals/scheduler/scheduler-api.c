@@ -1,5 +1,6 @@
 #include "scheduler-api.h"
 
+#include "bots.h"
 #include "can-primary.h"
 #include "eagletrt.h"
 #include "identity-api.h"
@@ -15,6 +16,7 @@ EAGLETRT_STATIC struct WatchdogHandler watchdogs_handler;
 EAGLETRT_STATIC struct TasksHandler tasks_handler;
 
 EAGLETRT_STATIC TaskList tasks = {
+    // FSM
     {
      .task_id = SCHEDULER_TASK_PEDALS_FSM_RUN,
      .state = TASKS_STATE_ENABLED,
@@ -23,6 +25,8 @@ EAGLETRT_STATIC TaskList tasks = {
      .interval = PEDALS_FSM_RUN_TASK_INTERVAL,
      .repeats = 0,
      },
+
+    // IDENTITY
     {
      .task_id = SCHEDULER_TASK_IDENTITY_SEND_PEDALS_VERSION,
      .state = TASKS_STATE_DISABLED,
@@ -63,6 +67,8 @@ EAGLETRT_STATIC TaskList tasks = {
      .interval = can_primary_cycle_time_pedalslibcanversioninfo,
      .repeats = 0,
      },
+
+    // THROTTLE
     {
      .task_id = SCHEDULER_TASK_THROTTLE_ROUTINE,
      .state = TASKS_STATE_DISABLED,
@@ -79,12 +85,14 @@ EAGLETRT_STATIC TaskList tasks = {
      .interval = can_primary_cycle_time_pedalsthrottle,
      .repeats = 0,
      },
+
+    // BRAKE
     {
      .task_id = SCHEDULER_TASK_BRAKE_ROUTINE,
      .state = TASKS_STATE_DISABLED,
      .function = brake_api_routine_task,
      .start = 0U,
-     .interval = THROTTLE_UPDATE_PEDIOD_MS,
+     .interval = brake_routine_cycle,
      .repeats = 0,
      },
     {
@@ -93,6 +101,16 @@ EAGLETRT_STATIC TaskList tasks = {
      .function = brake_api_send_status_task,
      .start = 0U,
      .interval = can_primary_cycle_time_pedalsbrake,
+     .repeats = 0,
+     },
+
+    // BOTS
+    {
+     .task_id = SCHEDULER_TASK_BOTS_ROUTINE,
+     .state = TASKS_STATE_DISABLED,
+     .function = brake_api_routine_task,
+     .start = 0U,
+     .interval = bots_routine_cycle,
      .repeats = 0,
      },
 };
