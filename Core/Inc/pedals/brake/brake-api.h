@@ -2,7 +2,9 @@
 #define BRAKE_API_H
 
 #include "brake.h"
-#include "logger-api.h"
+
+/*! \brief */
+enum BrakeReturnCode brake_api_init(brake_update_hook_callback update_hook);
 
 /*!
  * \brief Function to call when ADC finished its conversion of the pedal travel percentage
@@ -11,6 +13,7 @@
  *
  * \details This function will enforce the restriction in values of the 'percentage' parameter, if not in range [0,1] the saved value will be -1
  */
+#include <stdint.h>
 void brake_api_set_pedal_travel_percentage(float percentage);
 
 /*!
@@ -51,6 +54,9 @@ float brake_api_get_front_pressure();
  * \return float positive > 0 or -1 if the original signal is out of range
  */
 float brake_api_get_rear_pressure();
+
+/*! \brief */
+void brake_api_routine_task(uint8_t task_id);
 
 /*!
  * \brief Send brake status (travel percentage, front and rear brake pressure) to CAN at a certain rate

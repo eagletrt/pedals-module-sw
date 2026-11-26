@@ -7,6 +7,16 @@
 
 EAGLETRT_STATIC struct BrakeHandler brake_handler;
 
+enum BrakeReturnCode brake_api_init(brake_update_hook_callback update_hook) {
+    if (update_hook == nullptr) {
+        return BRAKE_RC_ERROR;
+    }
+
+    brake_handler.update_hook = update_hook;
+
+    return BRAKE_RC_OK;
+}
+
 void brake_api_set_pedal_travel_percentage(float percentage) {
     if (percentage > -0.05F && percentage < 1.05F) {
         percentage = EAGLETRT_API_CLAMP(percentage, 0.0F, 1.0F);
@@ -37,6 +47,12 @@ float brake_api_get_rear_pressure(void) {
     return brake_handler.rear_pressure;
 }
 
+void brake_api_routine_task(uint8_t task_id) {
+    EAGLETRT_API_UNUSED(task_id);
+
+    brake_handler.update_hook();
+}
+
 void brake_api_send_status_task(uint8_t task_id) {
     EAGLETRT_API_UNUSED(task_id);
 
@@ -50,7 +66,7 @@ void brake_api_send_status_task(uint8_t task_id) {
         .pedalsbrake.pressurerl = brake_handler.rear_pressure,
         .pedalsbrake.pressurerr = brake_handler.rear_pressure,
         .pedalsbrake.travel = brake_handler.pedal_travel,
-        .pedalsbrake.botsvoltage = bots_get_voltage(),
+        .pedalsbrake.botsvoltage = bots_api_get_voltage(),
     };
 
     EAGLETRT_API_UNUSED(

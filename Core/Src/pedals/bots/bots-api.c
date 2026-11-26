@@ -9,7 +9,10 @@ enum BotsReturnCode bots_api_init(bots_update_hook_callback update_hook) {
         return BOTS_RC_NULL_POINTER;
     }
 
-    bots_handler.update_hook = update_hook;
+    bots_handler = (struct BotsHandler) {
+        .voltage = 0.0F,
+        .update_hook = update_hook,
+    };
 
     return BOTS_RC_OK;
 }
