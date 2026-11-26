@@ -90,8 +90,12 @@ void prv_throttle_calculate_next_state(float new_value) {
     }
 }
 
-enum ThrottleReturnCode throttle_api_init(throttle_timer_callback start_timer, throttle_timer_callback stop_timer) {
-    if (start_timer == NULL || stop_timer == NULL) {
+enum ThrottleReturnCode throttle_api_init(
+    throttle_timer_callback start_timer,
+    throttle_timer_callback stop_timer,
+    throttle_update_hook_callback update_hook) {
+
+    if (start_timer == nullptr || stop_timer == nullptr || update_hook == nullptr) {
         return THROTTLE_RC_NULL_POINTER;
     }
 
@@ -99,6 +103,7 @@ enum ThrottleReturnCode throttle_api_init(throttle_timer_callback start_timer, t
 
     throttle_handler.start_timer = start_timer;
     throttle_handler.stop_timer = stop_timer;
+    throttle_handler.update_hook = update_hook;
     return THROTTLE_RC_OK;
 }
 
@@ -110,6 +115,8 @@ void throttle_api_update_pedal_values(float apps1, float apps2, float apps3) {
 
 void throttle_api_routine_task(uint8_t task_id) {
     EAGLETRT_API_UNUSED(task_id);
+
+    throttle_handler.update_hook();
 
     constexpr float throttle_max_percentage = 1.0F;
     constexpr float throttle_min_percentage = 0.0F;

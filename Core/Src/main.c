@@ -160,7 +160,9 @@ int main(void) {
                    .cs_enter = __disable_irq,
                    .cs_exit = __enable_irq,
                    },
-        .update_module = adc_update_modules,
+        .throttle_update_hook = adc_update_apps,
+        .brake_update_hook = adc_update_brake,
+        .bots_update_hook = adc_update_bots,
         .get_tick = HAL_GetTick,
         .reboot = HAL_NVIC_SystemReset,
     };

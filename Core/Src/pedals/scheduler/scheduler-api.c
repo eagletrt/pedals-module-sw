@@ -80,6 +80,14 @@ EAGLETRT_STATIC TaskList tasks = {
      .repeats = 0,
      },
     {
+     .task_id = SCHEDULER_TASK_BRAKE_ROUTINE,
+     .state = TASKS_STATE_DISABLED,
+     .function = brake_api_routine_task,
+     .start = 0U,
+     .interval = THROTTLE_UPDATE_PEDIOD_MS,
+     .repeats = 0,
+     },
+    {
      .task_id = SCHEDULER_TASK_BRAKE_SEND_STATUS,
      .state = TASKS_STATE_DISABLED,
      .function = brake_api_send_status_task,

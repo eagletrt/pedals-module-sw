@@ -10,6 +10,8 @@
 
 #define THROTTLE_UPDATE_PEDIOD_MS (5U)
 
+typedef void (*throttle_update_hook_callback)(void);
+
 /*!
  * \brief Represents throttle internal status regarding implausibility, different from return code
  */
@@ -61,6 +63,7 @@ struct ThrottleHandler {
     throttle_timer_callback start_timer;              /*!< Pointer to external function to start the timer*/
     throttle_timer_callback stop_timer;               /*!< Pointer to external function to stop and reset the timer*/
     bool is_implausibility_timeout;                   /*!< Bool to set to true when implausibility timer runs out*/
+    throttle_update_hook_callback update_hook;
 };
 
 #endif //THROTTLE_H

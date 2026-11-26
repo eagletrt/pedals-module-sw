@@ -62,7 +62,11 @@ char *adc_get_reading_name(enum AdcReading reading);
 
 float adc_read_voltage(enum AdcReading reading);
 
-void adc_update_modules();
+void adc_update_apps(void);
+
+void adc_update_brake(void);
+
+void adc_update_bots(void);
 
 /* USER CODE END Prototypes */
 

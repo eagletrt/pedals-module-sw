@@ -25,8 +25,6 @@
 #include <string.h>
 #include "brake-api.h"
 #include "eagletrt-api.h"
-#include "logger-api.h"
-#include "logger.h"
 #include "throttle-api.h"
 #include "bots-api.h"
 #include "adc_conversion.h"
@@ -298,23 +296,24 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
     adc_voltages[ADC_READING_BOTS] = ADC_CONV_BOTS_RAW2VOLT(adc_values[ADC_READING_BOTS]);
 }
 
-void adc_update_modules() {
-    float apps1 = ADC_CONV_APPS1_NORMALIZE(adc_voltages[ADC_READING_APPS_1]);
-    float apps2 = ADC_CONV_APPS2_NORMALIZE(adc_voltages[ADC_READING_APPS_2]);
-    float apps3 = ADC_CONV_APPS3_NORMALIZE(adc_voltages[ADC_READING_APPS_3]);
-    //float bpps = ADC_CONV_BPPS_NORMALIZE(adc_voltages[ADC_READING_BPPS]);
-    float front = eagletrt_api_mapf(adc_voltages[ADC_READING_BSPS_FRONT], 0.5, 4.5, 0.0, 100.0);
-    float rear = eagletrt_api_mapf(adc_voltages[ADC_READING_BSPS_REAR], 0.5, 4.5, 0.0, 100.0);
+void adc_update_apps(void) {
+    throttle_api_update_pedal_values(
+        ADC_CONV_APPS1_NORMALIZE(adc_voltages[ADC_READING_APPS_1]),
+        ADC_CONV_APPS2_NORMALIZE(adc_voltages[ADC_READING_APPS_2]),
+        ADC_CONV_APPS3_NORMALIZE(adc_voltages[ADC_READING_APPS_3]));
+}
 
-    // logger_api_log(LOGGER_LEVEL_EMPTY, ">apps1_raw:%f  >apps2_raw:%f  >apps3_raw:%f  >bpps_raw:%f  >front_raw:%f  >rear_raw:%f  >bots_raw:%f", adc_voltages[ADC_READING_APPS_1], adc_voltages[ADC_READING_APPS_2], adc_voltages[ADC_READING_APPS_3], adc_voltages[ADC_READING_BPPS], adc_voltages[ADC_READING_BSPS_FRONT], adc_voltages[ADC_READING_BSPS_REAR], adc_voltages[ADC_READING_BOTS]);
-    // logger_api_log(LOGGER_LEVEL_EMPTY, ">front pressure:%f", front);
+void adc_update_brake(void) {
+    brake_api_set_front_pressure(
+        eagletrt_api_mapf(
+            adc_voltages[ADC_READING_BSPS_FRONT], 0.5, 4.5, 0.0, 100.0));
+    brake_api_set_rear_pressure(
+        eagletrt_api_mapf(
+            adc_voltages[ADC_READING_BSPS_REAR], 0.5, 4.5, 0.0, 100.0));
+}
 
-    throttle_api_update_pedal_values(apps1, apps2, apps3);
-    // no travel sensor on brake for now
-    // brake_api_update_pedal_travel_percentage(front / 100.0F);
-    brake_api_update_front_pressure(front);
-    brake_api_update_rear_pressure(rear);
-    bots_set_voltage(adc_voltages[ADC_READING_BOTS]);
+void adc_update_bots(void) {
+    bots_api_set_voltage(adc_voltages[ADC_READING_BOTS]);
 }
 
 /* USER CODE END 1 */

@@ -10,7 +10,10 @@
  * \param stop_timer pointer to function that will reset the implausibility timer
  * \return enum ThrottleReturnCode status of the operation
  */
-enum ThrottleReturnCode throttle_api_init(throttle_timer_callback start_timer, throttle_timer_callback stop_timer);
+enum ThrottleReturnCode throttle_api_init(
+    throttle_timer_callback start_timer,
+    throttle_timer_callback stop_timer,
+    throttle_update_hook_callback update_hook);
 
 /*!
  * \brief Function to call when ADC completed its conversions. It saves values into the throttle

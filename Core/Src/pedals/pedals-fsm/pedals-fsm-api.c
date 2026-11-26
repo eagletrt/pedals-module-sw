@@ -11,21 +11,10 @@
 #include "eagletrt-api.h"
 #include "can-communications-api.h"
 #include "bootloader-api.h"
-#include "brake-api.h"
-#include "throttle-api.h"
 #include "post-api.h"
-#include "identity-api.h"
-#include "scheduler-api.h"
 
 /*! \brief Private Module FSMHandler */
 EAGLETRT_STATIC struct FSMHandler pedals_fsm_handler;
-
-EAGLETRT_STATIC fsm_update_module_callback update_module;
-EAGLETRT_STATIC fsm_get_tick_callback get_tick;
-
-EAGLETRT_STATIC void prv_fsm_update_modules() {
-    update_module();
-}
 
 /*!
  * \defgroup FSMRoutines
@@ -38,22 +27,13 @@ EAGLETRT_STATIC void prv_fsm_routine_init(void *data) {
     if (post_api_init(init_struct) != POST_RC_OK) {
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_ERROR);
     }
-    if (init_struct->update_module == nullptr || init_struct->get_tick == nullptr) {
-        fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_ERROR);
-    }
-    update_module = init_struct->update_module;
-    get_tick = init_struct->get_tick;
 }
 
 /*! \brief FSM idle state routine */
 EAGLETRT_STATIC void prv_fsm_routine_idle(void *data) {
     EAGLETRT_API_UNUSED(data);
 
-    uint32_t current_tick = get_tick();
-
     can_communications_api_process_rx();
-
-    prv_fsm_update_modules();
 
     if (bootloader_api_is_flashing()) {
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_FLASH);
@@ -65,8 +45,6 @@ EAGLETRT_STATIC void prv_fsm_routine_idle(void *data) {
 /*! \brief FSM flash state routine */
 EAGLETRT_STATIC void prv_fsm_routine_flash(void *data) {
     EAGLETRT_API_UNUSED(data);
-
-    prv_fsm_update_modules();
 
     if (bootloader_api_is_timedout()) {
         fsm_api_transition_to(&pedals_fsm_handler, FSM_STATE_IDLE);
