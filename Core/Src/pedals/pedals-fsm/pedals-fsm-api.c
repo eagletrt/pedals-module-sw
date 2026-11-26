@@ -76,6 +76,7 @@ EAGLETRT_STATIC void prv_fsm_enable_tasks(void) {
 /*! \brief disable noisy tasks */
 EAGLETRT_STATIC void prv_fsm_disable_noisy_tasks(void) {
     bool is_task_noisy[SCHEDULER_TASKS_COUNT] = { true };
+    is_task_noisy[SCHEDULER_TASK_PEDALS_FSM_RUN] = false;
     is_task_noisy[SCHEDULER_TASK_IDENTITY_SEND_PEDALS_FSM] = false;
 
     for (enum SchedulerTaskName task_id = 0;
